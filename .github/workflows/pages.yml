@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags are needed for the git describe version label
       - name: Setup java
         uses: actions/setup-java@v4.0.0
         with: 
@@ -33,7 +35,7 @@ jobs:
         uses: shivammathur/setup-php@2.37.1
         with:
           php-version: '8.0'
-      - name: Build cstimer
+      - name: Build jlTimer
         run: mkdir dist/local dist/local/js dist/local/css && make local
       - name: Setup Pages
         uses: actions/configure-pages@v4

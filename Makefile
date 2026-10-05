@@ -165,18 +165,23 @@ module: $(cstimer_module)
 
 version: $(langPHP)
 	@echo "Build Version: $(version)"
-	@sed -i 's/\$$version = "[^"]*"/\$$version = "$(version)"/g' $(dest)/lang/langDet.php
+	@sed -i.bak 's/\$$version = "[^"]*"/\$$version = "$(version)"/g' $(dest)/lang/langDet.php && rm -f $(dest)/lang/langDet.php.bak
 
 clean:
 	rm -f $(cstimer) $(twisty) $(css) $(langJS) $(langPHP)
 
+# Static build (used for GitHub Pages). All paths stay relative so the site
+# works from a repository subpath. The AppCache attribute is dropped, the web
+# app manifest is kept, and the service worker skips timer.php (absent here).
 local: all
 	mkdir -p $(dest)/local/js $(dest)/local/css
-	php -d include_path=$(dest) $(dest)/timer.php | sed "s/.*manifest.*//g" > $(dest)/local/index.html
+	php -d include_path=$(dest) $(dest)/timer.php | sed 's/ manifest="cache.manifest"//' > $(dest)/local/index.html
 	cp $(dest)/js/jquery.min.js $(dest)/local/js/jquery.min.js
 	cp $(dest)/js/cstimer.js $(dest)/local/js/cstimer.js
 	cp $(dest)/js/twisty.js $(dest)/local/js/twisty.js
 	cp $(dest)/css/style.css $(dest)/local/css/style.css
+	cp $(dest)/jltimer.webmanifest $(dest)/jltimer512x512.png $(dest)/local/
+	sed "/'timer.php',/d" $(dest)/sw.js > $(dest)/local/sw.js
 
 check: $(twistySrc) $(timerSrc)
 	@$(compile) --externs experiment/checkwrap.js $(src)/lang/en-us.js $(timerSrc) $(twistySrc) -O ADVANCED --checks-only --jscomp_off checkTypes
@@ -207,13 +212,13 @@ $(langJS): $(dest)/lang/%: $(src)/lang/%
 
 $(dest)/cache.manifest: $(cache) version
 	@echo $@
-	@sed -i '$$d' $@
-	@echo -n \# MD5= >> $@
+	@sed -i.bak '$$d' $@ && rm -f $@.bak
+	@printf '# MD5=' >> $@
 	@cat $(cache) | md5sum | awk '{print $$1}' >> $@
 
 $(dest)/sw.js: $(cache) version
 	@echo $@
-	@sed -i '$$d' $@
-	@echo 'var CACHE_NAME = "cstimer_cache_'`cat $(cache) | md5sum | awk '{print $$1}'`'";' >> $@
+	@sed -i.bak '$$d' $@ && rm -f $@.bak
+	@echo 'var CACHE_NAME = "jltimer_cache_'`cat $(cache) | md5sum | awk '{print $$1}'`'";' >> $@
 
 .PHONY: all clean version check

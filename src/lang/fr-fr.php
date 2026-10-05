@@ -1,5 +1,6 @@
-<h1>csTimer version <?php echo $version;?> - Chronomètre Professionnel de Speedcubing</h1>
+<h1>jlTimer version <?php echo $version;?> - Chronomètre Professionnel de Speedcubing</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>Introduction</h2>
 <p>csTimer est un chronomètre professionnel conçu pour les speedcubers. Il permet de :</p>
 <ul>
@@ -155,14 +156,14 @@
 <h2>Liens</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">Cubing China</a></li>
-<li><a class="click" href="/new/" title="">Version beta de csTimer</a></li>
-<li><a class="click" href="/src/" title="">Version beta de csTimer avec fichiers non-compressés</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">Version beta de csTimer</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">Version beta de csTimer avec fichiers non-compressés</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">Code source de csTimer</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>Palettes de couleurs</h2>
 <?php include('color.php') ?>

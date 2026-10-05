@@ -1,5 +1,6 @@
-<h1>csTimer versjon <?php echo $version;?> - Profesjonell Hurtigkubing/Øvelse tidtaker</h1>
+<h1>jlTimer versjon <?php echo $version;?> - Profesjonell Hurtigkubing/Øvelse tidtaker</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>Inntroduksjon</h2>
 <p>csTimer er et profesjonelt tidttakingssprogram designet for Rubik’s kube løsere, den inkluderer:</p>
 <ul>
@@ -155,14 +156,14 @@
 <h2>Linker</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">Kina kubing</a></li>
-<li><a class="click" href="/new/" title="">CsTimer beta versjon</a></li>
-<li><a class="click" href="/src/" title="">csTimer betaversjon med ukomprimerte filer</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">CsTimer beta versjon</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">csTimer betaversjon med ukomprimerte filer</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">CsTimer kildekode</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>Fargetema</h2>
 <?php include('color.php') ?>

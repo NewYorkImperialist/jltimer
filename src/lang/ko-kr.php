@@ -1,5 +1,6 @@
-<h1>csTimer 버전 <?php echo $version;?> - 전문적인 스피드큐빙/훈련 타이머</h1>
+<h1>jlTimer 버전 <?php echo $version;?> - 전문적인 스피드큐빙/훈련 타이머</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>소개</h2>
 <p>csTimer는 루빅스 큐브 스피드 솔버를 위해 설계된 전문적인 타이밍 프로그램이며, 다음 기능을 제공합니다:</p>
 <ul>
@@ -155,14 +156,14 @@
 <h2>링크</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">Cubing China</a></li>
-<li><a class="click" href="/new/" title="">csTimer beta version</a></li>
-<li><a class="click" href="/src/" title="">csTimer beta version with uncompressed files</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">csTimer beta version</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">csTimer beta version with uncompressed files</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">csTimer source code</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>색상 구성</h2>
 <?php include('color.php') ?>

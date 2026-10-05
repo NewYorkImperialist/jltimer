@@ -18,20 +18,25 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="format-detection" content="telephone=no">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-  <link rel="apple-touch-icon" href="cstimer512x512.png">
-  <link rel="manifest" href="cstimer.webmanifest">
+  <link rel="apple-touch-icon" href="jltimer512x512.png">
+  <link rel="icon" type="image/png" href="jltimer512x512.png">
+  <meta name="theme-color" content="#222233">
+  <meta name="application-name" content="jlTimer">
+  <meta name="apple-mobile-web-app-title" content="jlTimer">
+  <link rel="manifest" href="jltimer.webmanifest">
 <?php include('lang/langDet.php');?>
   <link rel='stylesheet' type='text/css' href='css/style.css'>
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/cstimer.js"></script>
-<?php include('baidutongji.php') ?>
+<?php // Upstream csTimer's Baidu analytics (account owned by cstimer.net) is not loaded in jlTimer.
+// include('baidutongji.php') ?>
 </head>
 <body>
 <div id="leftbar">
   <div class="mybutton c1"><div><span></span><span class="icon">&#59796;</span></div></div>
   <div class="mybutton c2"><div><span></span><span class="icon">&#59846;</span></div></div>
   <div class="mybutton c3"><div><span></span><span class="icon">&#59648;</span></div></div>
-  <div id="logo" class="mybutton"><div><span>csTimer</span></div></div>
+  <div id="logo" class="mybutton"><div><span>jlTimer</span></div></div>
   <div class="mybutton c4"><div><span></span><span class="icon">&#59835;</span></div></div>
   <div class="mybutton c5"><div><span></span><span class="icon">&#59710;</span></div></div>
   <div class="mybutton c6"><div><span></span><span class="icon">&#59795;</span></div></div>

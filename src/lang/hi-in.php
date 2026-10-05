@@ -1,5 +1,6 @@
-<h1>csTimer संस्करण <?php echo $version;?> - व्यावसायिक स्पीडक्यूबिंग/प्रशिक्षण टाइमर</h1>
+<h1>jlTimer संस्करण <?php echo $version;?> - व्यावसायिक स्पीडक्यूबिंग/प्रशिक्षण टाइमर</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>विषय-प्रवेश</h2>
 <p>csTimer एक पेशेवर टाइमिंग प्रोग्राम है जो रूबिक्स क्यूब स्पीडसॉल्वर्स के लिए बनाया किया गया है, यह प्रदान करता है:</p>
 <ul>
@@ -155,14 +156,14 @@
 <h2>Links</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">Cubing China</a></li>
-<li><a class="click" href="/new/" title="">csTimer beta version</a></li>
-<li><a class="click" href="/src/" title="">csTimer beta version with uncompressed files</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">csTimer beta version</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">csTimer beta version with uncompressed files</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">csTimer source code</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>Color schemes</h2>
 <?php include('color.php') ?>

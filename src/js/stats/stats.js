@@ -924,7 +924,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 		var blob = new Blob([s], { 'type': 'text/csv' });
 		var outFile = $('<a class="click"/>').appendTo('body');
 		outFile.attr('href', URL.createObjectURL(blob));
-		outFile.attr('download', 'csTimerExport_' + mathlib.time2str(new Date()/1000, '%Y%M%D_%h%m%s') + '.csv');
+		outFile.attr('download', 'jlTimerExport_' + mathlib.time2str(new Date()/1000, '%Y%M%D_%h%m%s') + '.csv');
 		outFile[0].click();
 		outFile.remove();
 	}

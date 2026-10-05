@@ -375,7 +375,7 @@ var kernel = execMain(function() {
 			if (value[1] == curLang || value[2] != "modify") {
 				return;
 			} else if (value[1] == 'h') {
-				if ($.confirm('Press OK to redirect to crowdin for translating cstimer')) {
+				if ($.confirm('Press OK to redirect to crowdin for translating csTimer (the upstream project of jlTimer)')) {
 					window.location.href = 'https://crowdin.com/project/cstimer';
 				}
 			} else {
@@ -400,7 +400,7 @@ var kernel = execMain(function() {
 
 		function addButton(module, button, callback, index) {
 			leftbar = leftbar || $('#leftbar');
-			leftbar.children('.c' + index).click(callback).find('span:first').html(button);
+			leftbar.children('.c' + index).click(callback).attr('aria-label', $('<div>').html(button).text()).find('span:first').html(button);
 		}
 
 		function windowClick() {
@@ -425,6 +425,16 @@ var kernel = execMain(function() {
 			setProp(module, modules[module].button);
 		}
 
+		// toggle a panel through its leftbar button, so the button state and the saved property stay in sync
+		function setWindowShown(module, shown) {
+			if (!modules[module] || modules[module].button == shown) {
+				return;
+			}
+			leftbar.children().filter(function() {
+				return $(this).data('module') == module;
+			}).click();
+		}
+
 		var hideMap = {
 			'scramble': 'scrHide',
 			'tools': 'toolHide',
@@ -442,7 +452,7 @@ var kernel = execMain(function() {
 			div.append($('<span class="chide" data="' + hideMap[module] + '"></span>').click(toggleHide));
 			enable = getProp(module, enable);
 			leftbar = leftbar || $('#leftbar');
-			leftbar.children('.c' + index).addClass(enable ? "enable" : "").data('module', module).click(windowClick).find('span:first').html(button);
+			leftbar.children('.c' + index).addClass(enable ? "enable" : "").data('module', module).click(windowClick).attr('aria-label', $('<div>').html(button).text()).find('span:first').html(button);
 			modules[module] = {button: enable, div: div, auto: auto};
 			enable ? div.show() : div.hide();
 			pushSignal('button', [module, enable]);
@@ -636,7 +646,8 @@ var kernel = execMain(function() {
 			"#000#fff#ccc#ddd#555#fff#888",
 			"#fff#227#9c3#563#580#dad#000",
 			"#9aa#023#034#b80#28d#678#034",
-			"#678#ffe#eed#ffe#28d#678#eed"
+			"#678#ffe#eed#ffe#28d#678#eed",
+			"#dde#223#334#445#8bf#fff#46c#fb4" // jlTimer
 		];
 
 
@@ -705,13 +716,32 @@ var kernel = execMain(function() {
 		var isMobileView = false;
 
 		function updateUIDesign() {
-			$('html').removeClass('mtds cspt');
+			$('html').removeClass('mtds cspt jlds');
 			if (getProp('uidesign') == 'mt' || getProp('uidesign') == 'mtns') {
 				$('html').addClass('mtds');
 			} else if (getProp('uidesign') == 'cspt') {
 				$('html').addClass('cspt');
+			} else if (getProp('uidesign') == 'jl') {
+				$('html').addClass('jlds');
 			}
 		}
+
+		// jlTimer layout: 'c' familiar (classic panels), 'm' minimal (timer and virtual cube first)
+		function updateLayout(value, signalType) {
+			$('html').toggleClass('jlmin', value == 'm');
+			if (signalType != 'modify') {
+				return; // keep the saved panel states on load or session switch
+			}
+			if (value == 'm') {
+				setWindowShown('stats', false);
+				setWindowShown('tools', false);
+			} else {
+				setWindowShown('scramble', true);
+				setWindowShown('stats', true);
+			}
+		}
+
+		var JL_TIMER_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
 		function fixOrient() {
 			var width = $(window).width();
@@ -746,14 +776,23 @@ var kernel = execMain(function() {
 						property.set('color', 'u');
 					} else {
 						useColorTemplate(styles[value[1] == 'r' ? ~~(Math.random() * styles.length) : (value[1] - 1)]);
+						if (value[1] == '9') {
+							property.set('color', 'u'); // csTimer has no 9th preset, never store it
+						}
 					}
 					break;
 				case 'font':
+					$('html').toggleClass('jlfont', value[1] == 'jl');
 					if (value[1] == 'r') {
 						$('#container, #multiphase').css('font-family', ['lcd', 'lcd2', 'lcd3', 'lcd4', 'lcd5'][~~(Math.random() * 5)]);
+					} else if (value[1] == 'jl') {
+						$('#container, #multiphase').css('font-family', JL_TIMER_FONT);
 					} else {
 						$('#container, #multiphase').css('font-family', value[1]);
 					}
+					break;
+				case 'jlLayout':
+					updateLayout(value[1], value[2]);
 					break;
 				case 'col-font':
 				case 'col-back':
@@ -811,22 +850,24 @@ var kernel = execMain(function() {
 
 		$(function() {
 			gray = $('#gray');
-			regListener('ui', 'property', procSignal, /^(?:color|font|col-.+|zoom|view|uidesign|wnd(?:Scr|Stat|Tool))/);
+			regListener('ui', 'property', procSignal, /^(?:color|font|col-.+|zoom|view|uidesign|jlLayout|wnd(?:Scr|Stat|Tool))/);
 			regProp('ui', 'zoom', 1, ZOOM_LANG, ['1', ['0.7', '0.8', '0.9', '1', '1.1', '1.25', '1.5'], ['70%', '80%', '90%', '100%', '110%', '125%', '150%']], 1);
-			regProp('ui', 'font', 1, PROPERTY_FONT, ['lcd', ['r', 'Arial', 'lcd', 'lcd2', 'lcd3', 'lcd4', 'lcd5', 'Roboto'], PROPERTY_FONT_STR.split('|').concat('Roboto')]);
+			regProp('ui', 'font', 1, PROPERTY_FONT, ['jl', ['r', 'Arial', 'lcd', 'lcd2', 'lcd3', 'lcd4', 'lcd5', 'Roboto', 'jl'], PROPERTY_FONT_STR.split('|').concat('Roboto', 'jlTimer sans')]);
 			regProp('kernel', 'ahide', 0, PROPERTY_AHIDE, [true], 1);
-			regProp('ui', 'uidesign', 1, PROPERTY_UIDESIGN, ['n', ['n', 'mt', 'ns', 'mtns', 'cspt'], PROPERTY_UIDESIGN_STR.split('|').concat('csTimer+')]);
+			regProp('ui', 'uidesign', 1, PROPERTY_UIDESIGN, ['jl', ['n', 'mt', 'ns', 'mtns', 'cspt', 'jl'], PROPERTY_UIDESIGN_STR.split('|').concat('csTimer+', 'jlTimer')]);
+			regProp('ui', 'jlLayout', 1, 'Layout', ['c', ['c', 'm'], ['Familiar', 'Minimal']]);
 			regProp('ui', 'view', 1, PROPERTY_VIEW, ['a', ['a', 'm', 'd'], PROPERTY_VIEW_STR.split('|')]);
-			regProp('color', 'color', 1, PROPERTY_COLOR, ['1', ['u', 'e', 'r', '1', '2', '3', '4', '5', '6', '7', '8'], PROPERTY_COLOR_STR.split('|')]);
+			// default is 'manual' with the jlTimer palette as default colors
+			regProp('color', 'color', 1, PROPERTY_COLOR, ['u', ['u', 'e', 'r', '1', '2', '3', '4', '5', '6', '7', '8', '9'], PROPERTY_COLOR_STR.split('|').concat('jlTimer')]);
 			var parr = PROPERTY_COLORS.split('|');
-			regProp('color', 'col-font', 3, parr[0], ['#000000']);
-			regProp('color', 'col-back', 3, parr[1], ['#eeffcc']);
-			regProp('color', 'col-board', 3, parr[2], ['#ffdddd']);
-			regProp('color', 'col-button', 3, parr[3], ['#ffbbbb']);
-			regProp('color', 'col-link', 3, parr[4], ['#0000ff']);
-			regProp('color', 'col-logo', 3, parr[5], ['#ffff00']);
-			regProp('color', 'col-logoback', 3, parr[6], ['#000000']);
-			regProp('color', 'col-pbs', 3, 'PBs', ['#ff4400']);
+			regProp('color', 'col-font', 3, parr[0], ['#ddddee']);
+			regProp('color', 'col-back', 3, parr[1], ['#222233']);
+			regProp('color', 'col-board', 3, parr[2], ['#333344']);
+			regProp('color', 'col-button', 3, parr[3], ['#444455']);
+			regProp('color', 'col-link', 3, parr[4], ['#88bbff']);
+			regProp('color', 'col-logo', 3, parr[5], ['#ffffff']);
+			regProp('color', 'col-logoback', 3, parr[6], ['#4466cc']);
+			regProp('color', 'col-pbs', 3, 'PBs', ['#ffbb44']);
 			regProp('color', 'col-timer', 4, 'Timer', ['#f00#0d0#dd0#080#f00']);
 			regProp('color', 'colcube', 4, 'Cube', ['#ff0#fa0#00f#fff#f00#0d0']);
 			regProp('color', 'colpyr', 4, 'Pyraminx', ['#0f0#f00#00f#ff0']);
@@ -842,6 +883,17 @@ var kernel = execMain(function() {
 			regProp('ui', 'wndStat', 1, PROPERTY_WNDSTAT, ['n', ['n', 'f'], PROPERTY_WND_STR.split('|')]);
 			regProp('ui', 'wndTool', 1, PROPERTY_WNDTOOL, ['n', ['n', 'f'], PROPERTY_WND_STR.split('|')]);
 
+			// leftbar buttons are reachable with Tab and activated by Enter/Space.
+			// Mouse and touch presses do not focus them, so the space bar keeps starting the timer after a click.
+			leftbar.children().attr({'tabindex': 0, 'role': 'button'}).mousedown(function(e) {
+				e.preventDefault();
+			}).keydown(function(e) {
+				if (document.activeElement === this && (e.which == 13 || e.which == 32)) {
+					$(this).click();
+					return false;
+				}
+			});
+			leftbar.children('#logo').attr('aria-label', 'jlTimer');
 			leftbar.appendTo(wndCtn).mouseenter(function() {
 				toggleLeftBar(true);
 			}).mouseleave(function() {
@@ -891,6 +943,7 @@ var kernel = execMain(function() {
 			hide: hide,
 			show: show,
 			isPop: function(){return isPopup;},
+			setWindowShown: setWindowShown,
 			toggleLeftBar: toggleLeftBar
 		};
 	})();

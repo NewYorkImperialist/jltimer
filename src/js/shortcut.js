@@ -47,8 +47,35 @@ var shortcuts = execMain(function(){
 		76: [['input', 'l']]  //last layer
 	}
 
+	// jlTimer: Alt+L toggles the layout, Alt+=/-/0 resize the virtual cube.
+	// Only while idle and outside text fields and dialogs, so solving and typing are never affected.
+	function jlShortcut(e) {
+		if (!e.altKey || e.ctrlKey || e.metaKey || kernel.ui.isPop() || timer.status() != -1
+				|| $(document.activeElement).is('input, textarea, select')) {
+			return false;
+		}
+		var key = e.which;
+		if (key == 76) { // l
+			kernel.setProp('jlLayout', kernel.getProp('jlLayout') == 'm' ? 'c' : 'm');
+			logohint.push(kernel.getProp('jlLayout') == 'm' ? 'Minimal layout' : 'Familiar layout');
+		} else if (key == 187 || key == 61 || key == 107) { // = or numpad +
+			logohint.push('Virtual cube ' + timer.stepVrcSize(1) + '%');
+		} else if (key == 189 || key == 173 || key == 109) { // - or numpad -
+			logohint.push('Virtual cube ' + timer.stepVrcSize(-1) + '%');
+		} else if (key == 48 || key == 96) { // 0
+			logohint.push('Virtual cube ' + timer.stepVrcSize(0) + '%');
+		} else {
+			return false;
+		}
+		kernel.clrKey();
+		return true;
+	}
+
 	function onkeydown(signal, e) {
 		if (!kernel.getProp('useKSC')) {
+			return;
+		}
+		if (jlShortcut(e)) {
 			return;
 		}
 		var action;

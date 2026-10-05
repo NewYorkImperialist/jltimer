@@ -454,7 +454,7 @@ var exportFunc = execMain(function() {
 					'type': 'text/plain'
 				});
 				outFile.attr('href', URL.createObjectURL(blob));
-				outFile.attr('download', 'cstimer_' + mathlib.time2str(new Date() / 1000, '%Y%M%D_%h%m%s') + '.txt');
+				outFile.attr('download', 'jltimer_' + mathlib.time2str(new Date() / 1000, '%Y%M%D_%h%m%s') + '.txt');
 			}
 			kernel.showDialog([exportDiv, 0, undefined, 0, [EXPORT_ONLYOPT, exportProperties], [EXPORT_ACCOUNT, exportAccounts]], 'export', EXPORT_DATAEXPORT);
 		});
@@ -651,7 +651,7 @@ var exportFunc = execMain(function() {
 					});
 					var tmpFile = $('<a class="click"/>');
 					tmpFile.attr('href', URL.createObjectURL(blob));
-					tmpFile.attr('download', 'cstimer_' + mathlib.time2str(new Date() / 1000, '%Y%M%D_%h%m%s') + '.txt');
+					tmpFile.attr('download', 'jltimer_' + mathlib.time2str(new Date() / 1000, '%Y%M%D_%h%m%s') + '.txt');
 					tmpFile.appendTo('body');
 					tmpFile[0].click();
 					tmpFile.remove();

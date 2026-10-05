@@ -640,7 +640,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 			} else {
 				return;
 			}
-		} else {
+		} else if (keyCode != 9) { // keep Tab focus navigation working
 			focusObj.blur();
 		}
 		if (status == -1 && keyCode == 27) {
@@ -687,7 +687,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 			} else {
 				return;
 			}
-		} else {
+		} else if (keyCode != 9) { // keep Tab focus navigation working
 			focusObj.blur();
 		}
 		switch (getProp('input')) {
@@ -742,6 +742,10 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 			if (value[0] == 'giiVRC' && value[2] != 'set') {
 				timer.giiker.setVRC(getProp('input') == 'g' && value[1] != 'n');
 			}
+			if (value[0] == 'vrcSize') {
+				timer.virtual.setSize(getProp('timerSize'));
+				timer.giiker.setSize(getProp('timerSize'));
+			}
 			if (value[0] == 'vrcOri' && value[2] != 'set') {
 				timer.virtual.setSize(getProp('timerSize'));
 				timer.giiker.setSize(getProp('timerSize'));
@@ -758,7 +762,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 			if ($.inArray(value[0], resetCondition) != -1) {
 				reset();
 			}
-		}, /^(?:input|phases|scrType|preScrT?|isTrainScr|giiOri|timerSize|showAvg|showDiff|useMilli|smallADP|giiVRC|vrcOri|toolPos|scrHide|toolHide|statHide|useIns|showIns|col-timer)$/);
+		}, /^(?:input|phases|scrType|preScrT?|isTrainScr|giiOri|timerSize|showAvg|showDiff|useMilli|smallADP|giiVRC|vrcOri|vrcSize|toolPos|scrHide|toolHide|statHide|useIns|showIns|col-timer)$/);
 		regListener('timer', 'ashow', function (signal, value) {
 			updateTimerOffsetAsync(!value);
 		});
@@ -767,6 +771,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		regListener('timer', 'scrfix', updateTimerOffsetAsync.bind(null, false));
 		$(window).bind('resize', updateTimerOffsetAsync.bind(null, false));
 		regProp('vrc', 'vrcSpeed', 1, PROPERTY_VRCSPEED, [100, [0, 50, 100, 200, 500, 1000], '\u221E|20|10|5|2|1'.split('|')], 1);
+		regProp('vrc', 'vrcSize', 1, 'Virtual cube size', [100, VRC_SIZES, VRC_SIZES.map(function(v) { return v + '%'; })], 1);
 		regProp('vrc', 'vrcOri', 1, PROPERTY_VRCORI, ['6,12', ['6,12', '10,11'], ['UF', 'URF']], 1);
 		regProp('vrc', 'vrcMP', 1, PROPERTY_VRCMP, ['n', ['n', 'cfop', 'fp', 'cf4op', 'cf4o2p2', 'roux'], PROPERTY_VRCMPS.split('|')], 1);
 		regProp('vrc', 'vrcAH', ~1, PROPERTY_VRCAH, ['11', ['00', '01', '10', '11'], PROPERTY_VRCAHS.split('|')], 1);
@@ -802,6 +807,24 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 	});
 
 	var fobj;
+
+	// virtual cube scale relative to the timer size, in percent
+	var VRC_SIZES = [50, 60, 70, 80, 90, 100, 110, 125, 150, 175, 200, 250, 300];
+
+	function getVrcScale() {
+		return (+getProp('vrcSize', 100) || 100) / 100;
+	}
+
+	function stepVrcSize(dir) {
+		var cur = +getProp('vrcSize', 100) || 100;
+		var idx = VRC_SIZES.indexOf(cur);
+		if (idx == -1) {
+			idx = VRC_SIZES.indexOf(100);
+		}
+		idx = dir == 0 ? VRC_SIZES.indexOf(100) : Math.max(0, Math.min(VRC_SIZES.length - 1, idx + dir));
+		kernel.setProp('vrcSize', VRC_SIZES[idx]);
+		return VRC_SIZES[idx];
+	}
 
 	function refocus() {
 		if (fobj != undefined) {
@@ -852,6 +875,8 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		hardTime: setHardTime,
 		updateMulPhase: updateMulPhase,
 		getBTDiv: function() { return bluetoothInstructDiv; },
+		getVrcScale: getVrcScale,
+		stepVrcSize: stepVrcSize,
 		keyboard: keyboardTimer,
 		lcd: lcd
 	};

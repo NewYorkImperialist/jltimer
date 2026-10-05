@@ -1,5 +1,6 @@
-<h1>csTimer גרסה <?php echo $version;?> - טיימר קיובינג רשמי</h1>
+<h1>jlTimer גרסה <?php echo $version;?> - טיימר קיובינג רשמי</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>הקדמה</h2>
 <p>csTimer הוא טיימר מקצועי שעוצב במיוחד לפותרי קוביה הונגרית, הוא מספק:</p>
 <ul>
@@ -155,14 +156,14 @@
 <h2>Links</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">קייובינג סין</a></li>
-<li><a class="click" href="/new/" title="">csTimer גרסת בטא</a></li>
-<li><a class="click" href="/src/" title="">csTimer beta version with uncompressed files</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">csTimer גרסת בטא</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">csTimer beta version with uncompressed files</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">csTimer קוד מקור</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>סכימת הצבעים</h2>
 <?php include('color.php') ?>

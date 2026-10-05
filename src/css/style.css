@@ -1482,3 +1482,216 @@ html.cspt:not(.m) .mywindow, html.cspt:not(.m) #leftbar {
 html.cspt:not(.m) .mywindow:hover, html.cspt:not(.m) #leftbar:hover {
     z-index: 1 !important;
 }
+
+/* ---------- jlTimer ---------- */
+
+/* visible keyboard focus everywhere (mouse focus keeps the browser default) */
+:focus-visible {
+	outline: 0.15rem solid #5b9bff;
+	outline-offset: 0.1rem;
+}
+
+#leftbar > div:focus-visible {
+	outline-offset: -0.25rem;
+	z-index: 1;
+}
+
+/* "jlTimer sans" timer font: fixed-width digits so the running time does not jitter */
+html.jlfont #container, html.jlfont #multiphase {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum" 1;
+}
+
+html.jlfont #lcd {
+	font-weight: 500;
+	letter-spacing: -0.02em;
+}
+
+/* jlTimer UI design: system interface font, consistent spacing, rounded panels */
+.jlds body,
+.jlds textarea,
+.jlds select,
+.jlds input,
+.jlds .mywindow,
+.jlds .dialog,
+.jlds .popup,
+.jlds .tab,
+.jlds .dialog .title,
+.jlds #leftbar > div,
+.jlds #avgstr,
+.jlds #timer .difflabel,
+.jlds #rtimer .difflabel {
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.jlds #leftbar #logo {
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-weight: 700;
+	font-size: 2.6em;
+	letter-spacing: -0.03em;
+}
+
+.jlds #leftbar #logo > div > span > span.msg {
+	font-weight: 500;
+	letter-spacing: 0;
+}
+
+.jlds #leftbar > div:not(#logo) > div > span:not(.icon) {
+	font-size: 0.95em;
+	font-weight: 600;
+	line-height: 1.15;
+}
+
+.jlds #leftbar,
+.jlds #leftbar::before,
+.jlds .mywindow,
+.jlds .mywindow:not(.fixed)::before {
+	border-radius: 0.6rem;
+}
+
+.jlds #leftbar > div {
+	border-radius: 0.5rem;
+}
+
+.jlds .mybutton,
+.jlds .mybutton.enable,
+.jlds .tab,
+.jlds .tab.enable,
+.jlds .dialog,
+.jlds .popup {
+	border-style: solid;
+}
+
+.jlds .mywindow:not(.fixed)::before,
+.jlds #leftbar::before,
+.jlds .dialog,
+.jlds .popup {
+	box-shadow: 0 0.15rem 0.9rem rgba(0, 0, 0, 0.28);
+}
+
+.jlds .mywindow:not(.fixed) {
+	padding: 0.45rem 0.6rem;
+}
+
+.jlds .mywindow > .chide {
+	border-top-left-radius: 0.5rem;
+}
+
+.jlds #avgstr {
+	line-height: 1.45;
+}
+
+.jlds #avgstr > span.click {
+	padding: 0 0.3em;
+	border-radius: 0.3em;
+}
+
+.jlds .dialog, .jlds .popup {
+	border-radius: 0.8rem;
+	border-width: 0.1rem;
+	padding: 0.8rem;
+}
+
+.jlds .dialog .title {
+	font-size: 1.3em;
+	font-weight: 600;
+	padding-bottom: 0.35em;
+}
+
+.jlds .tab {
+	border-width: 0.1rem;
+	border-radius: 0.45rem;
+	padding: 0.15rem 0.55rem;
+	font-weight: 500;
+}
+
+.jlds .tabValue {
+	border-radius: 0.5rem;
+}
+
+.jlds select,
+.jlds input[type='button'],
+.jlds input[type='text'] {
+	border-radius: 0.35rem;
+	padding: 0.15rem 0.35rem;
+}
+
+.jlds input.buttonOK {
+	padding: 0.3rem 0.9rem;
+	border-radius: 0.45rem;
+}
+
+.jlds table.opttable td {
+	padding: 0.35em 0.2em 0.35em 0.5em;
+}
+
+.jlds .options th:first-child {
+	font-weight: 600;
+}
+
+.jlds .table td, .jlds .table th {
+	padding: 0.25rem 0.4rem;
+}
+
+.jlds #stats .table td, .jlds #stats .table th {
+	padding: 0.2rem 0.35rem;
+}
+
+.jlds #scrambleTxt {
+	line-height: 1.45;
+	word-spacing: 0.15em;
+}
+
+.jlds #toolsDiv > div > div {
+	font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Lucida Console", monospace;
+	font-size: 1.3em;
+}
+
+.jlds #about {
+	line-height: 1.6;
+}
+
+.jlfork {
+	margin: 0.8em 0;
+	padding: 0.6em 0.9em;
+	border: 0.1rem dashed;
+	border-radius: 0.5rem;
+}
+
+/* Minimal layout: timer and virtual cube first, panels without frames */
+.jlmin .mywindow:not(.fixed) {
+	background-color: transparent;
+	border-color: transparent;
+	box-shadow: none;
+}
+
+.jlmin .mywindow:not(.fixed)::before {
+	display: none;
+}
+
+.jlmin #leftbar {
+	border-color: transparent;
+	box-shadow: none;
+}
+
+.jlmin #leftbar::before {
+	display: none;
+}
+
+html.jlmin:not(.m) #leftbar > div {
+	opacity: 0.3;
+	transition: opacity 0.2s;
+}
+
+html.jlmin:not(.m) #leftbar:hover > div,
+html.jlmin:not(.m) #leftbar:focus-within > div {
+	opacity: 1;
+}
+
+.jlmin #avgstr {
+	opacity: 0.8;
+}
+
+.jlmin .mywindow > .chide {
+	opacity: 0.4;
+}

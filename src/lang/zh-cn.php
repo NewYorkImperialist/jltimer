@@ -1,5 +1,6 @@
-<h1>csTimer version <?php echo $version;?> - 魔方竞速训练专用计时器</h1>
+<h1>jlTimer version <?php echo $version;?> - 魔方竞速训练专用计时器</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>简介</h2>
 <p>csTimer是专门为魔方爱好者精心设计的一款专业计时软件，它提供了：</p>
 <ul>
@@ -155,14 +156,14 @@
 <h2>链接</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">粗饼 中国魔方赛事网</a></li>
-<li><a class="click" href="/new/" title="">csTimer测试版</a></li>
-<li><a class="click" href="/src/" title="">csTimer测试版未压缩</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">csTimer测试版</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">csTimer测试版未压缩</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">csTimer源代码</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>更多配色方案</h2>
 <?php include('color.php') ?>

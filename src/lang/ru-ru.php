@@ -1,5 +1,6 @@
-<h1>csTimer версии <?php echo $version;?> - профессиональный спидкубинг/тренировачный таймер</h1>
+<h1>jlTimer версии <?php echo $version;?> - профессиональный спидкубинг/тренировачный таймер</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>Введение</h2>
 <p>csTimer - это профессиональный таймер, предназначенный для спидкуберов, он предоставляет:</p>
 <ul>
@@ -155,14 +156,14 @@
 <h2>Ссылки</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">Кубинг в Китае</a></li>
-<li><a class="click" href="/new/" title="">Бета-версия csTimer</a></li>
-<li><a class="click" href="/src/" title="">Бета-версия csTimer с несжатыми файлами</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">Бета-версия csTimer</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">Бета-версия csTimer с несжатыми файлами</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">Исходный код csTimer</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>Цветовые схемы</h2>
 <?php include('color.php') ?>

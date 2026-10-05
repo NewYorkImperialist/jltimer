@@ -109,14 +109,14 @@ var help = execMain(function(regProp, setProp, getProp) {
 			'<tr style="height:50%;"><td colspan=8><span class="clpr-tm" style="font-size:2em; font-family:lcd;">0.00</span><br><span class="clpr-lk">ao5: xx.xx<br>ao12: xx.xx</span></td></tr>' +
 			'<tr style="height:25%;"><td class="clpr-bd" colspan=4>XXxXX<br>XXxXX</td><td class="bgcolor"></td></tr>' +
 			'<tr style="height:10%;"><td class="clpr-bt0"/><td class="clpr-bt0"/><td class="clpr-bt1"/>' +
-			'<td class="clpr-lg" style="width:33%; font-family:MyImpact;" colspan=2>csTimer</td>' +
+			'<td class="clpr-lg" style="width:33%; font-family:MyImpact;" colspan=2>jlTimer</td>' +
 			'<td class="clpr-bt1"/><td class="clpr-bt0"/><td class="clpr-bt0"/></tr>' +
 			'</tbody></table></div>' +
 			'<div class="colorPrevH" style="width:15em; height:11em;">' +
 			'<table style="width:100%; height:100%; border-collapse: collapse;"><tbody>' +
 			'<tr style="height:15%;"><td class="clpr-bt0"/><td class="clpr-bt0"/><td class="clpr-bt1"/>' +
 			'	<td class="clpr-bd" rowspan=2>U R F D L B</td></tr>' +
-			'<tr style="height:15%;"><td class="clpr-lg" style="font-family:MyImpact;" colspan=3>csTimer</td></tr>' +
+			'<tr style="height:15%;"><td class="clpr-lg" style="font-family:MyImpact;" colspan=3>jlTimer</td></tr>' +
 			'<tr style="height:15%;"><td class="clpr-bt1"/><td class="clpr-bt0"/><td class="clpr-bt0"/>' +
 			'	<td rowspan=2><span class="clpr-tm" style="font-size:2em; font-family:lcd;">0.00</span><br>' +
 			'		<span class="clpr-lk">ao5: xx.xx<br>ao12: xx.xx</span></td></tr>' +

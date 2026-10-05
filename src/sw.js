@@ -38,4 +38,4 @@ var urlsToCache = [
 // 	);
 // });
 
-var CACHE_NAME = 'cstimer_cache_0123456989465xx';
+var CACHE_NAME = 'jltimer_cache_0123456989465xx';

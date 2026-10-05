@@ -28,13 +28,13 @@ var logohint = execMain(function() {
 		curMsg = msgList.shift();
 		if (curMsg == undefined) {
 			logocc.removeClass('hint');
-			logocc.html('csTimer');
+			logocc.html('jlTimer');
 			return;
 		}
 		var logow = logo.width();
-		logocc.html('<div class="pad" style="width: ' + logow + 'px; ">csTimer</div>' +
+		logocc.html('<div class="pad" style="width: ' + logow + 'px; ">jlTimer</div>' +
 			'<span class="msg">' + curMsg + '</span>' +
-			'<div class="pad" style="width:' + logow + 'px; margin-right:' + (-logow) + 'px;">csTimer</div>');
+			'<div class="pad" style="width:' + logow + 'px; margin-right:' + (-logow) + 'px;">jlTimer</div>');
 		logocc.removeClass('hint');
 		var duration = (curMsg.length + 15) * 0.1 + 's';
 		logocc.css({
@@ -79,7 +79,7 @@ var logohint = execMain(function() {
 			render();
 		});
 		logo.click(function() {
-			if (location.protocol != 'https:' && $.confirm('Your access to csTimer is unsafe. Press OK for safe access.')) {
+			if (location.protocol != 'https:' && $.confirm('Your access to jlTimer is unsafe. Press OK for safe access.')) {
 				location.protocol = 'https:';
 			}
 			about.show();

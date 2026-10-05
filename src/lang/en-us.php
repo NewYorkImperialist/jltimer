@@ -1,24 +1,25 @@
-<h1>csTimer version <?php echo $version;?> - Professional Speedcubing/Training Timer</h1>
+<h1>jlTimer version <?php echo $version;?> - Professional Speedcubing/Training Timer</h1>
 <?php include('lang.php') ?>
+<?php include('fork.php') ?>
 <h2>Introduction</h2>
-<p>csTimer is a professional timing program designed for Rubik's cube speedsolvers, it provides:</p>
+<p>jlTimer is a personal speedcubing timer built on csTimer, a professional timing program designed for Rubik's cube speedsolvers. It provides:</p>
 <ul>
 <li>Amounts of scramble algorithms, including <strong>all WCA official events</strong>, varieties of twisty puzzles, <strong>training scramble</strong> for specific sub steps (e.g. <strong>F2L, OLL, PLL, ZBLL</strong>, and can filter cases), etc</li>
 <li>Plenty of statistics functions, it supports <strong>time-split timing</strong>; <strong>Any number of sessions</strong>, session split/merge, etc.</li>
 <li>Varieties of solver, such as <strong>Cross, Xcross, 2x2x2 face, Skewb Face, SQ1 shape</strong>, for learning or training these sub steps.</li>
 <li>Other auxiliary tools, such as scramble image, 8-second inspection (voice) alert, metronome, batch-scramble generator, etc.</li>
-<li>Backup function, For avoiding data missing, you can backup your solves to local files, csTimer's server or Google storage.</li>
+<li>Backup function. To avoid losing data, you can back up your solves to local files. csTimer's server and Google storage backups are csTimer services and may not work from this domain.</li>
 </ul>
-<p>csTimer supports most of modern desktop browsers, on mobile phone and tablet PC, you can add csTimer to your home screen, and it will work as a native APP.</p>
-<p>csTimer takes advantage of browser cache, which consumes traffic only when you open it for the first time, after that, csTimer is able to work without network connection (except for functions like backup)</p>
+<p>jlTimer supports most modern desktop browsers. On mobile phones and tablets, you can add jlTimer to your home screen, and it will work as a native app.</p>
+<p>jlTimer takes advantage of the browser cache, which consumes traffic only when you open it for the first time. After that, jlTimer is able to work without a network connection (except for functions like server backup).</p>
 <h3>Copyright</h3>
-<p>csTimer is an open source software that follows the GPLv3. If you have any suggestions or comments on csTimer, please submit it <a class="click" href="https://github.com/cs0x7f/cstimer/issues" title="">here</a></p>
-<p>Written by: <a href="mailto:cs0x7f@gmail.com">Shuang Chen (cs0x7f@gmail.com)</a></p>
-<p>UI designed by: <a href="mailto:liebe7@126.com">Yue Zhang (liebe7@126.com)</a></p>
+<p>jlTimer is a modified version of csTimer. Both are open source software that follows the GPLv3. jlTimer source code: <a class="click" href="https://github.com/NewYorkImperialist/jltimer" title="">github.com/NewYorkImperialist/jltimer</a>. Suggestions or comments on upstream csTimer can be submitted <a class="click" href="https://github.com/cs0x7f/cstimer/issues" title="">here</a>.</p>
+<p>csTimer written by: <a href="mailto:cs0x7f@gmail.com">Shuang Chen (cs0x7f@gmail.com)</a></p>
+<p>csTimer UI designed by: <a href="mailto:liebe7@126.com">Yue Zhang (liebe7@126.com)</a></p>
 <h2>Basic functions</h2>
 <ul>
 <li><strong>How to start timing</strong> - Hold the space bar (or both of left and right Ctrl keys, or touch the screen on mobile devices) and wait for the timer to turn green, the timer will start timing once the space bar is released, press any key to stop timing and the solving time will be record.</li>
-<li><strong>UI description</strong> - There are 6 buttons near the logo of csTimer: option, export, scramble, list times, donate, tools, click on the <strong>scramble</strong>, <strong>list times</strong>, <strong>tool</strong> to open the corresponding function panel.</li>
+<li><strong>UI description</strong> - There are 6 buttons near the logo of jlTimer: option, export, scramble, list times, donate, tools, click on the <strong>scramble</strong>, <strong>list times</strong>, <strong>tool</strong> to open the corresponding function panel.</li>
 <li><strong>Scramble panel</strong> - In the Scramble panel, you can select scramble type, set scramble length and case filter (if available), review previous scramble, generate next scramble.</li>
 <li><strong>List times panel</strong> - In the list times panel, you can open session manager by clicking "Session", select/add/delete sessions, empty session by the selector and the button next to, then you can view the current single/average, best single/average, and the full time list.</li>
 <li><strong>Tools panel</strong> - In the tool panel, you can select specific auxiliary functions, including scramble image, scramble generators, solvers, other kinds of statistics, etc.</li>
@@ -57,15 +58,16 @@
 <h2>Option details</h2>
 <ul>
 <li><strong data="opt_ahide">Hide All Elements When Timing</strong>. Hide logo and all panels when timing.</li>
-<li><strong data="opt_useMilli">use milliseconds</strong>. Display the millisecond digit, no matter whether it is checked, the internal timing accuracy of csTimer is 1 millisecond.</li>
+<li><strong data="opt_useMilli">use milliseconds</strong>. Display the millisecond digit, no matter whether it is checked, the internal timing accuracy of jlTimer is 1 millisecond.</li>
 <li><strong data="opt_timeFormat">time format</strong>. Time format to display.</li>
-<li><strong data="opt_atexpa">Auto Export (per 100 solves)</strong>. If checked, csTimer will export the solves automatically per 100 solves to the specified place, local file, csTimer server, or Google Storage.</li>
+<li><strong data="opt_atexpa">Auto Export (per 100 solves)</strong>. If checked, jlTimer will export the solves automatically per 100 solves to the specified place: local file, csTimer's server, or Google Storage.</li>
 <li><strong data="opt_expp">Import non-latest data</strong>. If you've uploaded multiple backups, you can import from one of the up to 10 most recently uploaded backups, if you accidentally upload an empty backup, this option will help you retrieve your solves.</li>
-<li><strong data="opt_useLogo">Hint messages in logo</strong>. cstimer's Logo will serve as an information display panel that prompts for a variety of information you may be interested in, such as breaking PB.</li>
+<li><strong data="opt_useLogo">Hint messages in logo</strong>. jlTimer's logo will serve as an information display panel that prompts for a variety of information you may be interested in, such as breaking PB.</li>
 <li><strong data="opt_showAvg">Show Avg Label</strong>. Two lines of labels are displayed below the the main timer, the current two averages, ao5 and ao12 by default.</li>
 <li><strong data="opt_zoom">Zoom</strong>. You can adjust sizes of all elements by this option.</li>
-<li><strong data="opt_font">select timer&#x27;s font</strong>. Font of the main timer.</li>
-<li><strong data="opt_uidesign">UI design is</strong>. You can switch ui design to material-like, or hide shadows by this option.</li>
+<li><strong data="opt_font">select timer&#x27;s font</strong>. Font of the main timer. "jlTimer sans" uses your system's interface font with fixed-width digits, so the time does not jitter while running.</li>
+<li><strong data="opt_uidesign">UI design is</strong>. You can switch ui design to material-like, or hide shadows by this option. "jlTimer" uses a clean sans-serif interface font, roomier spacing, rounded panels and visible keyboard focus.</li>
+<li><strong data="opt_jlLayout">Layout</strong>. "Familiar" is the classic csTimer arrangement. "Minimal" emphasizes the timer and the virtual cube: panel frames are removed, the time list and tools are hidden, and the button bar fades until you point at it. The scramble stays visible. The panel buttons still open any panel. Switching back to "Familiar" shows the scramble and time list again. Shortcut: Alt + L.</li>
 <li><strong data="opt_view">UI style is</strong>. Switch between desktop and mobile views.</li>
 <li><strong data="opt_wndScr">Scramble panel display style</strong>. Make scramble panel embedded into background.</li>
 <li><strong data="opt_wndStat">Statistics panel display style</strong>. Make list times panel embedded into background.</li>
@@ -74,17 +76,17 @@
 <li><strong data="opt_bgImgS">background image</strong>. You can select your own image as the background image, however, only https urls are available due to security constraint of the browser.</li>
 <li><strong data="opt_timerSize">timer size</strong>. Set the size of main timer.</li>
 <li><strong data="opt_smallADP">use small font after decimal point</strong>. Use a smaller font size after the digital point in main timer.</li>
-<li><strong data="opt_color">select color theme</strong>. Select color schemes of csTimer. Click csTimer's logo to show more color schemes.</li>
+<li><strong data="opt_color">select color theme</strong>. Select color schemes of jlTimer. "jlTimer" is a dark slate theme designed for readable, low-glare daily use. Click jlTimer's logo to show more color schemes.</li>
 <li><strong data="opt_useMouse">use mouse timer</strong>. Use mouse to start timer, keyboard-trigger will also be available.</li>
 <li><strong data="opt_useIns">use WCA inspection</strong>. Enable WCA inspection procedure, which is a 15-second countdown, auto +2/DNF penalty will also be enabled if you inspecting more than 15 seconds.</li>
 <li><strong data="opt_voiceIns">voice alert of WCA inspection</strong>. Alert at 8s/12s of inspection, to simulate the alert from judge in WCA competitions.</li>
 <li><strong data="opt_voiceVol">Voice volume</strong>. Voice level of the alert above.</li>
-<li><strong data="opt_input">entering in times with</strong>. csTimer is able to add solves by several ways, it supports manually input, automatically record from a stackmat timer, connect to a bluetooth smart cube or play virtual Rubik's cube, besides keyboard timing.</li>
+<li><strong data="opt_input">entering in times with</strong>. jlTimer is able to add solves by several ways, it supports manually input, automatically record from a stackmat timer, connect to a bluetooth smart cube or play virtual Rubik's cube, besides keyboard timing.</li>
 <li><strong data="opt_intUN">Unit when entering an integer</strong>. When you type an integer XXX in the input box, what does it mean, XXX second or XXX centisecond or XXX millisecond?</li>
 <li><strong data="opt_timeU">timer update is</strong>. How timer is updated when timing.</li>
 <li><strong data="opt_preTime">time of keeping space down(second(s))</strong>. How long the space bar should be held before the timer turns green.</li>
 <li><strong data="opt_phases">multi-phase</strong>. Number of phases, press any key to mark a split point when timing.</li>
-<li><strong data="opt_stkHead">Use Stackmat Status Information</strong>. Stackmat will report its state, e.g. whether left or right area is touched, then csTimer is able to use these information, however, the data error might occur and cause unexpected behavior.</li>
+<li><strong data="opt_stkHead">Use Stackmat Status Information</strong>. Stackmat will report its state, e.g. whether left or right area is touched, then jlTimer is able to use these information, however, the data error might occur and cause unexpected behavior.</li>
 <li><strong data="opt_scrSize">scramble size</strong>. Size of the scramble text.</li>
 <li><strong data="opt_scrASize">Auto scramble size</strong>. The size of the scramble text will be automatically adjusted by the length of the scramble, which works with together previous option.</li>
 <li><strong data="opt_scrMono">monospaced scramble</strong>. Use monospaced font for scramble text.</li>
@@ -112,19 +114,20 @@
 <li><strong data="opt_disPrec">time distribution precision</strong>. Time interval for the time distribution tool.</li>
 <li><strong data="opt_solSpl">Show solution progressively</strong>. If selected, only the length of a solution from a solver is displayed, and you can view the solution one move by one move, otherwise, the whole solution is displayed.</li>
 <li><strong data="opt_imgSize">Scramble Image Size</strong>. Set the size of scramble image.</li>
-<li><strong data="opt_NTools">number of tools</strong>. csTimer is able to show up to 4 tools simultaneously.</li>
-<li><strong data="opt_useKSC">use keyboard shortcut</strong>. Use keyboard shortcut to switch scramble type, generate next scramble, switch between sessions. Click csTimer's logo to show details.</li>
-<li><strong data="opt_useGES">use gesture control</strong>. Use gestures (swiping in different directions) to switch OK/+2/DNF, add comments, generate next scramble, etc. Also available on non-touch screen devices when mouse timer is enabled. Click csTimer's logo to show details.</li>
+<li><strong data="opt_NTools">number of tools</strong>. jlTimer is able to show up to 4 tools simultaneously.</li>
+<li><strong data="opt_useKSC">use keyboard shortcut</strong>. Use keyboard shortcut to switch scramble type, generate next scramble, switch between sessions. Click jlTimer's logo to show details.</li>
+<li><strong data="opt_useGES">use gesture control</strong>. Use gestures (swiping in different directions) to switch OK/+2/DNF, add comments, generate next scramble, etc. Also available on non-touch screen devices when mouse timer is enabled. Click jlTimer's logo to show details.</li>
 <li><strong data="opt_vrcSpeed">VRC base speed (tps)</strong>. Base turn speed of the virtual Rubik's cube, the turn will be speed up if there are multiple moves to turn.</li>
+<li><strong data="opt_vrcSize">Virtual cube size</strong>. Scales the virtual cube (and the virtual bluetooth cube) relative to the timer size, without changing the size of the timer digits. Shortcuts while idle: Alt + = (larger), Alt + - (smaller), Alt + 0 (100%).</li>
 <li><strong data="opt_vrcMP">multi-phase</strong>. Automatic multi-phase split for virtual Rubik's cube and bluetooth cube.</li>
 <li><strong data="opt_giiMode">Bluetooth Cube Mode</strong>. Usage mode of smart cube: In normal mode, you need to manually scramble the cube until it is consistent with the scrambled state; in training mode, after pressing the space (or touching the screen on the touch screen), the virtual cube will directly change to the scrambled state. You need to solve virtual cube partially (depends on scramble, e.g. permutation of last layer is not checked in oll training) instead of physical cube; In continuous training mode, in addition to training mode, once the virtual cube is solved, you will directly enter the next solve without pressing space. You can also press ESC (on a touch screen, hold the screen for 2 seconds) to exit the solve.</li>
 <li><strong data="opt_giiVRC">Show virtual bluetooth cube</strong>. Show a virtual Rubik's cube in the main timer when connecting to a bluetooth cube.</li>
-<li><strong data="opt_giiSD">Mark scrambled if stay</strong>. For a bluetooth cube, csTimer cannot know whether a move is from for scrambling or solving.</li>
+<li><strong data="opt_giiSD">Mark scrambled if stay</strong>. For a bluetooth cube, jlTimer cannot know whether a move is from for scrambling or solving.</li>
 <li><strong data="opt_giiSK">Mark scrambled with spacebar</strong>. When the space bar is pressed, the bluetooth cube is marked scrambled, any turns after that will treated as the start of timing.</li>
 <li><strong data="opt_giiSM">Mark scrambled by doing</strong>. Use specific move sequences on the bluetooth cube to mark scrambled.</li>
 <li><strong data="opt_giiBS">Beep when mark scrambled</strong>. Beep when some of scramble-finish signal is triggered.</li>
-<li><strong data="opt_giiRST">Reset bluetooth cube when connect</strong>. When connecting to a bluetooth cube, csTimer will detect whether it is solved, if not, there might be some hardware problems or the cube is really unsolved.</li>
-<li><strong data="opt_giiAED">Auto hardware error detection</strong>. Some bluetooth cubes will loss some of moves due to hardware failure, csTimer will try to detect such case.</li>
+<li><strong data="opt_giiRST">Reset bluetooth cube when connect</strong>. When connecting to a bluetooth cube, jlTimer will detect whether it is solved, if not, there might be some hardware problems or the cube is really unsolved.</li>
+<li><strong data="opt_giiAED">Auto hardware error detection</strong>. Some bluetooth cubes will loss some of moves due to hardware failure, jlTimer will try to detect such case.</li>
 </ul>
 <h2>Tools detail</h2>
 <ul>
@@ -155,21 +158,23 @@
 <h2>Links</h2>
 <ul>
 <li><a class="click" href="https://cubingchina.com/" title="">Cubing China</a></li>
-<li><a class="click" href="/new/" title="">csTimer beta version</a></li>
-<li><a class="click" href="/src/" title="">csTimer beta version with uncompressed files</a></li>
+<li><a class="click" href="https://github.com/NewYorkImperialist/jltimer" title="">jlTimer source code</a></li>
+<li><a class="click" href="https://cstimer.net/" title="">csTimer (upstream)</a></li>
+<li><a class="click" href="https://cstimer.net/new/" title="">csTimer beta version</a></li>
+<li><a class="click" href="https://cstimer.net/src/" title="">csTimer beta version with uncompressed files</a></li>
 <li><a class="click" href="https://github.com/cs0x7f/cstimer" title="">csTimer source code</a></li>
-<li><a class="click" href="/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
-<li><a class="click" href="/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
-<li><a class="click" href="/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
-<li><a class="click" href="/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
-<li><a class="click" href="/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
+<li><a class="click" href="https://cstimer.net/2019.12.24/" title="">csTimer version 2019.12.24</a></li>
+<li><a class="click" href="https://cstimer.net/2018.11.05/" title="">csTimer version 2018.11.05</a></li>
+<li><a class="click" href="https://cstimer.net/2015.12.12/" title="">csTimer version 2015.12.12</a></li>
+<li><a class="click" href="https://cstimer.net/2012.03.15/" title="">csTimer version 2012.03.15</a></li>
+<li><a class="click" href="https://cstimer.net/2012.02.29/" title="">csTimer version 2012.02.29</a></li>
 </ul>
 <h2>Color schemes</h2>
 <?php include('color.php') ?>
 <div class="donate helptable" style="line-height:1.5em;">
-<h2>Hardware compatible with csTimer</h2>
-<p>In addition to timing by keyboard, csTimer also supports Bluetooth Smart Cubes and Smart Timers.</p>
-<p>If you use a smart cube, csTimer will record the detailed solution of each of your solves and provide more statistics and practice functions (e.g. CFOP automatic segmentation, etc.)</p>
+<h2>Hardware compatible with jlTimer</h2>
+<p>In addition to timing by keyboard, jlTimer (like csTimer) also supports Bluetooth Smart Cubes and Smart Timers.</p>
+<p>If you use a smart cube, jlTimer will record the detailed solution of each of your solves and provide more statistics and practice functions (e.g. CFOP automatic segmentation, etc.)</p>
 <ul>
 <li><a class="click" href="https://www.amazon.com/dp/B0CGDHVJBL?tag=cstimer-20#" title="">Gan 12 ui FreePlay</a></li>
 <li><a class="click" href="https://www.amazon.com/dp/B083TW9WFT?tag=cstimer-20#" title="">Gan Halo Bluetooth Timer</a></li>
@@ -180,7 +185,7 @@
 <li><a class="click" href="https://www.amazon.com/dp/B0182KR2LO?tag=cstimer-20#" title="">G5 Stackmat</a></li>
 <li><a class="click" href="https://www.amazon.com/dp/B086PNKX2P?tag=cstimer-20#" title="">Gan 356 M</a></li>
 </ul>
-<h2>Donate directly</h2>
+<h2>Donate to csTimer (upstream)</h2>
 <p>Thank you for your willingness to support csTimer! Your donation will be used to support our development and maintenance costs.</p>
 <p>If you would like to offer us a donation through PayPal, please click the button below or through <a class="click" href="https://www.paypal.me/cs0x7f" title="">PayPal.me</a>.</p>
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
@@ -200,7 +205,7 @@
 <li>Bluefy on iOS</li>
 </ul>
 <p>Also you can check complete list of <a class="click" href="https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md" title="">supported browsers</a>.</p>
-<p>For some bluetooth cubes, we need you to provide the MAC address of your cube to decrypt the data. <strong>csTimer is able to automatically read MAC address of the cube if you properly setup your browser:</strong></p>
+<p>For some bluetooth cubes, we need you to provide the MAC address of your cube to decrypt the data. <strong>jlTimer is able to automatically read MAC address of the cube if you properly setup your browser:</strong></p>
 <ul>
 <li>Chrome: enable chrome://flags/#enable-experimental-web-platform-features flag in browser settings.</li>
 <li>Bluefy: turn on Enable BLE Advertisements option in browser settings.</li>

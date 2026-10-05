@@ -57,7 +57,7 @@ execMain(function(timer) {
 		}
 
 		function setSize(value) {
-			div.css('height', value * $('#logo').width() / 9 + 'px');
+			div.css('height', value * timer.getVrcScale() * $('#logo').width() / 9 + 'px');
 			puzzleObj && puzzleObj.resize();
 		}
 
