@@ -6,9 +6,9 @@ jlTimer is a modified fork of **[csTimer](https://github.com/cs0x7f/cstimer)** b
 
 jlTimer keeps csTimer's timing, scrambles, statistics, smart-cube and stackmat support, keyboard-controlled virtual cube, replay and data format. It adds:
 
-- **jlTimer UI design**: system interface font, roomier spacing, rounded panels and visible keyboard focus rings.
-- **jlTimer color scheme**: a dark slate theme for low-glare daily use.
-- **jlTimer sans timer font**: your system's interface font with fixed-width digits, so the time doesn't jitter while running.
+- **jlTimer UI design** (default): csTimer's csTimer+ look with jlTimer's own outline icons, csTimer's first color scheme and LCD digits.
+- **jlTimer dark** color preset and **jlTimer sans** timer font (fixed-width digits) as options.
+- Visible keyboard focus rings.
 - **Layout switch** (Familiar / Minimal, shortcut Alt+L). Minimal emphasizes the timer and the virtual cube.
 - **Virtual cube size** setting (shortcuts Alt+= / Alt+- / Alt+0). It is independent of the timer size.
 - Keyboard-focusable button bar.

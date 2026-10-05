@@ -51,6 +51,7 @@
 <tr><th>右下</th><td>檢查最新的還原</td></tr>
 </table>
 
+<h2>Virtual cube key map</h2>
 <table class="table" id="vrckey" style="display: inline-block;">
 <tr><th colspan=10>虛擬方塊按鍵</th></tr>
 </table>

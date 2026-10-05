@@ -20,7 +20,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
   <link rel="apple-touch-icon" href="jltimer512x512.png">
   <link rel="icon" type="image/png" href="jltimer512x512.png">
-  <meta name="theme-color" content="#222233">
+  <meta name="theme-color" content="#ffffff">
   <meta name="application-name" content="jlTimer">
   <meta name="apple-mobile-web-app-title" content="jlTimer">
   <link rel="manifest" href="jltimer.webmanifest">

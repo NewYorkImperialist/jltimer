@@ -5,18 +5,34 @@ All jlTimer UI options live in the normal **Options** dialog (the first button i
 | Option (Options section) | Values | jlTimer default | Stored as |
 |---|---|---|---|
 | UI design is (ui) | Normal, Material design, … , csTimer+, **jlTimer** | jlTimer | `uidesign: 'jl'` |
-| select color theme (color) | manual, style1 … solarized light, **jlTimer** | manual, with the jlTimer palette as the default colors | `color: 'u'` plus `col-*` (choosing the jlTimer preset applies the palette and stores `u`, so exports stay readable by csTimer) |
-| select timer's font (ui) | random, normal, digital1–5, Roboto, **jlTimer sans** | jlTimer sans | `font: 'jl'` |
+| select color theme (color) | manual, style1 … solarized light, **jlTimer dark** | style1, the first scheme in About → Color schemes (same as csTimer) | `color: '1'` plus `col-*` (choosing the jlTimer dark preset applies its palette and stores `u`, so exports stay readable by csTimer) |
+| select timer's font (ui) | random, normal, digital1–5, Roboto, **jlTimer sans** | digital1 (csTimer's LCD font) | `font: 'lcd'` / `'jl'` |
 | Layout (ui) | **Familiar**, **Minimal** | Familiar | `jlLayout: 'c' / 'm'` |
 | Virtual cube size (virtual cube) | percentage | 100 | `vrcSize` |
 
-Defaults changed only for UI design, the default manual colors and font. A value you already saved, or imported from csTimer, is kept.
+The defaults reproduce the csTimer+ design with csTimer's first color scheme and LCD digits. Colors and fonts use csTimer's own defaults, so an imported csTimer setup looks the same as on cstimer.net. A value you already saved, or imported from csTimer, is kept.
+
+## Timer defaults
+
+jlTimer also changes these csTimer defaults:
+
+| Option | csTimer default | jlTimer default | Stored as |
+|---|---|---|---|
+| entering in times with | timer | **virtual** | `input: 'v'` |
+| timer update is | 0.1s | **none** | `timeU: 'n'` |
+| use WCA inspection | Never | Never (unchanged) | `useIns: 'n'` |
+| VRC base speed (tps) | 10 | **20** | `vrcSpeed: 50` |
+| multi-phase (virtual cube) | None | **CFOP** | `vrcMP: 'cfop'` |
+| Show phase splits while solving (new, timer section) | always shown | **off**: splits appear when the solve ends | `mpLive: false` |
+| Record DNF when a solve is cancelled with Esc (new, timer section) | always records a DNF | **off**: Esc mid-solve discards the attempt, shows the previous result and loads the next scramble | `escDNF: false` |
+
+As with the other defaults, anything you have saved, or imported from csTimer, overrides these. Settings equal to jlTimer's defaults aren't stored, so if you export to csTimer, those settings fall back to csTimer's defaults there.
 
 ## What each option does
 
-- **jlTimer design** (`html.jlds`): the system interface font for panels and dialogs, roomier spacing, rounded panels and buttons, and visible keyboard focus rings (`:focus-visible`). Upstream's designs, including "csTimer+", are unchanged.
-- **jlTimer color scheme**: a dark slate palette `#dde #223 #334 #445 #8bf #fff #46c #fb4` (text, background, panels, buttons, links, logo, logo background, PBs). It is built with the existing color-template system, so the *manual* color pickers and *import/export…* still work.
-- **jlTimer sans**: your OS interface font with tabular (fixed-width) digits. The running time doesn't shift sideways.
+- **jlTimer design** (`html.cspt.jlds`): csTimer's built-in csTimer+ design (borderless panels, system font, spaced scramble, wide button bar) plus jlTimer's own outline icons for the button bar and the scramble-options gear. jlTimer-specific styling goes in the `.jlds` rules in `src/css/style.css`, so upstream's csTimer+ CSS stays untouched. Choosing "csTimer+" gives the upstream design with the filled icon font.
+- **Colors**: the default is csTimer's style1 `#000 #efc #fdd #fbb #00f #ff0 #000` (text, background, panels, buttons, links, logo, logo background), the first scheme in About → Color schemes. The **jlTimer dark** preset applies a dark slate palette `#dde #223 #334 #445 #8bf #fff #46c #fb4`. Both use the existing color-template system, so the *manual* color pickers, *import/export…* and the About color list still work.
+- **jlTimer sans** (optional timer font): your OS interface font with tabular (fixed-width) digits. The running time doesn't shift sideways.
 - **Layout**
   - *Minimal* keeps the scramble and the timer (and the virtual cube, if you use one). Panel frames are removed, the time list and tools panels are hidden, and the button bar fades until you hover or focus it. Panels are hidden through their **normal button states**, so the list-times and tools buttons still open them at any time.
   - *Familiar* is the classic arrangement. Switching back shows the scramble and time list again.
@@ -25,10 +41,16 @@ Defaults changed only for UI design, the default manual colors and font. A value
 
 The shortcuts work only while the timer is idle, with no dialog open and no focus in a text field. That way they never reach the cube or the timer mid-solve. They follow the existing *use keyboard shortcut* option.
 
+## Editing the virtual cube keys
+
+About (click the logo) → **Virtual cube key map** tab. Click a key in the table and choose the move it should do from the menu that appears in that key. Several keys can do the same move. **none** turns a key off, and **default** restores its original move. Changed keys are underlined. **Reset keys** restores every key. The layout picker (qwerty, dvorak, colemak or a custom layout string) still decides which physical key sits in each position.
+
+jlTimer's default key map differs from csTimer's in one key: **`,` does M** (csTimer: Uw). The choices are stored in the `vrcKeyMove` setting (`{physicalKeyCode: qwertyKeyCodeOfMove}`, with `-1` for "none", inside `properties`). They apply to every virtual puzzle, because all of them read keys through `help.getMappedCode`. The move names in the table are the 3x3 moves; on other puzzles a key does whatever that key position does there.
+
 ## Keyboard access
 
 The button bar buttons can be focused with Tab, and **Enter** or **Space** activates the focused button. Mouse and touch presses don't focus them, so after a click Space still starts the timer as before. To leave the button bar, press Esc or click the timer area. Tab no longer gets cancelled by the timer's blur-on-key behavior; the Tab key is still passed to the timer, so it still stops a running solve like any other key. Text inputs, selects and dialogs keep csTimer's existing rule: keys typed there never reach the timer or the virtual cube.
 
 ## Getting the classic csTimer look back
 
-Set UI design to **Normal**, color theme to **style1**, font to **digital1**, and Layout to **Familiar**. These changes are saved like any other setting. The virtual cube size of 100% matches csTimer.
+For the classic (pre-csTimer+) look, set UI design to **Normal** and Layout to **Familiar**. These changes are saved like any other setting. The virtual cube size of 100% matches csTimer.

@@ -51,6 +51,7 @@
 <tr><th>Down right</th><td>Check the latest solve</td></tr>
 </table>
 
+<h2>Virtual cube key map</h2>
 <table class="table" id="vrckey" style="display: inline-block;">
 <tr><th colspan=10>Virtual Cube Key Map</th></tr>
 </table>
@@ -66,7 +67,7 @@
 <li><strong data="opt_showAvg">Show Avg Label</strong>. Two lines of labels are displayed below the the main timer, the current two averages, ao5 and ao12 by default.</li>
 <li><strong data="opt_zoom">Zoom</strong>. You can adjust sizes of all elements by this option.</li>
 <li><strong data="opt_font">select timer&#x27;s font</strong>. Font of the main timer. "jlTimer sans" uses your system's interface font with fixed-width digits, so the time does not jitter while running.</li>
-<li><strong data="opt_uidesign">UI design is</strong>. You can switch ui design to material-like, or hide shadows by this option. "jlTimer" uses a clean sans-serif interface font, roomier spacing, rounded panels and visible keyboard focus.</li>
+<li><strong data="opt_uidesign">UI design is</strong>. You can switch ui design to material-like, or hide shadows by this option. "jlTimer" is the csTimer+ design with jlTimer's outline icons.</li>
 <li><strong data="opt_jlLayout">Layout</strong>. "Familiar" is the classic csTimer arrangement. "Minimal" emphasizes the timer and the virtual cube: panel frames are removed, the time list and tools are hidden, and the button bar fades until you point at it. The scramble stays visible. The panel buttons still open any panel. Switching back to "Familiar" shows the scramble and time list again. Shortcut: Alt + L.</li>
 <li><strong data="opt_view">UI style is</strong>. Switch between desktop and mobile views.</li>
 <li><strong data="opt_wndScr">Scramble panel display style</strong>. Make scramble panel embedded into background.</li>
@@ -76,7 +77,7 @@
 <li><strong data="opt_bgImgS">background image</strong>. You can select your own image as the background image, however, only https urls are available due to security constraint of the browser.</li>
 <li><strong data="opt_timerSize">timer size</strong>. Set the size of main timer.</li>
 <li><strong data="opt_smallADP">use small font after decimal point</strong>. Use a smaller font size after the digital point in main timer.</li>
-<li><strong data="opt_color">select color theme</strong>. Select color schemes of jlTimer. "jlTimer" is a dark slate theme designed for readable, low-glare daily use. Click jlTimer's logo to show more color schemes.</li>
+<li><strong data="opt_color">select color theme</strong>. Select color schemes of jlTimer. "jlTimer dark" is a dark slate preset for low-glare use. Click jlTimer's logo to show more color schemes.</li>
 <li><strong data="opt_useMouse">use mouse timer</strong>. Use mouse to start timer, keyboard-trigger will also be available.</li>
 <li><strong data="opt_useIns">use WCA inspection</strong>. Enable WCA inspection procedure, which is a 15-second countdown, auto +2/DNF penalty will also be enabled if you inspecting more than 15 seconds.</li>
 <li><strong data="opt_voiceIns">voice alert of WCA inspection</strong>. Alert at 8s/12s of inspection, to simulate the alert from judge in WCA competitions.</li>
@@ -85,6 +86,8 @@
 <li><strong data="opt_intUN">Unit when entering an integer</strong>. When you type an integer XXX in the input box, what does it mean, XXX second or XXX centisecond or XXX millisecond?</li>
 <li><strong data="opt_timeU">timer update is</strong>. How timer is updated when timing.</li>
 <li><strong data="opt_preTime">time of keeping space down(second(s))</strong>. How long the space bar should be held before the timer turns green.</li>
+<li><strong data="opt_mpLive">Show phase splits while solving</strong>. When off, multi-phase splits (including CFOP splits of the virtual or bluetooth cube) stay hidden until the solve ends, then all appear with the final time. Independent of "timer update is".</li>
+<li><strong data="opt_escDNF">Record DNF when a solve is cancelled with Esc</strong>. When off, pressing Esc (or holding the screen for 2 seconds) during a solve discards it: nothing is added to the session, the previous result is shown again and the next scramble is generated. When on, the cancelled solve is recorded as a DNF, as in csTimer.</li>
 <li><strong data="opt_phases">multi-phase</strong>. Number of phases, press any key to mark a split point when timing.</li>
 <li><strong data="opt_stkHead">Use Stackmat Status Information</strong>. Stackmat will report its state, e.g. whether left or right area is touched, then jlTimer is able to use these information, however, the data error might occur and cause unexpected behavior.</li>
 <li><strong data="opt_scrSize">scramble size</strong>. Size of the scramble text.</li>

@@ -51,6 +51,7 @@
 <tr><th>Nach unten rechts</th><td>Überprüfe den letzten Solve</td></tr>
 </table>
 
+<h2>Virtual cube key map</h2>
 <table class="table" id="vrckey" style="display: inline-block;">
 <tr><th colspan=10>Virtuelle Cube Key Map</th></tr>
 </table>

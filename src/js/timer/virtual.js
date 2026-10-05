@@ -162,9 +162,11 @@ execMain(function(timer) {
 				reset();
 				$('#lcd').css({'visibility': 'unset'}); // disable dragging
 				timer.lcd.fixDisplay(false, true);
-				if (recordDNF) {
+				if (recordDNF && kernel.getProp('escDNF')) {
 					rawMoves.reverse();
 					kernel.pushSignal('time', ["", 0, [-1, now - timer.startTime()], 0, [$.map(rawMoves, cubeutil.moveSeq2str).filter($.trim).join(' '), curPuzzle, moveCnt]]);
+				} else if (recordDNF) {
+					timer.cancelSolve();
 				}
 			} else {
 				var mappedCode = help.getMappedCode(keyCode);

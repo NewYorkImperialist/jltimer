@@ -275,7 +275,8 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 			} else if (status != -1) {
 				isCleared = false;
 			}
-			var mpAppend = status > -2 && !isCleared ? getMulPhaseAppend(Math.max(0, status), Math.max(curTime.length - 1, status)) : '';
+			var showSplits = status <= 0 || getProp('mpLive'); // splits stay hidden mid-solve unless enabled
+			var mpAppend = status > -2 && !isCleared && showSplits ? getMulPhaseAppend(Math.max(0, status), Math.max(curTime.length - 1, status)) : '';
 			rightADiv.html(mpAppend + staticAppend);
 			if (status == -1 || status == 0) {
 				if ('sb'.indexOf(getProp('input')) != -1) {
@@ -405,7 +406,8 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 
 		return {
 			showAvgDiv: showAvgDiv,
-			updatePos: updatePos
+			updatePos: updatePos,
+			refresh: function() { setValue(curValue); }
 		}
 	})();
 
@@ -483,7 +485,11 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 						setStatus(-1);
 					}
 					lcd.fixDisplay(false, isTrigger);
-					pushSignal('time', curTime);
+					if (keyCode == 27 && !getProp('escDNF')) {
+						cancelSolve();
+					} else {
+						pushSignal('time', curTime);
+					}
 				} else if (getProp('phaseBeep')) {
 					metronome.playTick(330);
 				}
@@ -770,10 +776,10 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		regListener('timer', 'session', updateTimerOffsetAsync.bind(null, false));
 		regListener('timer', 'scrfix', updateTimerOffsetAsync.bind(null, false));
 		$(window).bind('resize', updateTimerOffsetAsync.bind(null, false));
-		regProp('vrc', 'vrcSpeed', 1, PROPERTY_VRCSPEED, [100, [0, 50, 100, 200, 500, 1000], '\u221E|20|10|5|2|1'.split('|')], 1);
+		regProp('vrc', 'vrcSpeed', 1, PROPERTY_VRCSPEED, [50, [0, 50, 100, 200, 500, 1000], '\u221E|20|10|5|2|1'.split('|')], 1);
 		regProp('vrc', 'vrcSize', 1, 'Virtual cube size', [100, VRC_SIZES, VRC_SIZES.map(function(v) { return v + '%'; })], 1);
 		regProp('vrc', 'vrcOri', 1, PROPERTY_VRCORI, ['6,12', ['6,12', '10,11'], ['UF', 'URF']], 1);
-		regProp('vrc', 'vrcMP', 1, PROPERTY_VRCMP, ['n', ['n', 'cfop', 'fp', 'cf4op', 'cf4o2p2', 'roux'], PROPERTY_VRCMPS.split('|')], 1);
+		regProp('vrc', 'vrcMP', 1, PROPERTY_VRCMP, ['cfop', ['n', 'cfop', 'fp', 'cf4op', 'cf4o2p2', 'roux'], PROPERTY_VRCMPS.split('|')], 1);
 		regProp('vrc', 'vrcAH', ~1, PROPERTY_VRCAH, ['11', ['00', '01', '10', '11'], PROPERTY_VRCAHS.split('|')], 1);
 		regProp('vrc', 'giiMode', 1, PROPERTY_GIIMODE, ['n', ['n', 't', 'at'], PROPERTY_GIIMODES.split('|')], 1);
 		regProp('vrc', 'giiVRC', 1, PROPERTY_GIIKERVRC, ['v', ['n', 'v', 'q', 'ql', 'q2'], ['None', 'Virtual', 'qCube', 'qLast', 'q2Look']], 1);
@@ -792,13 +798,15 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		regProp('timer', 'showIns', 0, PROPERTY_SHOWINS, [true], 1);
 		regProp('timer', 'voiceIns', 1, PROPERTY_VOICEINS, ['1', ['n', '1', '2'], PROPERTY_VOICEINS_STR.split('|')], 1);
 		regProp('timer', 'voiceVol', 2, PROPERTY_VOICEVOL, [100, 1, 100], 1);
-		regProp('timer', 'input', 1, PROPERTY_ENTERING, ['t', ['t', 'i', 's', 'm', 'v', 'g', 'q', 'b', 'l'], PROPERTY_ENTERING_STR.split('|')], 1);
+		regProp('timer', 'input', 1, PROPERTY_ENTERING, ['v', ['t', 'i', 's', 'm', 'v', 'g', 'q', 'b', 'l'], PROPERTY_ENTERING_STR.split('|')], 1);
 		regProp('timer', 'intUN', 1, PROPERTY_INTUNIT, [20100, [1, 100, 1000, 10001, 10100, 11000, 20001, 20100, 21000], 'X|X.XX|X.XXX|X:XX|X:XX.XX|X:XX.XXX|X:XX:XX|X:XX:XX.XX|X:XX:XX.XXX'.split('|')], 1);
-		regProp('timer', 'timeU', 1, PROPERTY_TIMEU, ['c', ['u', 'c', 's', 'i', 'n'], PROPERTY_TIMEU_STR.split('|')], 1);
+		regProp('timer', 'timeU', 1, PROPERTY_TIMEU, ['n', ['u', 'c', 's', 'i', 'n'], PROPERTY_TIMEU_STR.split('|')], 1);
 		regProp('timer', 'preTime', 1, PROPERTY_PRETIME, [300, [0, 300, 550, 1000], '0|0.3|0.55|1'.split('|')], 1);
 		regProp('timer', 'phases', 2, PROPERTY_PHASES, [1, 1, 10], 3);
 		regProp('timer', 'stopKey', 1, "Stop/step timer by", ['a', ['a', 'l', 's'], "any key|spacebar/letters|spacebar".split('|')], 1);
 		regProp('timer', 'phaseBeep', 0, "Beep when recording phase times", [true], 1);
+		regProp('timer', 'mpLive', 0, 'Show phase splits while solving', [false], 1);
+		regProp('timer', 'escDNF', 0, 'Record DNF when a solve is cancelled with Esc', [false], 1);
 		regProp('kernel', 'showAvg', 0, SHOW_AVG_LABEL, [true], 1);
 		regProp('kernel', 'showDiff', 1, SHOW_DIFF_LABEL, ['rg', ['rg', 'gr', 'b', 'n'], SHOW_DIFF_LABEL_STR.split('|')], 1);
 		regProp('ui', 'timerSize', 2, PROPERTY_TIMERSIZE, [20, 1, 100], 1);
@@ -832,6 +840,12 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		} else {
 			document.activeElement && document.activeElement.blur && document.activeElement.blur();
 		}
+	}
+
+	// a solve cancelled with Esc is discarded (unless escDNF): show the previous result again and move on
+	function cancelSolve() {
+		avgDiv.refresh();
+		kernel.pushSignal('ctrl', ['scramble', 'next']);
 	}
 
 	function softESC() {
@@ -876,6 +890,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		updateMulPhase: updateMulPhase,
 		getBTDiv: function() { return bluetoothInstructDiv; },
 		getVrcScale: getVrcScale,
+		cancelSolve: cancelSolve,
 		stepVrcSize: stepVrcSize,
 		keyboard: keyboardTimer,
 		lcd: lcd

@@ -61,11 +61,11 @@ jlTimer adds a few settings to the same `properties` object: `jlLayout`, `vrcSiz
 - `jlLayout` and `vrcSize` are ignored, since csTimer never registers them.
 - `uidesign: "jl"` renders as the Normal design. The option selector shows a blank value.
 - `font: "jl"` becomes the browser's default font for the timer digits. Pick a font in csTimer's options to fix it.
-- Colors are safe. The jlTimer palette is the default of the existing *manual* (`u`) color mode, and choosing the "jlTimer" preset in the selector applies the palette and then stores `manual`. jlTimer never stores a color preset that csTimer lacks. (An unknown preset such as `"9"` would make csTimer's `useColorTemplate` throw during start-up.) On csTimer the jlTimer palette isn't saved as non-default values, so csTimer shows its own default colors.
+- Colors are safe. jlTimer's default colors are csTimer's defaults, and choosing the "jlTimer dark" preset applies that palette and then stores `manual`. jlTimer never stores a color preset that csTimer lacks. (An unknown preset such as `"9"` would make csTimer's `useColorTemplate` throw during start-up.) Colors that differ from csTimer's defaults travel in the export as normal `col-*` values.
 
 Minimal layout hides the time list and tools through their normal button states. On csTimer, click those buttons to show the panels again.
 
-One edge case going the other way: if you used csTimer's *manual* colors and some of them equalled csTimer's defaults, csTimer didn't save those entries. jlTimer then fills them from its own palette. Re-pick those colors in *Options → color* if the mix looks wrong.
+Colors from csTimer: jlTimer's default colors are csTimer's own defaults (style1), so whatever scheme you used imports unchanged.
 
 ## Notes
 

@@ -267,6 +267,11 @@ ISCSTIMER && execMain(function() {
 		};
 	})();
 
+	// local development servers are plain http; don't offer to switch them to https
+	$.isLocalHost = function() {
+		return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+	};
+
 	$.fn.reclk = function(handler) {
 		return this.unbind('click').click(handler);
 	};

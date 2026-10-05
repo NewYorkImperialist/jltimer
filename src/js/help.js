@@ -155,7 +155,7 @@ var help = execMain(function(regProp, setProp, getProp) {
 		[" S'", "  E", "&lt;", "&gt;", "  M", "  M", "&lt;", "&gt;", " E'", "  S"],
 		[" z'", "  B", " L'", "Lw'", "  x", "  x", " Rw", "  R", " B'", "  z"],
 		[" y'", "  D", "  L", " U'", " F'", "  F", "  U", " R'", " D'", "  y"],
-		[" Dw", " M'", "Uw'", " Lw", " x'", " x'", "Rw'", " Uw", " M'", "Dw'"],
+		[" Dw", " M'", "Uw'", " Lw", " x'", " x'", "Rw'", "  M", " M'", "Dw'"],
 	];
 
 	var codeMap = {};
@@ -191,17 +191,81 @@ var help = execMain(function(regProp, setProp, getProp) {
 		genKeymapTable(ret);
 	}
 
-	function genKeymapTable(layout) {
-		if (layout in layouts) {
-			layout = layouts[layout];
+	var char2code = {
+		96: 192,
+		45: 189,
+		61: 187,
+		91: 219,
+		93: 221,
+		92: 220,
+		59: 186,
+		39: 222,
+		44: 188,
+		46: 190,
+		47: 191
+	};
+
+	function charCode(ch) {
+		var c = ch.toUpperCase().charCodeAt(0);
+		return char2code[c] || c;
+	}
+
+	function getLayoutStr(layout) {
+		return (layouts[layout] || layout || layouts['qwerty']).toUpperCase();
+	}
+
+	// custom moves per key: {physicalKeyCode: qwertyCodeOfMove, or -1 for no move}, saved in the vrcKeyMove property
+	function getKeyMoves() {
+		try {
+			return JSON.parse(getProp('vrcKeyMove') || '{}') || {};
+		} catch (e) {
+			return {};
 		}
+	}
+
+	// default key layout: [{q: qwertyCode, code: physicalKeyCode, label}] for every key position
+	function getLayoutKeys(layout) {
+		var layout0 = layouts['qwerty'].toUpperCase();
+		layout = getLayoutStr(layout);
 		var ret = [];
-		layout = layout.toUpperCase();
+		for (var i = 0; i < layout0.length; i++) {
+			ret.push({q: charCode(layout0.charAt(i)), code: charCode(layout.charAt(i)), label: layout.charAt(i)});
+		}
+		return ret;
+	}
+
+	var DEPTH_LABEL = {51: '&lt; left depth -', 52: '&gt; left depth +', 55: '&lt; right depth +', 56: '&gt; right depth -'};
+
+	// move name of every key position, by qwerty code
+	function getMoveNames() {
+		var layout0 = layouts['qwerty'];
+		var names = {};
+		for (var i = 0; i < keymap.length; i++) {
+			for (var j = 0; j < keymap[i].length; j++) {
+				var q = charCode(layout0.charAt(keymap[i][j]));
+				names[q] = DEPTH_LABEL[q] || $.trim(funcmap[i][j]);
+			}
+		}
+		return names;
+	}
+
+	function genKeymapTable(layout) {
+		var keys = getLayoutKeys(layout);
+		var byQ = {};
+		keys.forEach(function(k) { byQ[k.q] = k; });
+		var moves = getKeyMoves();
+		var names = getMoveNames();
+		var layout0 = layouts['qwerty'];
+		var ret = [];
 		for (var i = 0; i < keymap.length; i++) {
 			ret.push('<tr>')
 			for (var j = 0; j < keymap[i].length; j++) {
-				var keyIdx = keymap[i][j];
-				ret.push("<td>" + layout[keyIdx] + "<br><span>" + funcmap[i][j] + "</span></td>");
+				var key = byQ[charCode(layout0.charAt(keymap[i][j]))];
+				var custom = key.code in moves;
+				var target = custom ? moves[key.code] : key.q;
+				var name = target == -1 ? '&mdash;' : (names[target] || '?').replace(/ (left|right) depth [+-]$/, '');
+				ret.push('<td class="click vrckeycell' + (custom ? ' vrccustom' : '') + '" data-code="' + key.code + '" title="Click to choose the move for this key">' +
+					$('<i>').text(key.label).html() + '<br><span>' + name + '</span></td>');
 			}
 			ret.push('</tr>')
 		}
@@ -215,44 +279,83 @@ var help = execMain(function(regProp, setProp, getProp) {
 		}
 		select.append($('<option />').val('other').html('...'));
 		select.unbind('change').change(procClick);
-		table.append(selectTr.append($('<th colspan="10">').append('Layout: ', select)));
+		var resetBtn = $('<input type="button" value="Reset keys">').click(function() {
+			setProp('vrcKeyMove', '');
+			genKeymapTable(getProp('vrcKBL'));
+		});
+		table.append(selectTr.append($('<th colspan="10">').append('Layout: ', select, ' ', resetBtn,
+			'<div class="vrchint">Click a key to choose which move it does.</div>')));
 		table.append(ret.join(''));
+		table.find('.vrckeycell').click(function() {
+			chooseMove($(this));
+		});
 		genCodeMap(layout);
 	}
 
-	function genCodeMap(layout) {
-		var layout0 = layouts['qwerty'].toUpperCase();
-		layout = layout.toUpperCase();
-		var char2code = {
-			96: 192,
-			45: 189,
-			61: 187,
-			91: 219,
-			93: 221,
-			92: 220,
-			59: 186,
-			39: 222,
-			44: 188,
-			46: 190,
-			47: 191
-		};
-		codeMap = {}
-		for (var i = 0; i < layout0.length; i++) {
-			var raw = layout0.charCodeAt(i);
-			var cur = layout.charCodeAt(i);
-			raw = char2code[raw] || raw;
-			cur = char2code[cur] || cur;
-			if (raw != cur) {
-				codeMap[cur] = raw;
+	// show a move menu inside the clicked key
+	function chooseMove(cell) {
+		if (cell.find('select').length) {
+			return;
+		}
+		var code = +cell.attr('data-code');
+		var moves = getKeyMoves();
+		var names = getMoveNames();
+		var sel = $('<select class="vrcmovesel">');
+		sel.append($('<option>').val('d').html('default'), $('<option>').val('-1').html('none'));
+		var seen = {};
+		var layout0 = layouts['qwerty'];
+		for (var i = 0; i < keymap.length; i++) {
+			for (var j = 0; j < keymap[i].length; j++) {
+				var q = charCode(layout0.charAt(keymap[i][j]));
+				if (!seen[names[q]]) {
+					seen[names[q]] = 1;
+					sel.append($('<option>').val(q).html(names[q]));
+				}
 			}
-			if (cur == 186) {
-				codeMap[59] = raw;
+		}
+		sel.val(code in moves ? String(moves[code]) : 'd');
+		var done = function() {
+			var val = sel.val();
+			var moves = getKeyMoves();
+			if (val == 'd') {
+				delete moves[code];
+			} else {
+				moves[code] = +val;
+			}
+			setProp('vrcKeyMove', $.isEmptyObject(moves) ? '' : JSON.stringify(moves));
+			genKeymapTable(getProp('vrcKBL'));
+		};
+		sel.change(done).blur(function() {
+			genKeymapTable(getProp('vrcKBL'));
+		}).click(function(e) {
+			e.stopPropagation();
+		});
+		cell.find('span').replaceWith(sel);
+		sel.focus();
+	}
+
+	// pressed key code -> qwerty key code of the move; -1 for keys set to no move
+	function genCodeMap(layout) {
+		codeMap = {};
+		getLayoutKeys(layout).forEach(function(k) {
+			if (k.code != k.q) {
+				codeMap[k.code] = k.q;
+			}
+			if (k.code == 186) {
+				codeMap[59] = k.q;
+			}
+		});
+		var moves = getKeyMoves();
+		for (var code in moves) {
+			codeMap[code] = moves[code];
+			if (code == 186) {
+				codeMap[59] = moves[code];
 			}
 		}
 	}
 
 	function getMappedCode(keyCode) {
-		return codeMap[keyCode] || keyCode;
+		return keyCode in codeMap ? codeMap[keyCode] : keyCode;
 	}
 
 	$(function() {
@@ -263,6 +366,7 @@ var help = execMain(function(regProp, setProp, getProp) {
 		rightDiv.scrollTop();
 		rightDiv.unbind('scroll').scroll(onOptScroll);
 		regProp('vrc', 'vrcKBL', ~5, 'VRC Keyboard Layout', ['qwerty']);
+		regProp('vrc', 'vrcKeyMove', ~5, 'VRC custom key moves', ['']);
 		var layout = getProp('vrcKBL');
 		genKeymapTable(layout);
 		$('.donate').appendTo(donateDiv);

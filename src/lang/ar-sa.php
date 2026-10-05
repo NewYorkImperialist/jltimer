@@ -51,6 +51,7 @@
 <tr><th>Down right</th><td>Check the latest solve</td></tr>
 </table>
 
+<h2>Virtual cube key map</h2>
 <table class="table" id="vrckey" style="display: inline-block;">
 <tr><th colspan=10>خريطة مفتاح المكعب الظاهري</th></tr>
 </table>

@@ -78,3 +78,16 @@ To use it, set **Settings → Pages → Build and deployment → Source: GitHub 
 **Pushing to `master` deploys.** Push or dispatch only when you mean to publish. Nothing has been deployed as part of this work.
 
 Things that don't work on GitHub Pages (static hosting): the PHP endpoints (`oauthwca.php`, `userdata*.php`), so WCA login can't complete. See [BACKEND.md](BACKEND.md).
+
+## Battle TUI (terminal race client)
+
+`tools/battle-tui.mjs` is a minimal terminal client for csTimer's battle rooms (`wss://cstimer.net/ws20230409`), the same rooms jlTimer's and csTimer's Battle tool join. It needs Node 22+ and the scrambler module:
+
+```sh
+make module                                   # builds npm_export/cstimer_module.js (git-ignored)
+node tools/battle-tui.mjs <username> <roomId>   # both optional; it asks if missing
+```
+
+It shows the room, the current scramble, players with ELO, status and time (like the web tool), and the last few rounds. Type a time (`12.34`, `1:02.50`, `1234`, `12.34+`, `DNF`), or press Enter on an empty line to start and stop a built-in timer. `/i` inspect, `/r` ready, `/q` leave. The scramble it proposes for the next round comes from csTimer's random-state 3x3 scrambler.
+
+The rooms belong to csTimer's server, which jlTimer doesn't operate. The server's "wins" counter never increments (its win check compares against an initial value that is never updated), so wins aren't shown, which matches the web tool.

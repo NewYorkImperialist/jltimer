@@ -51,6 +51,7 @@
 <tr><th>Onder rechts</th><td>Check the latest solve</td></tr>
 </table>
 
+<h2>Virtual cube key map</h2>
 <table class="table" id="vrckey" style="display: inline-block;">
 <tr><th colspan=10>Virtuele Cube Key Map</th></tr>
 </table>

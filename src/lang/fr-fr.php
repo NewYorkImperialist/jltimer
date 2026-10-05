@@ -51,6 +51,7 @@
 <tr><th>Bas droite</th><td>Revoir la dernière résolution</td></tr>
 </table>
 
+<h2>Virtual cube key map</h2>
 <table class="table" id="vrckey" style="display: inline-block;">
 <tr><th colspan=10>Raccourcis du cube virtuel</th></tr>
 </table>

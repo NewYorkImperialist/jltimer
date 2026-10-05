@@ -103,6 +103,8 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 
 ## 13. Minimal race interface or standalone race client
 
+- **Status:** a working terminal demo exists, `tools/battle-tui.mjs` (see DEVELOPMENT.md). It joins csTimer's live battle rooms directly.
+
 - **Reuse:** `tools/battle.js`, a room protocol over `wss://cstimer.net/ws20230409`. The server is approximately `dist/wsServer.js`. `tools/syncseed.js` gives shared scrambles without a server.
 - **Add:** a compact race view (opponents' times, current scramble) in the minimal layout, or a separate page reusing the built `cstimer.js`.
 - **Limits:** this uses csTimer's server, which is not ours and not guaranteed. A reliable version needs #14.

@@ -647,7 +647,7 @@ var kernel = execMain(function() {
 			"#fff#227#9c3#563#580#dad#000",
 			"#9aa#023#034#b80#28d#678#034",
 			"#678#ffe#eed#ffe#28d#678#eed",
-			"#dde#223#334#445#8bf#fff#46c#fb4" // jlTimer
+			"#dde#223#334#445#8bf#fff#46c#fb4" // jlTimer dark
 		];
 
 
@@ -722,7 +722,7 @@ var kernel = execMain(function() {
 			} else if (getProp('uidesign') == 'cspt') {
 				$('html').addClass('cspt');
 			} else if (getProp('uidesign') == 'jl') {
-				$('html').addClass('jlds');
+				$('html').addClass('cspt jlds'); // jlTimer design extends the csTimer+ design
 			}
 		}
 
@@ -852,22 +852,21 @@ var kernel = execMain(function() {
 			gray = $('#gray');
 			regListener('ui', 'property', procSignal, /^(?:color|font|col-.+|zoom|view|uidesign|jlLayout|wnd(?:Scr|Stat|Tool))/);
 			regProp('ui', 'zoom', 1, ZOOM_LANG, ['1', ['0.7', '0.8', '0.9', '1', '1.1', '1.25', '1.5'], ['70%', '80%', '90%', '100%', '110%', '125%', '150%']], 1);
-			regProp('ui', 'font', 1, PROPERTY_FONT, ['jl', ['r', 'Arial', 'lcd', 'lcd2', 'lcd3', 'lcd4', 'lcd5', 'Roboto', 'jl'], PROPERTY_FONT_STR.split('|').concat('Roboto', 'jlTimer sans')]);
+			regProp('ui', 'font', 1, PROPERTY_FONT, ['lcd', ['r', 'Arial', 'lcd', 'lcd2', 'lcd3', 'lcd4', 'lcd5', 'Roboto', 'jl'], PROPERTY_FONT_STR.split('|').concat('Roboto', 'jlTimer sans')]);
 			regProp('kernel', 'ahide', 0, PROPERTY_AHIDE, [true], 1);
 			regProp('ui', 'uidesign', 1, PROPERTY_UIDESIGN, ['jl', ['n', 'mt', 'ns', 'mtns', 'cspt', 'jl'], PROPERTY_UIDESIGN_STR.split('|').concat('csTimer+', 'jlTimer')]);
 			regProp('ui', 'jlLayout', 1, 'Layout', ['c', ['c', 'm'], ['Familiar', 'Minimal']]);
 			regProp('ui', 'view', 1, PROPERTY_VIEW, ['a', ['a', 'm', 'd'], PROPERTY_VIEW_STR.split('|')]);
-			// default is 'manual' with the jlTimer palette as default colors
-			regProp('color', 'color', 1, PROPERTY_COLOR, ['u', ['u', 'e', 'r', '1', '2', '3', '4', '5', '6', '7', '8', '9'], PROPERTY_COLOR_STR.split('|').concat('jlTimer')]);
+			regProp('color', 'color', 1, PROPERTY_COLOR, ['1', ['u', 'e', 'r', '1', '2', '3', '4', '5', '6', '7', '8', '9'], PROPERTY_COLOR_STR.split('|').concat('jlTimer dark')]);
 			var parr = PROPERTY_COLORS.split('|');
-			regProp('color', 'col-font', 3, parr[0], ['#ddddee']);
-			regProp('color', 'col-back', 3, parr[1], ['#222233']);
-			regProp('color', 'col-board', 3, parr[2], ['#333344']);
-			regProp('color', 'col-button', 3, parr[3], ['#444455']);
-			regProp('color', 'col-link', 3, parr[4], ['#88bbff']);
-			regProp('color', 'col-logo', 3, parr[5], ['#ffffff']);
-			regProp('color', 'col-logoback', 3, parr[6], ['#4466cc']);
-			regProp('color', 'col-pbs', 3, 'PBs', ['#ffbb44']);
+			regProp('color', 'col-font', 3, parr[0], ['#000000']);
+			regProp('color', 'col-back', 3, parr[1], ['#eeffcc']);
+			regProp('color', 'col-board', 3, parr[2], ['#ffdddd']);
+			regProp('color', 'col-button', 3, parr[3], ['#ffbbbb']);
+			regProp('color', 'col-link', 3, parr[4], ['#0000ff']);
+			regProp('color', 'col-logo', 3, parr[5], ['#ffff00']);
+			regProp('color', 'col-logoback', 3, parr[6], ['#000000']);
+			regProp('color', 'col-pbs', 3, 'PBs', ['#ff4400']);
 			regProp('color', 'col-timer', 4, 'Timer', ['#f00#0d0#dd0#080#f00']);
 			regProp('color', 'colcube', 4, 'Cube', ['#ff0#fa0#00f#fff#f00#0d0']);
 			regProp('color', 'colpyr', 4, 'Pyraminx', ['#0f0#f00#00f#ff0']);
@@ -904,7 +903,7 @@ var kernel = execMain(function() {
 			$(window).resize(fixOrient);
 			$(window).bind('hashchange', hashChange);
 			hashChange();
-			if (location.protocol != 'https:') {
+			if (location.protocol != 'https:' && !$.isLocalHost()) {
 				document.title = '[UNSAFE] ' + document.title;
 			}
 			if (navigator.wakeLock && navigator.wakeLock.request) {

@@ -379,7 +379,9 @@ execMain(function(timer) {
 				timer.status(-1);
 				giikerutil.reSync();
 				timer.lcd.fixDisplay(false, true);
-				if (recordDNF) {
+				if (recordDNF && !kernel.getProp('escDNF')) {
+					timer.cancelSolve();
+				} else if (recordDNF) {
 					timer.curTime()[0] = -1;
 					rawMoves.reverse();
 					var sol = giikerutil.tsLinearFix(rawMoves.flat()); // fit deviceTime to locTime
