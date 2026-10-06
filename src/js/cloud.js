@@ -301,15 +301,17 @@ var cloud = execMain(function() {
 				update.token = res.data['token'];
 			}
 			setState(update);
+			var n = cred.fp.len;
 			if (res.data['recoveryCodes']) {
-				showRecoveryCodes(res.data['recoveryCodes']);
+				showRecoveryCodes(res.data['recoveryCodes'], n);
 			}
-			logohint.push('Algorithm saved, you are signed in');
+			logohint.push('Saved a ' + n + '-move algorithm, you are signed in');
 		}
 	}
 
-	function showRecoveryCodes(codes) {
+	function showRecoveryCodes(codes, moves) {
 		var div = $('<div style="text-align:center;line-height:1.8">').append(
+			$('<p>').text('Saved your algorithm: ' + moves + ' move' + (moves == 1 ? '' : 's') + ', every key counted as pressed (rotations included).'),
 			'<p><b>Recovery codes</b>: each works once if you forget your algorithm. Write them down and keep them offline. They will not be shown again.</p>',
 			$('<textarea readonly style="width:80%;height:9em;font-family:monospace;font-size:1.1em">').val(codes.join('\n')));
 		kernel.showDialog([div, $.noop], 'export', 'jlTimer cloud');
@@ -539,7 +541,8 @@ var cloud = execMain(function() {
 				button('Cancel setup', function() { pending = null; render(); }));
 			return;
 		} else if (st['token']) {
-			status = 'Signed in on this device' + (st['lastBackup'] ? ' · last backup ' + fmtDate(st['lastBackup']) : '');
+			status = 'Signed in on this device' + (st['fp'] ? ' · algorithm: ' + st['fp']['len'] + ' moves' : '') +
+				(st['lastBackup'] ? ' · last backup ' + fmtDate(st['lastBackup']) : '');
 		} else if (setupNeeded) {
 			status = 'No login set up yet';
 		} else {
