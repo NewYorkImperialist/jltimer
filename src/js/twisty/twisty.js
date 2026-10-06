@@ -112,6 +112,18 @@ window.twistyjs = (function() {
 			return { x: (v.x + 1) / 2 * rect.width, y: -(v.y - 1) / 2 * rect.height };
 		};
 
+		// moves being animated right now: [{move, progress 0..1}], used by move effects (js/fx.js)
+		this.animState = function() {
+			var ret = [];
+			for (var i = 0; currentMove && i < currentMove.length; i++) {
+				ret.push({ move: currentMove[i][0], progress: moveProgress[i] });
+			}
+			return ret;
+		};
+		this.cameraPos = function() {
+			return camera ? [camera.position.x, camera.position.y, camera.position.z] : null;
+		};
+
 		this.getDomElement = function() {
 			return twistyContainer;
 		};

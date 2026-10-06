@@ -34,6 +34,14 @@ var puzzleFactory = execMain(function() {
 		return this.twistyScene.project ? this.twistyScene.project(x, y, z) : null;
 	};
 
+	Puzzle.prototype.animState = function() {
+		return this.twistyScene.animState ? this.twistyScene.animState() : [];
+	};
+
+	Puzzle.prototype.cameraPos = function() {
+		return this.twistyScene.cameraPos ? this.twistyScene.cameraPos() : null;
+	};
+
 	Puzzle.prototype.getDomElement = function() {
 		return this.twistyScene.getDomElement();
 	};

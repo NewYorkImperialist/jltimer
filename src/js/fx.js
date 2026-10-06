@@ -15,6 +15,8 @@
 //   face(f)          { center:{x,y}, corners:[4 x {x,y}], normal:{x,y} (screen direction pointing out of the face),
 //                      color:'#rrggbb' (sticker color), visible: true if the face points towards the viewer }
 //   cube()           { center:{x,y}, radius } of the cube on the overlay
+//   box(ev, inflate) v3: the turning slab as a box at its live rotation: faces [{poly, visible, side, outer}],
+//                    .moving while the twisty animates it; call it every frame to follow the turn
 //   layer(ev)        the turning slab: strips/cap polygons and belt(t, depth) path (see layer() below)
 //   add(fn)          run fn(ctx, t, dt) every frame (t = ms since added) until it returns false
 //   shake(px, ms)    shake the cube container briefly (keep it subtle)
@@ -52,10 +54,10 @@ var jlFx = execMain(function() {
 
 	// the active effects: one from "Move effect" (v1) and one from "Layer highlight (v2)"; both may run together
 	function actives() {
-		var ids = [kernel.getProp('jlFx', 'none'), kernel.getProp('jlFxV2', 'none')];
+		var ids = [kernel.getProp('jlFx', 'none'), kernel.getProp('jlFxV2', 'none'), kernel.getProp('jlFxV3', 'none')];
 		var ret = [];
 		for (var i = 0; i < effects.length; i++) {
-			var want = effects[i].v2 ? ids[1] : ids[0];
+			var want = ids[effects[i].v3 ? 2 : effects[i].v2 ? 1 : 0];
 			if (effects[i].id == want) {
 				ret.push(effects[i]);
 			}
@@ -80,14 +82,18 @@ var jlFx = execMain(function() {
 	}
 
 	function regProp() {
-		var v1 = effects.filter(function(e) { return !e.v2; });
+		var v1 = effects.filter(function(e) { return !e.v2 && !e.v3; });
 		var v2 = effects.filter(function(e) { return e.v2; });
+		var v3 = effects.filter(function(e) { return e.v3; });
 		kernel.regProp('vrc', 'jlFx', 1, 'Move effect', ['none',
 			['none'].concat(v1.map(function(e) { return e.id; })),
 			['None'].concat(v1.map(function(e) { return e.name; }))]);
 		kernel.regProp('vrc', 'jlFxV2', 1, 'Layer highlight (v2)', ['none',
 			['none'].concat(v2.map(function(e) { return e.id; })),
 			['None'].concat(v2.map(function(e) { return e.name; }))]);
+		kernel.regProp('vrc', 'jlFxV3', 1, 'Layer laser (v3)', ['none',
+			['none'].concat(v3.map(function(e) { return e.id; })),
+			['None'].concat(v3.map(function(e) { return e.name; }))]);
 	}
 
 	// ---------- geometry ----------
@@ -219,6 +225,82 @@ var jlFx = execMain(function() {
 		};
 	}
 
+	// ---------- live layer box (v3): the turning slab as a 3D box, rotated as far as the animation has got ----------
+	// angle(ev): current rotation in radians (0 before the turn starts, full turn once it has finished)
+	function liveAngle(ev) {
+		var st = puzzle.animState ? puzzle.animState() : [];
+		for (var i = 0; i < st.length; i++) {
+			if (st[i].move === ev.raw) {
+				return { angle: Math.min(1, st[i].progress) * (ev.amount || 1) * Math.PI / 2, moving: true };
+			}
+		}
+		return { angle: ev.phase == 'end' || ev.done ? (ev.amount || 1) * Math.PI / 2 : 0, moving: false };
+	}
+
+	function rotAxis(p, a, ang) { // rotate p about unit axis a by ang (right hand)
+		var c = Math.cos(ang), s = Math.sin(ang), d = p[0] * a[0] + p[1] * a[1] + p[2] * a[2];
+		var x = cross(a, p);
+		return [p[0] * c + x[0] * s + a[0] * d * (1 - c), p[1] * c + x[1] * s + a[1] * d * (1 - c), p[2] * c + x[2] * s + a[2] * d * (1 - c)];
+	}
+
+	// box(ev, inflate): faces of the turning slab at its current angle
+	//   [{poly:[4 {x,y}], visible, side: true for the 4 faces around the axis, outer: true if on the cube surface}]
+	//   plus .moving (the twisty is still animating this move) and .angle
+	function box(ev, inflate) {
+		var f = ev.face, n = AXES[f], dim = ev.dim || 3;
+		var a0 = ev.layers ? ev.layers[0] : 1, b0 = ev.layers ? ev.layers[1] : 1;
+		if (b0 < 0) {
+			b0 = dim + 1 + b0;
+		}
+		b0 = Math.min(b0, dim);
+		var near = 0.5 - (a0 - 1) / dim, far = 0.5 - b0 / dim;
+		var k = 1 + (inflate || 0.03);
+		var e1 = Math.abs(n[1]) ? [1, 0, 0] : [0, 1, 0];
+		var e2 = cross(n, e1);
+		var la = liveAngle(ev);
+		var axis = [-n[0], -n[1], -n[2]]; // twisty turns a face about minus its normal
+		var cam = puzzle.cameraPos ? puzzle.cameraPos() : null;
+
+		function world(s, u, v) {
+			var p = [n[0] * s + e1[0] * u + e2[0] * v, n[1] * s + e1[1] * u + e2[1] * v, n[2] * s + e1[2] * u + e2[2] * v];
+			p = rotAxis(p, axis, la.angle);
+			return [p[0] * S * k, p[1] * S * k, p[2] * S * k];
+		}
+
+		function faceOf(centre, normal, pts, side, outer) {
+			var nr = rotAxis(normal, axis, la.angle);
+			var c = world(centre[0], centre[1], centre[2]);
+			var vis = cam ? (nr[0] * (cam[0] - c[0]) + nr[1] * (cam[1] - c[1]) + nr[2] * (cam[2] - c[2])) > 0 : true;
+			return { poly: pts.map(function(q) {
+				return project(world(q[0], q[1], q[2]));
+			}), visible: vis, side: side, outer: outer };
+		}
+		var faces = [];
+		var h = 0.5;
+		// four side faces
+		[[1, 0], [0, 1], [-1, 0], [0, -1]].forEach(function(d) {
+			var nn = [e1[0] * d[0] + e2[0] * d[1], e1[1] * d[0] + e2[1] * d[1], e1[2] * d[0] + e2[2] * d[1]];
+			var pts = [];
+			if (d[0]) {
+				pts = [[near, d[0] * h, -h], [near, d[0] * h, h], [far, d[0] * h, h], [far, d[0] * h, -h]];
+			} else {
+				pts = [[near, -h, d[1] * h], [near, h, d[1] * h], [far, h, d[1] * h], [far, -h, d[1] * h]];
+			}
+			faces.push(faceOf([(near + far) / 2, d[0] * h, d[1] * h], nn, pts, true, true));
+		});
+		// end caps (only the ones on the cube surface are really visible)
+		var sq = [[-h, -h], [h, -h], [h, h], [-h, h]];
+		faces.push(faceOf([near, 0, 0], n, sq.map(function(q) {
+			return [near, q[0], q[1]];
+		}), false, Math.abs(near - 0.5) < 1e-6));
+		faces.push(faceOf([far, 0, 0], [-n[0], -n[1], -n[2]], sq.map(function(q) {
+			return [far, q[0], q[1]];
+		}), false, Math.abs(far + 0.5) < 1e-6));
+		faces.moving = la.moving;
+		faces.angle = la.angle;
+		return faces;
+	}
+
 	function cube() {
 		var c = project([0, 0, 0]);
 		var e = project([0.43, 0.43, 0.43]);
@@ -254,6 +336,7 @@ var jlFx = execMain(function() {
 		face: face,
 		cube: cube,
 		layer: layer,
+		box: box,
 		add: function(fn) {
 			anims.push({ fn: fn, start: performance.now() });
 			if (!rafId) {
@@ -331,6 +414,7 @@ var jlFx = execMain(function() {
 		var m = /^\s*([0-9]*)([A-Za-z]+)/.exec(moveStr || '') || [];
 		var f = (raw && raw[2]) || (m[2] || '').charAt(0).toUpperCase();
 		var ev = {
+			raw: raw,
 			move: $.trim(moveStr || ''),
 			face: 'URFDLB'.indexOf(f) == -1 ? 'U' : f,
 			amount: raw && raw[3] || 1,
