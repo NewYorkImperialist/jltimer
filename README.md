@@ -43,6 +43,7 @@ Server backup, WCA and Google login, online competitions and battle rooms are **
 - [docs/MIGRATION.md](docs/MIGRATION.md): moving data from cstimer.net
 - [docs/BACKEND.md](docs/BACKEND.md): service dependency audit
 - [docs/ROADMAP.md](docs/ROADMAP.md): future plans (not implemented)
+- [docs/BACKUP_PLAN.md](docs/BACKUP_PLAN.md): planned cloud backup (Turso, Cloudflare Worker, cube-move login)
 
 ## Upstream csTimer
 

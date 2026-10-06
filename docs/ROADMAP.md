@@ -97,6 +97,8 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 
 ## 12. Improved exports, versioned backups and recovery
 
+- **Status:** chosen design (Turso + Cloudflare Worker + cube-move login) is in [BACKUP_PLAN.md](BACKUP_PLAN.md).
+
 - **Reuse:** `export.js`: whole-data JSON, auto export every N solves (`atexpa`, `atexpi`), import confirmation, and slicing/compression for the server (`getLocalDataSliced`, LZString).
 - **Add:** timestamped local backups (download, or the File System Access API where available), a pre-import automatic backup (import currently **replaces** all data), an import preview or merge, integrity checks (solve counts, hashes), and a version field. The version field would be additive, so csTimer ignores it.
 - **Limits:** the biggest current risk is import overwriting data. Do this first.
