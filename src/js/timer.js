@@ -776,7 +776,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		regListener('timer', 'session', updateTimerOffsetAsync.bind(null, false));
 		regListener('timer', 'scrfix', updateTimerOffsetAsync.bind(null, false));
 		$(window).bind('resize', updateTimerOffsetAsync.bind(null, false));
-		regProp('vrc', 'vrcSpeed', 1, PROPERTY_VRCSPEED, [50, [0, 50, 100, 200, 500, 1000], '\u221E|20|10|5|2|1'.split('|')], 1);
+		regProp('vrc', 'vrcSpeed', 1, PROPERTY_VRCSPEED, [50, [0, 25, 50, 100, 200, 500, 1000], '\u221E|40|20|10|5|2|1'.split('|')], 1);
 		regProp('vrc', 'vrcSize', 1, 'Virtual cube size', [100, VRC_SIZES, VRC_SIZES.map(function(v) { return v + '%'; })], 1);
 		regProp('vrc', 'vrcOri', 1, PROPERTY_VRCORI, ['6,12', ['6,12', '10,11'], ['UF', 'URF']], 1);
 		regProp('vrc', 'vrcMP', 1, PROPERTY_VRCMP, ['cfop', ['n', 'cfop', 'fp', 'cf4op', 'cf4o2p2', 'roux'], PROPERTY_VRCMPS.split('|')], 1);

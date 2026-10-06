@@ -3,6 +3,7 @@
 // jlTimer move effects: visual flourishes on the virtual cube when a layer turns.
 // Each effect lives in js/fx/<id>.js and calls jlFx.register({...}):
 //   id, name                 'sparks', 'Spark Burst'
+//   v2                       optional: true lists it under "Layer highlight (v2)" (effects on the turning layer itself)
 //   onMove(api, ev)          a layer started turning (ev.phase 'start') or finished ('end')
 //   onSolve(api, ev)         optional: the cube was solved at the end of a timed solve
 //   onScramble(api)          optional: a new attempt was scrambled (space pressed)
@@ -14,6 +15,7 @@
 //   face(f)          { center:{x,y}, corners:[4 x {x,y}], normal:{x,y} (screen direction pointing out of the face),
 //                      color:'#rrggbb' (sticker color), visible: true if the face points towards the viewer }
 //   cube()           { center:{x,y}, radius } of the cube on the overlay
+//   layer(ev)        the turning slab: strips/cap polygons and belt(t, depth) path (see layer() below)
 //   add(fn)          run fn(ctx, t, dt) every frame (t = ms since added) until it returns false
 //   shake(px, ms)    shake the cube container briefly (keep it subtle)
 //   rand()           seeded random 0..1 (deterministic per page load)
@@ -48,14 +50,17 @@ var jlFx = execMain(function() {
 		return seed / 0x7fffffff;
 	}
 
-	function current() {
-		var id = kernel.getProp('jlFx', 'none');
+	// the active effects: one from "Move effect" (v1) and one from "Layer highlight (v2)"; both may run together
+	function actives() {
+		var ids = [kernel.getProp('jlFx', 'none'), kernel.getProp('jlFxV2', 'none')];
+		var ret = [];
 		for (var i = 0; i < effects.length; i++) {
-			if (effects[i].id == id) {
-				return effects[i];
+			var want = effects[i].v2 ? ids[1] : ids[0];
+			if (effects[i].id == want) {
+				ret.push(effects[i]);
 			}
 		}
-		return null;
+		return ret;
 	}
 
 	function register(e) {
@@ -75,9 +80,14 @@ var jlFx = execMain(function() {
 	}
 
 	function regProp() {
+		var v1 = effects.filter(function(e) { return !e.v2; });
+		var v2 = effects.filter(function(e) { return e.v2; });
 		kernel.regProp('vrc', 'jlFx', 1, 'Move effect', ['none',
-			['none'].concat(effects.map(function(e) { return e.id; })),
-			['None'].concat(effects.map(function(e) { return e.name; }))]);
+			['none'].concat(v1.map(function(e) { return e.id; })),
+			['None'].concat(v1.map(function(e) { return e.name; }))]);
+		kernel.regProp('vrc', 'jlFxV2', 1, 'Layer highlight (v2)', ['none',
+			['none'].concat(v2.map(function(e) { return e.id; })),
+			['None'].concat(v2.map(function(e) { return e.name; }))]);
 	}
 
 	// ---------- geometry ----------
@@ -114,6 +124,101 @@ var jlFx = execMain(function() {
 		return { center: center, corners: corners, normal: { x: dx / len, y: dy / len }, color: stickerColor(f), visible: facing };
 	}
 
+	// ---------- layer geometry (v2): the slab of the cube that turns ----------
+	// cube coordinates span -0.5..0.5; S scales them to the sticker surface used by face()
+	var S = 0.86;
+	var AXES = { U: [0, 1, 0], D: [0, -1, 0], R: [1, 0, 0], L: [-1, 0, 0], F: [0, 0, 1], B: [0, 0, -1] };
+	var FACE_OF_AXIS = { '0,1,0': 'U', '0,-1,0': 'D', '1,0,0': 'R', '-1,0,0': 'L', '0,0,1': 'F', '0,0,-1': 'B' };
+
+	function cross(a, b) {
+		return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+	}
+
+	function surf(p) { // cube coordinates -> overlay screen point
+		return project([p[0] * S, p[1] * S, p[2] * S]);
+	}
+
+	var visCache = {};
+
+	function faceVisible(f) {
+		if (!(f in visCache)) {
+			visCache[f] = face(f).visible;
+		}
+		return visCache[f];
+	}
+
+	// layer(ev) describes the turning slab:
+	//   axis: face letter ('R'...), near/far: slab bounds along the axis (cube coords, near is the outer side)
+	//   whole: true for x/y/z rotations (the slab is the whole cube)
+	//   strips: [{face, poly:[4 {x,y}], visible}] - the slab's band on each of the 4 side faces
+	//   cap: {face, poly, visible} - the turning face itself (null for middle slices)
+	//   belt(t, depth): screen point on the loop around the slab, t in turns (0..1 = once around, increasing t
+	//          follows the turn direction for amount > 0), depth 0..1 across the slab; returns {x, y, visible, face}
+	//   dir: +1/-1 turn direction, quarter: number of quarter turns (1 or 2)
+	function layer(ev) {
+		visCache = {};
+		var f = ev.face, n = AXES[f], dim = ev.dim || 3;
+		var a = ev.layers ? ev.layers[0] : 1, b = ev.layers ? ev.layers[1] : 1;
+		if (b < 0) {
+			b = dim + 1 + b;
+		}
+		b = Math.min(b, dim);
+		var near = 0.5 - (a - 1) / dim, far = 0.5 - b / dim;
+		// tangents: e1 any perpendicular, e2 = (-n) x e1 so that increasing angle follows a positive turn
+		var e1 = Math.abs(n[1]) ? [1, 0, 0] : [0, 1, 0];
+		var e2 = cross([-n[0], -n[1], -n[2]], e1);
+		var dir = ev.amount < 0 ? -1 : 1;
+
+		function pt(s, u, v) { // s along axis, u,v along e1,e2 (cube coords)
+			return [n[0] * s + e1[0] * u + e2[0] * v, n[1] * s + e1[1] * u + e2[1] * v, n[2] * s + e1[2] * u + e2[2] * v];
+		}
+		var strips = [];
+		[[e1, 1], [e2, 1], [e1, -1], [e2, -1]].forEach(function(side) {
+			var nv = [side[0][0] * side[1], side[0][1] * side[1], side[0][2] * side[1]];
+			var other = side[0] === e1 ? e2 : e1;
+			var fc = FACE_OF_AXIS[nv.join(',')];
+			var poly = [[near, -1], [near, 1], [far, 1], [far, -1]].map(function(q) {
+				var p = [n[0] * q[0] + nv[0] * 0.5 + other[0] * q[1] * 0.5, n[1] * q[0] + nv[1] * 0.5 + other[1] * q[1] * 0.5,
+					n[2] * q[0] + nv[2] * 0.5 + other[2] * q[1] * 0.5];
+				return surf(p);
+			});
+			strips.push({ face: fc, poly: poly, visible: faceVisible(fc) });
+		});
+		var cap = null;
+		if (a == 1) {
+			cap = { face: f, visible: faceVisible(f), poly: [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(function(q) {
+				return surf(pt(0.5, q[0] * 0.5, q[1] * 0.5));
+			}) };
+		}
+		if (b == dim && a > 1) { // slab reaches the opposite face (e.g. wide move from the far side)
+			var of = FACE_OF_AXIS[[-n[0], -n[1], -n[2]].join(',')];
+			cap = { face: of, visible: faceVisible(of), poly: [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(function(q) {
+				return surf(pt(-0.5, q[0] * 0.5, q[1] * 0.5));
+			}) };
+		}
+		return {
+			axis: f,
+			near: near,
+			far: far,
+			whole: !!ev.rotation || (a == 1 && b == dim),
+			dir: dir,
+			quarter: Math.abs(ev.amount) % 4 == 2 ? 2 : 1,
+			strips: strips,
+			cap: cap,
+			belt: function(t, depth) {
+				var th = t * Math.PI * 2;
+				var c = Math.cos(th), s2 = Math.sin(th), m = Math.max(Math.abs(c), Math.abs(s2)) || 1;
+				var u = c / m * 0.5, v = s2 / m * 0.5;
+				var s = near + (far - near) * (depth == null ? 0.5 : depth);
+				var p = pt(s, u, v);
+				var fc = Math.abs(u) >= Math.abs(v) ? FACE_OF_AXIS[(u > 0 ? e1 : e1.map(function(x) { return -x; })).join(',')] :
+					FACE_OF_AXIS[(v > 0 ? e2 : e2.map(function(x) { return -x; })).join(',')];
+				var q = surf(p);
+				return { x: q.x, y: q.y, visible: faceVisible(fc), face: fc };
+			}
+		};
+	}
+
 	function cube() {
 		var c = project([0, 0, 0]);
 		var e = project([0.43, 0.43, 0.43]);
@@ -148,6 +253,7 @@ var jlFx = execMain(function() {
 		ctx: ctx,
 		face: face,
 		cube: cube,
+		layer: layer,
 		add: function(fn) {
 			anims.push({ fn: fn, start: performance.now() });
 			if (!rafId) {
@@ -210,8 +316,8 @@ var jlFx = execMain(function() {
 	}
 
 	function onMove(moveStr, raw, phase, solving) {
-		var e = current();
-		if (!e || !puzzle || !layout()) {
+		var list = actives();
+		if (!list.length || !puzzle || !layout()) {
 			return;
 		}
 		var now = performance.now();
@@ -237,35 +343,38 @@ var jlFx = execMain(function() {
 			solving: !!solving,
 			time: now
 		};
-		try {
-			e.onMove(api, ev);
-		} catch (err) {
-			DEBUG && console.log('[fx]', err);
+		list.forEach(function(e) {
+			try {
+				e.onMove(api, ev);
+			} catch (err) {
+				DEBUG && console.log('[fx]', err);
+			}
+		});
+	}
+
+	function each(fnName, arg) {
+		if (!puzzle || !layout()) {
+			return;
 		}
+		actives().forEach(function(e) {
+			if (e[fnName]) {
+				try {
+					e[fnName](api, arg);
+				} catch (err) {
+					DEBUG && console.log('[fx]', err);
+				}
+			}
+		});
 	}
 
 	function onSolve(info) {
-		var e = current();
-		if (e && e.onSolve && puzzle && layout()) {
-			try {
-				e.onSolve(api, info || {});
-			} catch (err) {
-				DEBUG && console.log('[fx]', err);
-			}
-		}
+		each('onSolve', info || {});
 	}
 
 	function onScramble() {
-		var e = current();
 		combo = 0;
 		turnTimes = [];
-		if (e && e.onScramble && puzzle && layout()) {
-			try {
-				e.onScramble(api);
-			} catch (err) {
-				DEBUG && console.log('[fx]', err);
-			}
-		}
+		each('onScramble');
 	}
 
 	$(function() {
