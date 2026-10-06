@@ -81,6 +81,8 @@
   <script type="text/javascript" src="js/tools/syncseed.js"></script>
   <script type="text/javascript" src="js/tools/bldhelper.js"></script>
   <script type="text/javascript" src="js/cloud.js"></script>
+  <script type="text/javascript" src="js/themes.js"></script>
+<?php foreach (glob(__DIR__ . '/js/themes/*.js') as $f) { echo '  <script type="text/javascript" src="js/themes/' . basename($f) . "\" async></script>\n"; } ?>
   <script type="text/javascript" src="js/twisty/twistyreplay.js"></script>
   <script type="text/javascript" src="js/shortcut.js"></script>
   <script type="text/javascript" src="js/help.js"></script>

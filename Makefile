@@ -80,6 +80,7 @@ tools/battle.js \
 tools/syncseed.js \
 tools/bldhelper.js \
 cloud.js \
+themes.js \
 twisty/twistyreplay.js \
 shortcut.js \
 help.js \
@@ -100,6 +101,7 @@ cache = $(addprefix $(dest)/, \
 timer.php \
 js/cstimer.js \
 js/twisty.js \
+js/jlthemes.js \
 css/style.css) $(langJS) $(langPHP)
 
 twistySrc = $(addprefix $(src)/js/, \
@@ -153,6 +155,9 @@ worker.js)
 
 cstimer = $(dest)/js/cstimer.js
 twisty = $(dest)/js/twisty.js
+# enhanced themes: one file per theme, shipped as a separate bundle loaded after the timer starts
+themeSrc = $(sort $(wildcard $(src)/js/themes/*.js))
+jlthemes = $(dest)/js/jlthemes.js
 cstimer_module = $(destnpm)/cstimer_module.js
 css = $(addprefix $(dest)/css/, $(shell ls $(src)/css))
 langJS = $(addprefix $(dest)/lang/, $(shell ls $(src)/lang/ | grep .*\.js))
@@ -160,7 +165,7 @@ langPHP = $(addprefix $(dest)/lang/, $(shell ls $(src)/lang/ | grep .*\.php))
 
 version := $(shell git describe --tags --always 2>/dev/null || echo Unspecified)
 
-all: $(cstimer) $(twisty) $(css) $(langJS) $(langPHP) version $(dest)/cache.manifest $(dest)/sw.js
+all: $(cstimer) $(twisty) $(jlthemes) $(css) $(langJS) $(langPHP) version $(dest)/cache.manifest $(dest)/sw.js
 
 module: $(cstimer_module)
 
@@ -180,6 +185,7 @@ local: all
 	cp $(dest)/js/jquery.min.js $(dest)/local/js/jquery.min.js
 	cp $(dest)/js/cstimer.js $(dest)/local/js/cstimer.js
 	cp $(dest)/js/twisty.js $(dest)/local/js/twisty.js
+	cp $(dest)/js/jlthemes.js $(dest)/local/js/jlthemes.js
 	cp $(dest)/css/style.css $(dest)/local/css/style.css
 	cp $(dest)/jltimer.webmanifest $(dest)/jltimer512x512.png $(dest)/local/
 	sed "/'timer.php',/d" $(dest)/sw.js > $(dest)/local/sw.js
@@ -194,6 +200,10 @@ $(cstimer): $(twisty) $(timerSrc)
 $(twisty): $(twistySrc)
 	@echo $@
 	@$(compile) $(twistySrc) --js_output_file $(twisty)
+
+$(jlthemes): $(themeSrc)
+	@echo $@
+	@cat $(themeSrc) > $@
 
 $(cstimer_module): $(moduleSrc)
 	@echo $@

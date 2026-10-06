@@ -60,7 +60,7 @@ var exportFunc = execMain(function() {
 		loadData(dataobj);
 	}
 
-	function loadData(data, skipConfirm) {
+	function loadData(data, skipConfirm, onDone) {
 		var sessionDelta = 0;
 		var solveAdd = 0;
 		var solveRm = 0;
@@ -101,6 +101,7 @@ var exportFunc = execMain(function() {
 				kernel.loadProp();
 			}
 			storage.importAll(data).then(function() {
+				onDone && onDone();
 				location.reload();
 			});
 		}, $.noop);

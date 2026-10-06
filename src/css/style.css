@@ -1639,3 +1639,62 @@ html.jlmin:not(.m) #leftbar:focus-within > div {
 .jlmin .mywindow > .chide {
 	opacity: 0.4;
 }
+
+/* ---------- jlTimer enhanced themes (js/themes.js, js/themes/*.js) ---------- */
+/* the artwork is the page background; themes make panels translucent in their own css */
+html.jlt-on {
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+/* About: room after the last section, so every tab (Enhanced themes too) can scroll to the top */
+td.tabValue > div.helptable::after {
+	content: "";
+	display: block;
+	height: 70vh;
+}
+
+html.jlt-on body {
+	background-color: transparent !important;
+}
+
+html.jlt-on .mywindow:not(.fixed),
+html.jlt-on #leftbar,
+html.jlt-on .dialog,
+html.jlt-on .popup {
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	backdrop-filter: blur(12px) saturate(1.2);
+}
+
+.jltheme-gallery {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.8em;
+	padding: 0.4em 0;
+}
+
+.jltheme-tile {
+	position: relative;
+	width: 11em;
+	height: 7em;
+	border-radius: 0.6em;
+	background-size: cover;
+	background-position: center;
+	box-shadow: 0 0.1em 0.5em rgba(0, 0, 0, 0.3);
+	overflow: hidden;
+	outline: 0.2em solid transparent;
+}
+
+.jltheme-tile.active {
+	outline-color: #5b9bff;
+}
+
+.jltheme-tile .jltheme-name {
+	position: absolute;
+	left: 0.5em;
+	bottom: 0.5em;
+	padding: 0.1em 0.5em;
+	border-radius: 0.3em;
+	font-size: 0.9em;
+}
