@@ -138,27 +138,35 @@ var cloud = execMain(function() {
 	var pending = null; // {mode: 'setup'|'change'|'recover', step, captures: [], setupToken, code}
 	var busy = false;
 
+	// the moves as typed, plus the merged form used by logins saved before raw moves (so they still work)
+	function candidates(moves) {
+		var raw = normalize(moves);
+		var legacy = legacyNormalize(moves);
+		return legacy == raw ? [raw] : [raw, legacy];
+	}
+
 	function mightBeGesture(moves) {
 		if (pending) {
 			return true;
 		}
 		var fp = getState()['fp'];
-		return !!(fp && apiUrl() && tokens(normalize(moves)).length == fp['len']);
+		return !!(fp && apiUrl() && candidates(moves).some(function(c) { return tokens(c).length == fp['len']; }));
 	}
 
 	// called when a virtual solve is cancelled with Esc; resolves true if the attempt was used as a gesture
 	function onCancelledSolve(moves) {
-		var norm = normalize(moves);
 		if (pending) {
-			return Promise.resolve(capture(norm, moves));
+			return Promise.resolve(capture(normalize(moves), moves));
 		}
 		var st = getState();
 		var fp = st['fp'];
-		if (busy || !fp || !apiUrl() || tokens(norm).length != fp['len']) {
+		var cands = fp ? candidates(moves).filter(function(c) { return tokens(c).length == fp['len']; }) : [];
+		if (busy || !fp || !apiUrl() || !cands.length) {
 			return Promise.resolve(false);
 		}
-		return fpTag(norm, fp['salt']).then(function(tag) {
-			if (tag != fp['tag']) {
+		return Promise.all(cands.map(function(c) { return fpTag(c, fp['salt']); })).then(function(tags) {
+			var norm = cands[tags.indexOf(fp['tag'])];
+			if (norm === undefined) {
 				return false;
 			}
 			busy = true;
