@@ -6,7 +6,7 @@ preview_urls = false
 
 [vars]
 # The jlTimer site(s) allowed to call this API.
-ALLOWED_ORIGINS = "https://newyorkimperialist.github.io,http://localhost:8081"
+ALLOWED_ORIGINS = "https://timer.jaydenlin.net,https://jaydenlin.net,https://newyorkimperialist.github.io,http://localhost:8081"
 
 # Secrets (set with `npx wrangler secret put NAME`, never commit them):
 #   TURSO_URL       libsql://<db>-<org>.turso.io

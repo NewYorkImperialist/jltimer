@@ -73,7 +73,7 @@ Check that the page loads without 404s in the network tab. It should load `js/*`
 
 `.github/workflows/pages.yml` runs on every push to `master` and on manual dispatch. It sets up Java 11 and PHP 8.0, runs `make local`, uploads `dist/local` and deploys it with `actions/deploy-pages`.
 
-To use it, set **Settings → Pages → Build and deployment → Source: GitHub Actions** in the GitHub repo. With the current remote (`NewYorkImperialist/jltimer`), the site would be at `https://newyorkimperialist.github.io/jltimer/`.
+Pages is enabled with **Source: GitHub Actions** and the custom domain **https://timer.jaydenlin.net/** (a `CNAME` record `timer → newyorkimperialist.github.io` at the domain's DNS provider, Spaceship). Without the custom domain it would serve under the user site's domain at `/jltimer/`; both work, since all paths are relative. Pushing to `master` deploys.
 
 **Pushing to `master` deploys.** Push or dispatch only when you mean to publish. Nothing has been deployed as part of this work.
 

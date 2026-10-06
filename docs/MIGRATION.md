@@ -1,6 +1,6 @@
 # Moving your data from cstimer.net to jlTimer
 
-Browsers store site data **per origin** (scheme + host + port). Solves you recorded at `https://cstimer.net` are not visible to jlTimer on any other domain, such as `https://<user>.github.io/jltimer/` or `localhost`. Nothing transfers automatically, and opening jlTimer never reads or changes your cstimer.net data.
+Browsers store site data **per origin** (scheme + host + port). Solves you recorded at `https://cstimer.net` are not visible to jlTimer on any other domain, such as jlTimer's `https://timer.jaydenlin.net` or `localhost`. Use one address for your real data: `https://timer.jaydenlin.net`. Nothing transfers automatically, and opening jlTimer never reads or changes your cstimer.net data.
 
 The supported path is csTimer's own **file export/import**. jlTimer kept that format unchanged.
 
