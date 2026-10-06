@@ -17,6 +17,7 @@
 //   cube()           { center:{x,y}, radius } of the cube on the overlay
 //   box(ev, inflate) v3: the turning slab as a box at its live rotation: faces [{poly, visible, side, outer}],
 //                    .moving while the twisty animates it; call it every frame to follow the turn
+//   progress(ev)     v3: {progress 0..1, moving} of this move's live turn animation
 //   layer(ev)        the turning slab: strips/cap polygons and belt(t, depth) path (see layer() below)
 //   add(fn)          run fn(ctx, t, dt) every frame (t = ms since added) until it returns false
 //   shake(px, ms)    shake the cube container briefly (keep it subtle)
@@ -337,6 +338,10 @@ var jlFx = execMain(function() {
 		cube: cube,
 		layer: layer,
 		box: box,
+		progress: function(ev) { // live turn progress {progress 0..1, moving}
+			var la = liveAngle(ev);
+			return { progress: Math.abs(la.angle / ((ev.amount || 1) * Math.PI / 2)), moving: la.moving };
+		},
 		add: function(fn) {
 			anims.push({ fn: fn, start: performance.now() });
 			if (!rafId) {
