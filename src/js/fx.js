@@ -3,6 +3,8 @@
 // jlTimer move effects: visual flourishes on the virtual cube when a layer turns.
 // Each effect lives in js/fx/<id>.js and calls jlFx.register({...}):
 //   id, name                 'sparks', 'Spark Burst'
+//   stickerTint              optional {color: 0xRRGGBB, amount: 0..1}: the turning layer's own stickers are
+//                            recoloured toward color while the layer animates (no overlay drawing needed)
 //   v2                       optional: true lists it under "Layer highlight (v2)" (effects on the turning layer itself)
 //   onMove(api, ev)          a layer started turning (ev.phase 'start') or finished ('end')
 //   onSolve(api, ev)         optional: the cube was solved at the end of a timed solve
@@ -405,6 +407,13 @@ var jlFx = execMain(function() {
 
 	function onMove(moveStr, raw, phase, solving) {
 		var list = actives();
+		if (puzzle && puzzle.twisty) { // effects with stickerTint recolour the turning stickers inside the cube itself
+			var tint = null;
+			list.forEach(function(e) {
+				tint = tint || e.stickerTint || null;
+			});
+			puzzle.twisty.stickerTint = reduced && tint ? { color: tint.color, amount: tint.amount * 0.6 } : tint;
+		}
 		if (!list.length || !puzzle || !layout()) {
 			return;
 		}

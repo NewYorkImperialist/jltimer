@@ -196,6 +196,42 @@
 		var actualScale = cubeOptions.scale * 0.5 / cubeOptions.dimension;
 		cubeObject.scale = new THREE.Vector3(actualScale, actualScale, actualScale);
 
+		// move effects (js/fx.js) can tint the stickers of the turning layer while it animates:
+		// twisty.stickerTint = {color: 0xRRGGBB, amount: 0..1} (null = off)
+		var tintedMeshes = [];
+		var tintCache = {};
+		var tintIds = 0;
+
+		function tintSticker(twisty, sticker) {
+			var mesh = sticker[1].children[0];
+			var tint = twisty.stickerTint;
+			if (!mesh || mesh.jlTinted) {
+				return;
+			}
+			var orig = mesh.materials[0];
+			orig.jlId = orig.jlId || ++tintIds;
+			var key = orig.jlId + ':' + tint.color + ':' + tint.amount;
+			if (!tintCache[key]) {
+				var tc = new THREE.Color(tint.color), k = tint.amount;
+				var c = new THREE.Color(0);
+				c.setRGB(orig.color.r + (tc.r - orig.color.r) * k, orig.color.g + (tc.g - orig.color.g) * k,
+					orig.color.b + (tc.b - orig.color.b) * k);
+				tintCache[key] = new THREE.MeshBasicMaterial({ color: c.hex, opacity: orig.opacity });
+			}
+			mesh.jlOrig = orig;
+			mesh.jlTinted = true;
+			mesh.materials[0] = tintCache[key];
+			tintedMeshes.push(mesh);
+		}
+
+		function untintAll() {
+			for (var i = 0; i < tintedMeshes.length; i++) {
+				tintedMeshes[i].materials[0] = tintedMeshes[i].jlOrig;
+				tintedMeshes[i].jlTinted = false;
+			}
+			tintedMeshes = [];
+		}
+
 		function animateMoveCallback(twisty, currentMove, moveProgress, moveStep) {
 
 			//          var rott = new THREE.Matrix4();
@@ -227,6 +263,9 @@
 					if (layer < maxLayer && layer > minLayer) {
 						sticker[1].matrix.multiply(rots, sticker[1].matrix);
 						sticker[1].update();
+						if (twisty.stickerTint) {
+							tintSticker(twisty, sticker);
+						}
 					}
 				}
 			}
@@ -250,6 +289,7 @@
 
 		function advanceMoveCallback(twisty, currentMove) {
 			cntMove(twisty, currentMove);
+			untintAll(); // stickers of moves still animating are tinted again on their next frame
 
 			var rott = matrix4Power(sidesRot[currentMove[2]], currentMove[3]);
 
