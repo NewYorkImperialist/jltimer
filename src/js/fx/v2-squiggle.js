@@ -63,12 +63,12 @@
 	// the wavy trail from belt position t0 to t1, precomputed once (the view does not move while it plays)
 	function squiggle(api, L, t0, t1, steps) {
 		var p1 = api.rand(), p2 = api.rand(), f1 = 1.6 + api.rand() * 0.8, f2 = 3.5 + api.rand() * 1.5;
-		var amp = 0.16 + api.rand() * 0.06;
+		var amp = 0.09 + api.rand() * 0.04;
 		var pts = [];
 		for (var j = 0; j <= steps; j++) {
 			var u = j / steps;
 			var taper = Math.sin(Math.PI * u); // starts and ends in the middle of the zones
-			var d = 0.5 + taper * (amp * Math.sin(2 * Math.PI * (u * f1 + p1)) + 0.06 * Math.sin(2 * Math.PI * (u * f2 + p2)));
+			var d = 0.5 + taper * (amp * Math.sin(2 * Math.PI * (u * f1 + p1)) + 0.035 * Math.sin(2 * Math.PI * (u * f2 + p2)));
 			pts.push(L.belt(t0 + (t1 - t0) * u, d));
 		}
 		return pts;
@@ -80,10 +80,10 @@
 			ctx.fillStyle = 'rgba(40, 210, 255, ' + fillA.toFixed(3) + ')';
 			ctx.fill();
 		}
-		ctx.strokeStyle = 'rgba(0, 110, 220, ' + (0.32 * a).toFixed(3) + ')';
+		ctx.strokeStyle = 'rgba(0, 110, 220, ' + (0.42 * a).toFixed(3) + ')';
 		ctx.lineWidth = 9;
 		ctx.stroke();
-		ctx.strokeStyle = 'rgba(0, 210, 255, ' + (0.6 * a).toFixed(3) + ')';
+		ctx.strokeStyle = 'rgba(0, 210, 255, ' + (0.7 * a).toFixed(3) + ')';
 		ctx.lineWidth = 4.5;
 		ctx.stroke();
 		ctx.strokeStyle = 'rgba(225, 255, 255, ' + (0.95 * a).toFixed(3) + ')';

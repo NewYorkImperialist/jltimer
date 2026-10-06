@@ -100,7 +100,7 @@
 			polys.push(L.cap.poly);
 		}
 		var va = visibleArc(L);
-		var arc = Math.min(0.5, va.len * 0.94);
+		var arc = Math.min(0.5, va.len * 0.9);
 		var mid = va.start + va.len / 2;
 		var t0 = mid - L.dir * arc / 2;
 		var life = opts.life, strength = opts.strength, delay = opts.delay || 0;
@@ -112,12 +112,13 @@
 			var r = api.rand();
 			lines.push({
 				depth: depths[i],
-				start: (opts.whole ? i : order[i]) * 0.07 + r * 0.04,
-				dur: 0.42 + r * 0.12,
-				len: 0.35 + api.rand() * 0.3,
-				width: depths[i] == 0.5 ? 4.2 : 2.6 + api.rand() * 1.2
+				start: (opts.whole ? i : order[i]) * 0.05 + r * 0.04,
+				dur: 0.5 + r * 0.12,
+				len: 0.45 + api.rand() * 0.3,
+				width: depths[i] == 0.5 ? 9 : 5 + api.rand() * 2.5
 			});
 		}
+		var scale = Math.max(0.6, Math.min(1.6, api.cube().radius / 220));
 		var fx = { dead: false };
 		track(fx);
 		api.add(function(ctx, tt) {
@@ -142,11 +143,11 @@
 							ctx.fillStyle = 'rgba(120, 210, 255, ' + fa.toFixed(3) + ')';
 							ctx.fill();
 						}
-						ctx.strokeStyle = 'rgba(0, 120, 230, ' + (0.4 * ra).toFixed(3) + ')';
-						ctx.lineWidth = 5;
+						ctx.strokeStyle = 'rgba(0, 125, 245, ' + (0.55 * ra).toFixed(3) + ')';
+						ctx.lineWidth = 6;
 						ctx.stroke();
-						ctx.strokeStyle = 'rgba(190, 240, 255, ' + (0.9 * ra).toFixed(3) + ')';
-						ctx.lineWidth = 1.6;
+						ctx.strokeStyle = 'rgba(200, 245, 255, ' + ra.toFixed(3) + ')';
+						ctx.lineWidth = 2;
 						ctx.stroke();
 					});
 				}
@@ -160,22 +161,26 @@
 				if (p <= 0 || p >= 1) {
 					continue;
 				}
-				var e = 1 - Math.pow(1 - p, 2.2); // fast launch, eases out
+				var e = 1 - Math.pow(1 - p, 1.8); // fast launch, eases out
 				var head = e * (1 + ln.len);
 				var tail = head - ln.len;
 				var u1 = Math.min(1, head), u0 = Math.max(0, tail);
-				if (u1 - u0 < 0.02) {
+				// once the head leaves the visible arc the streak fades out instead of bunching up at the edge
+				var out = head > 1 ? Math.max(0, 1 - (head - 1) / (ln.len * 0.6)) : 1;
+				if (u1 - u0 < 0.02 || out <= 0) {
 					continue;
 				}
-				// a streak clipped at the end of the arc shortens; keep its taper by scaling width a bit
-				var a = strength * (p < 0.15 ? p / 0.15 : 1) * (p > 0.7 ? (1 - p) / 0.3 : 1);
-				var w = ln.width * (0.6 + 0.4 * (u1 - u0) / ln.len);
-				ctx.fillStyle = 'rgba(0, 110, 235, ' + (0.55 * a).toFixed(3) + ')';
+				var a = strength * out * (p < 0.12 ? p / 0.12 : 1);
+				var w = ln.width * scale;
+				// soft halo, saturated blue edge (reads on light themes), light-blue body, white-hot core
+				ctx.fillStyle = 'rgba(60, 170, 255, ' + (0.16 * a).toFixed(3) + ')';
+				fillPoly(ctx, streakPoly(L, t0, arc, ln.depth, u0, u1, w + 10));
+				ctx.fillStyle = 'rgba(0, 105, 240, ' + (0.8 * a).toFixed(3) + ')';
 				fillPoly(ctx, streakPoly(L, t0, arc, ln.depth, u0, u1, w + 3));
-				ctx.fillStyle = 'rgba(150, 230, 255, ' + (0.85 * a).toFixed(3) + ')';
+				ctx.fillStyle = 'rgba(140, 225, 255, ' + a.toFixed(3) + ')';
 				fillPoly(ctx, streakPoly(L, t0, arc, ln.depth, u0, u1, w));
-				ctx.fillStyle = 'rgba(255, 255, 255, ' + (0.95 * a).toFixed(3) + ')';
-				fillPoly(ctx, streakPoly(L, t0, arc, ln.depth, u0 + (u1 - u0) * 0.35, u1, w * 0.45));
+				ctx.fillStyle = 'rgba(255, 255, 255, ' + a.toFixed(3) + ')';
+				fillPoly(ctx, streakPoly(L, t0, arc, ln.depth, u0 + (u1 - u0) * 0.3, u1, w * 0.45));
 			}
 			return true;
 		});

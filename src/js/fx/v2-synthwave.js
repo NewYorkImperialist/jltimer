@@ -154,7 +154,7 @@
 			var pulse = pk * pk * (3 - 2 * pk);
 			var oa = subtle ? 0.45 * pulse : pulse;
 			// faint magenta-tinted wash that is gone long before the effect ends
-			var fillA = (subtle ? 0.06 : 0.12) * Math.max(0, 1 - k / 0.45);
+			var fillA = (subtle ? 0.05 : 0.09) * Math.max(0, 1 - k / 0.4);
 			if (fillA > 0.002) {
 				for (var i = 0; i < polys.length; i++) {
 					path(ctx, polys[i]);

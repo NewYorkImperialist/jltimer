@@ -51,6 +51,8 @@ jlTimer's default key map differs from csTimer's in one key: **`,` does M** (csT
 
 Options → virtual cube → **Move effect** adds an arcade-style flourish whenever a layer of the virtual cube turns (default **None**). There are 12: Arcade Combo, Comet Orbit, Fever Mode, RGB Glitch, Ink Splash, Lightning, Neon Trail, Zen Ripple, Crystal Shards, Shockwave, Blade Slash and Spark Burst. Each also has a finale when a timed solve ends. They draw on a transparent canvas over the cube that ignores the mouse, they stay on the face edges or outside the cube so stickers remain readable, and they shrink to a short outline flash when the system asks for reduced motion. The moves of a scramble don't trigger them.
 
+**Layer highlight (v2)** (same Options group) draws on the layer that turned instead of around the cube, chess.com style: the layer's stickers get a glowing rim and a trail slides along the layer in the turn direction. There are 7: Teal Glow (chess.com style), Squiggle Trail, Tron Lightcycle, Synthwave Sweep, Motion Streaks, 8-Bit Trail and Neon Pulse. Fills over stickers stay faint and fade within about 250 ms so colours stay readable. A v1 and a v2 effect can run together. v2 effects use `api.layer(ev)` (the turning slab's strips, cap and belt path) and register with `v2: true`.
+
 The framework is `src/js/fx.js` (API documented at the top of that file). Each effect is one file in `src/js/fx/`, concatenated into the separate async bundle `js/jlfx.js`.
 
 ## Keyboard access
