@@ -60,11 +60,14 @@ var exportFunc = execMain(function() {
 		loadData(dataobj);
 	}
 
-	function loadData(data) {
+	function loadData(data, skipConfirm) {
 		var sessionDelta = 0;
 		var solveAdd = 0;
 		var solveRm = 0;
 		storage.exportAll().then(function(exportObj) {
+			if (skipConfirm) {
+				return Promise.resolve();
+			}
 			for (var sessionIdx = 1; sessionIdx <= ~~kernel.getProp('sessionN'); sessionIdx++) {
 				var times = mathlib.str2obj(exportObj['session' + sessionIdx] || []);
 				var timesNew = mathlib.str2obj(data['session' + sessionIdx] || []);

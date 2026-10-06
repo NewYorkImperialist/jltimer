@@ -174,6 +174,7 @@ var cloud = execMain(function() {
 				} else if (res.status == 200) {
 					setState({ token: res.data['token'] });
 					logohint.push('Signed in to jlTimer cloud');
+					setTimeout(syncFromCloud, 300);
 					return true;
 				} else if (res.status == 429) {
 					logohint.push('Too many attempts, try again later');
@@ -347,7 +348,7 @@ var cloud = execMain(function() {
 		}).then(function(res) {
 			if (res.status == 200) {
 				solvesSinceBackup = 0;
-				setState({ lastBackup: Date.now() });
+				setState({ lastBackup: Date.now(), lastSyncId: res.data['id'] });
 				return res;
 			}
 			return Promise.reject(res.data && res.data['error'] || res.status);
@@ -394,22 +395,61 @@ var cloud = execMain(function() {
 			if (!snap) {
 				return;
 			}
-			logohint.push('Backing up current data first...');
-			backup('before-restore').then(function() {
-				return api('GET', '/snapshots/' + snap.id);
-			}).then(function(res) {
+			loadSnapshot(snap, snaps[0].id, true, false);
+		}, function() {
+			$.alert('jlTimer cloud unreachable');
+		});
+	}
+
+	// download a snapshot and import it (the page reloads). backupFirst saves this device's data first.
+	function loadSnapshot(snap, maxId, backupFirst, silent) {
+		var first = backupFirst && countSolves() > 0 ? backup('before-restore') : Promise.resolve(null);
+		if (backupFirst && countSolves() > 0) {
+			logohint.push('Backing up this device first...');
+		}
+		first.then(function(res) {
+			var seen = Math.max(maxId, res && res.data && res.data['id'] || 0);
+			return api('GET', '/snapshots/' + snap.id).then(function(res) {
 				if (res.status != 200) {
 					return Promise.reject(res.status);
 				}
 				return gunzip(res.data);
 			}).then(function(text) {
-				exportFunc.loadData(JSON.parse(text)); // asks for confirmation, then reloads
-			}).catch(function(err) {
-				$.alert('Restore failed, nothing was changed: ' + err);
+				var data = JSON.parse(text);
+				setState({ lastSyncId: seen }); // newest backup this device has seen, so it isn't offered again
+				exportFunc.loadData(data, silent);
 			});
-		}, function() {
-			$.alert('jlTimer cloud unreachable');
+		}).catch(function(err) {
+			$.alert('Loading your cloud data failed, nothing was changed: ' + err);
 		});
+	}
+
+	// after signing in, or on page load while signed in: bring in newer data from another device
+	function syncFromCloud() {
+		if (!getState()['token'] || !apiUrl() || pending) {
+			return;
+		}
+		api('GET', '/snapshots').then(function(res) {
+			if (res.status != 200 || !res.data['snapshots'].length) {
+				return;
+			}
+			var snaps = res.data['snapshots'];
+			var maxId = Math.max.apply(null, snaps.map(function(s) { return s.id; }));
+			var latest = snaps.filter(function(s) { return s.kind != 'before-restore'; })[0];
+			if (!latest || latest.id <= ~~getState()['lastSyncId']) {
+				return;
+			}
+			var local = countSolves();
+			if (local == 0) {
+				logohint.push('Loading your times from jlTimer cloud...');
+				loadSnapshot(latest, maxId, false, true);
+			} else if ($.confirm('jlTimer cloud has newer data from another device (' + latest.solves + ' solves, ' + fmtDate(latest.created_at) +
+					').\n\nLoad it? This device\'s ' + local + ' solves are backed up to the cloud first.')) {
+				loadSnapshot(latest, maxId, true, true);
+			} else {
+				setState({ lastSyncId: maxId });
+			}
+		}, function() {});
 	}
 
 	function devices() {
@@ -532,11 +572,12 @@ var cloud = execMain(function() {
 	}
 
 	$(function() {
-		kernel.regProp('kernel', 'cloudUrl', ~5, 'jlTimer cloud API', ['']);
+		kernel.regProp('kernel', 'cloudUrl', ~5, 'jlTimer cloud API', ['https://jltimer-api.jltimer-backend.workers.dev']);
 		kernel.regProp('kernel', 'cloudEvery', 1, 'jlTimer cloud: back up every (solves)', [25, [10, 25, 50, 100], ['10', '25', '50', '100']]);
 		kernel.regListener('cloud', 'time', onTime);
 		exportFunc.addSection(div);
 		refreshFingerprint();
+		setTimeout(syncFromCloud, 2000);
 	});
 
 	return {
