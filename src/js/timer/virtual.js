@@ -5,12 +5,14 @@ execMain(function(timer) {
 	var moveCnt = 0;
 	var totPhases = 1;
 	var rawMoves = [];
+	var isApplyingScramble = false; // scramble moves are applied instantly; no move effects for them
 
 	//mstep: 0 move start, 1 move doing, 2 move finish
 	function moveListener(move, mstep, ts) {
 		if (mstep == 1) {
 			return;
 		}
+		!isApplyingScramble && window.jlFx && jlFx.onMove(puzzleObj.move2str(move), move, mstep == 0 ? 'start' : 'end', timer.status() >= 1);
 		var now = ts || $.now();
 		if (timer.status() == -3 || timer.status() == -2) {
 			if (puzzleObj.isRotation(move) && !/^(333ni|444bld|555bld)$/.exec(curScrType)) {
@@ -69,6 +71,7 @@ execMain(function(timer) {
 				timer.status(-1);
 				$('#lcd').css({'visibility': 'unset'}); // disable dragging
 				timer.lcd.fixDisplay(false, true);
+				window.jlFx && jlFx.onSolve({ time: timer.curTime()[1], moves: moveCnt });
 				rawMoves.reverse();
 				kernel.pushSignal('time', ["", 0, timer.curTime(), 0, [$.map(rawMoves, cubeutil.moveSeq2str).filter($.trim).join(' '), curPuzzle, moveCnt]]);
 			}
@@ -98,6 +101,9 @@ execMain(function(timer) {
 		options['style'] = kernel.getProp('input');
 		puzzleFactory.init(options, moveListener, div, function(ret, isInit) {
 			puzzleObj = ret;
+			if (puzzleObj && window.jlFx) {
+				jlFx.attach(puzzleObj, div);
+			}
 			if (isInit && !puzzleObj) {
 				div.css('height', '');
 				div.html('--:--');
@@ -128,8 +134,14 @@ execMain(function(timer) {
 		scramble = puzzleObj.parseScramble(scramble, true);
 		isReseted = false;
 
-		puzzleObj.applyMoves(scramble);
+		isApplyingScramble = true;
+		try {
+			puzzleObj.applyMoves(scramble);
+		} finally {
+			isApplyingScramble = false;
+		}
 		puzzleObj.moveCnt(true);
+		window.jlFx && jlFx.onScramble();
 		rawMoves = [
 			[]
 		];

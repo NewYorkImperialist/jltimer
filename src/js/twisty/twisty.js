@@ -100,6 +100,18 @@ window.twistyjs = (function() {
 		twistyContainer.css('position', 'relative');
 		twistyContainer = twistyContainer[0];
 
+		// world point -> canvas pixels (CSS px), used by move effects (js/fx.js)
+		this.project = function(x, y, z) {
+			if (!camera) {
+				return null;
+			}
+			var m = new THREE.Matrix4().multiply(camera.projectionMatrix, camera.matrixWorldInverse);
+			var v = new THREE.Vector3(x, y, z);
+			m.multiplyVector3(v);
+			var rect = twistyCanvas.getBoundingClientRect();
+			return { x: (v.x + 1) / 2 * rect.width, y: -(v.y - 1) / 2 * rect.height };
+		};
+
 		this.getDomElement = function() {
 			return twistyContainer;
 		};

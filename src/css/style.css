@@ -1698,3 +1698,10 @@ html.jlt-on .popup {
 	border-radius: 0.3em;
 	font-size: 0.9em;
 }
+
+/* move effects overlay (js/fx.js): drawn above the virtual cube, never catches input */
+canvas.jlfx {
+	position: absolute;
+	pointer-events: none;
+	z-index: 3;
+}

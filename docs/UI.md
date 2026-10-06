@@ -47,6 +47,12 @@ About (click the logo) → **Virtual cube key map** tab. Click a key in the tabl
 
 jlTimer's default key map differs from csTimer's in one key: **`,` does M** (csTimer: Uw). The choices are stored in the `vrcKeyMove` setting (`{physicalKeyCode: qwertyKeyCodeOfMove}`, with `-1` for "none", inside `properties`). They apply to every virtual puzzle, because all of them read keys through `help.getMappedCode`. The move names in the table are the 3x3 moves; on other puzzles a key does whatever that key position does there.
 
+## Move effects
+
+Options → virtual cube → **Move effect** adds an arcade-style flourish whenever a layer of the virtual cube turns (default **None**). There are 12: Arcade Combo, Comet Orbit, Fever Mode, RGB Glitch, Ink Splash, Lightning, Neon Trail, Zen Ripple, Crystal Shards, Shockwave, Blade Slash and Spark Burst. Each also has a finale when a timed solve ends. They draw on a transparent canvas over the cube that ignores the mouse, they stay on the face edges or outside the cube so stickers remain readable, and they shrink to a short outline flash when the system asks for reduced motion. The moves of a scramble don't trigger them.
+
+The framework is `src/js/fx.js` (API documented at the top of that file). Each effect is one file in `src/js/fx/`, concatenated into the separate async bundle `js/jlfx.js`.
+
 ## Keyboard access
 
 The button bar buttons can be focused with Tab, and **Enter** or **Space** activates the focused button. Mouse and touch presses don't focus them, so after a click Space still starts the timer as before. To leave the button bar, press Esc or click the timer area. Tab no longer gets cancelled by the timer's blur-on-key behavior; the Tab key is still passed to the timer, so it still stops a running solve like any other key. Text inputs, selects and dialogs keep csTimer's existing rule: keys typed there never reach the timer or the virtual cube.

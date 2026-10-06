@@ -29,6 +29,7 @@
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/cstimer.js"></script>
   <script type="text/javascript" src="js/jlthemes.js" async></script>
+  <script type="text/javascript" src="js/jlfx.js" async></script>
 <?php // Upstream csTimer's Baidu analytics (account owned by cstimer.net) is not loaded in jlTimer.
 // include('baidutongji.php') ?>
 </head>

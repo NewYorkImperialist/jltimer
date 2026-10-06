@@ -4,6 +4,7 @@ var urlsToCache = [
 	'js/cstimer.js',
 	'js/twisty.js',
 	'js/jlthemes.js',
+	'js/jlfx.js',
 	'js/jquery.min.js',
 	'css/style.css'
 ];
@@ -53,4 +54,4 @@ self.addEventListener('activate', function(event) {
 	);
 });
 
-var CACHE_NAME = "jltimer_cache_1f5e8f12577d29febaf478e8c144a282";
+var CACHE_NAME = "jltimer_cache_c498b695c70eb277c437e5736be78b0e";

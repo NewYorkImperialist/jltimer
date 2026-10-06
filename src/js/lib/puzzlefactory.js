@@ -30,6 +30,10 @@ var puzzleFactory = execMain(function() {
 		return this.twistyScene.addMoveListener(listener);
 	};
 
+	Puzzle.prototype.project = function(x, y, z) {
+		return this.twistyScene.project ? this.twistyScene.project(x, y, z) : null;
+	};
+
 	Puzzle.prototype.getDomElement = function() {
 		return this.twistyScene.getDomElement();
 	};

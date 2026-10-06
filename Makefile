@@ -81,6 +81,7 @@ tools/syncseed.js \
 tools/bldhelper.js \
 cloud.js \
 themes.js \
+fx.js \
 twisty/twistyreplay.js \
 shortcut.js \
 help.js \
@@ -102,6 +103,7 @@ timer.php \
 js/cstimer.js \
 js/twisty.js \
 js/jlthemes.js \
+js/jlfx.js \
 css/style.css) $(langJS) $(langPHP)
 
 twistySrc = $(addprefix $(src)/js/, \
@@ -158,6 +160,9 @@ twisty = $(dest)/js/twisty.js
 # enhanced themes: one file per theme, shipped as a separate bundle loaded after the timer starts
 themeSrc = $(sort $(wildcard $(src)/js/themes/*.js))
 jlthemes = $(dest)/js/jlthemes.js
+# move effects for the virtual cube, likewise a separate bundle
+fxSrc = $(sort $(wildcard $(src)/js/fx/*.js))
+jlfx = $(dest)/js/jlfx.js
 cstimer_module = $(destnpm)/cstimer_module.js
 css = $(addprefix $(dest)/css/, $(shell ls $(src)/css))
 langJS = $(addprefix $(dest)/lang/, $(shell ls $(src)/lang/ | grep .*\.js))
@@ -165,7 +170,7 @@ langPHP = $(addprefix $(dest)/lang/, $(shell ls $(src)/lang/ | grep .*\.php))
 
 version := $(shell git describe --tags --always 2>/dev/null || echo Unspecified)
 
-all: $(cstimer) $(twisty) $(jlthemes) $(css) $(langJS) $(langPHP) version $(dest)/cache.manifest $(dest)/sw.js
+all: $(cstimer) $(twisty) $(jlthemes) $(jlfx) $(css) $(langJS) $(langPHP) version $(dest)/cache.manifest $(dest)/sw.js
 
 module: $(cstimer_module)
 
@@ -186,6 +191,7 @@ local: all
 	cp $(dest)/js/cstimer.js $(dest)/local/js/cstimer.js
 	cp $(dest)/js/twisty.js $(dest)/local/js/twisty.js
 	cp $(dest)/js/jlthemes.js $(dest)/local/js/jlthemes.js
+	cp $(dest)/js/jlfx.js $(dest)/local/js/jlfx.js
 	cp $(dest)/css/style.css $(dest)/local/css/style.css
 	cp $(dest)/jltimer.webmanifest $(dest)/jltimer512x512.png $(dest)/local/
 	sed "/'timer.php',/d" $(dest)/sw.js > $(dest)/local/sw.js
@@ -204,6 +210,10 @@ $(twisty): $(twistySrc)
 $(jlthemes): $(themeSrc)
 	@echo $@
 	@cat $(themeSrc) > $@
+
+$(jlfx): $(fxSrc)
+	@echo $@
+	@cat /dev/null $(fxSrc) > $@
 
 $(cstimer_module): $(moduleSrc)
 	@echo $@
