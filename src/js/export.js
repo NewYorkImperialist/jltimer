@@ -786,6 +786,15 @@ var exportFunc = execMain(function() {
 	});
 
 	return {
+		getExportString: function() {
+			return updateExpString().then(function() {
+				return expString;
+			});
+		},
+		loadData: loadData,
+		addSection: function(elem) {
+			exportDiv.append(elem);
+		},
 		exportProperties: exportProperties,
 		isValidId: isValidId,
 		getDataId: getDataId,

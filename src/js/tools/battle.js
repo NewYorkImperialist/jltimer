@@ -308,11 +308,15 @@ var battle = execMain(function() {
 			var curSolveId = roomInfo['cur'][0];
 			for (var i = 0; i < players.length; i++) {
 				var player = players[i];
-				var account = player['accountId'];
+				// names come from other players through the server: always show them as text
+				var account = String(player['accountId']);
+				var escapeName = function(s) { return $('<div>').text(s).html(); };
 				if (account.indexOf('|') != -1) {
-					account = '<b>' + account.split('|')[1] + '</b>';
+					account = '<b>' + escapeName(account.split('|')[1]) + '</b>';
 				} else if (account.length > 10) {
-					account = account.slice(0, 4) + '...' + account.slice(account.length - 3);
+					account = escapeName(account.slice(0, 4) + '...' + account.slice(account.length - 3));
+				} else {
+					account = escapeName(account);
 				}
 				var curTime = (solveDict[player['accountId']] || {})[curSolveId];
 				var isSolved = player['status'] == 'SOLVED';
@@ -323,7 +327,7 @@ var battle = execMain(function() {
 					lastTime = '<span style="color:#888">' + lastTime + '</span>';
 				}
 				roomTable.append('<tr><td>' + (i + 1) + '</td><td>' + account +
-					'</td><td>' + player['elo'] +
+					'</td><td>' + (~~player['elo']) +
 					'</td><td>' + statusMap[['READY', 'INSPECT', 'SOLVING', 'SOLVED', 'LOSS'].indexOf(player['status']) + 1] +
 					'</td><td>' + lastTime + '</td></tr>');
 			}

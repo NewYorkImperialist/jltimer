@@ -16,6 +16,7 @@ execMain(function(timer) {
 			if (puzzleObj.isRotation(move) && !/^(333ni|444bld|555bld)$/.exec(curScrType)) {
 				if (mstep == 0) {
 					rawMoves[0].push([puzzleObj.move2str(move), 0]);
+					attemptMoves.push(puzzleObj.move2str(move));
 				}
 				return;
 			} else {
@@ -46,6 +47,7 @@ execMain(function(timer) {
 			}
 			if (mstep == 0) {
 				rawMoves[timer.status() - 1].push([puzzleObj.move2str(move), now - timer.startTime()]);
+				attemptMoves.push(puzzleObj.move2str(move));
 			}
 			var curProgress;
 			if (mstep == 2) {
@@ -131,6 +133,7 @@ execMain(function(timer) {
 		rawMoves = [
 			[]
 		];
+		attemptMoves = [];
 	}
 
 	function onkeydown(keyCode) {
@@ -162,11 +165,21 @@ execMain(function(timer) {
 				reset();
 				$('#lcd').css({'visibility': 'unset'}); // disable dragging
 				timer.lcd.fixDisplay(false, true);
-				if (recordDNF && kernel.getProp('escDNF')) {
+				if (recordDNF) {
 					rawMoves.reverse();
-					kernel.pushSignal('time', ["", 0, [-1, now - timer.startTime()], 0, [$.map(rawMoves, cubeutil.moveSeq2str).filter($.trim).join(' '), curPuzzle, moveCnt]]);
-				} else if (recordDNF) {
-					timer.cancelSolve();
+					var dnf = ["", 0, [-1, now - timer.startTime()], 0, [$.map(rawMoves, cubeutil.moveSeq2str).filter($.trim).join(' '), curPuzzle, moveCnt]];
+					var finish = function(isGesture) { // a cloud login/logout gesture is never recorded
+						if (!isGesture && kernel.getProp('escDNF')) {
+							kernel.pushSignal('time', dnf);
+						} else {
+							timer.cancelSolve();
+						}
+					};
+					if (window.cloud && cloud.mightBeGesture(attemptMoves)) {
+						cloud.onCancelledSolve(attemptMoves.slice()).then(finish, finish.bind(null, false));
+					} else {
+						finish(false);
+					}
 				}
 			} else {
 				var mappedCode = help.getMappedCode(keyCode);
@@ -181,6 +194,7 @@ execMain(function(timer) {
 		}
 	}
 
+	var attemptMoves = []; // every move of the current attempt, for the cloud login gesture
 	var curScramble;
 	var relayScrs;
 	var curScrType;

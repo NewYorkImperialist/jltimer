@@ -63,6 +63,7 @@ function parseTime(s) {
 }
 
 function displayName(accountId) {
+	accountId = String(accountId).replace(/[\u0000-\u001f\u007f-\u009f]/g, ''); // no terminal control codes from other players
 	if (accountId.includes('|')) return accountId.split('|')[1];
 	return accountId.length > 10 ? accountId.slice(0, 4) + '...' + accountId.slice(-3) : accountId;
 }

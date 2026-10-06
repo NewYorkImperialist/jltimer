@@ -1,6 +1,13 @@
 # Cloud backup plan: Turso + Cloudflare Worker + cube-move login
 
-Status: **planned, not implemented.** This is the design to build next. Nothing here exists yet.
+Status: **built and tested locally, not deployed.** Code: [backend/](../backend/) (API) and `src/js/cloud.js` (jlTimer client). Tests: `backend/test/api.test.mjs` (12 API and attack tests) plus a browser end-to-end run (setup, recovery codes, auto backup, gesture sign-out/sign-in, ordinary cancels stay local, restore with before-restore copy, second device).
+
+Changes from the original plan, found while building:
+- The browser **gzips snapshots** and the API only checks, hashes and stores the bytes. The Workers free plan's 10 ms CPU limit rules out parsing or compressing multi-megabyte JSON on the server.
+- Minimum algorithm length is **16 moves** (several PLLs are 15+), plus at least 4 different layers and no repeated block. There is no built-in list of known algorithms.
+- First-time setup needs a one-time **`SETUP_TOKEN`** secret, so nobody else can claim the login between deploy and your setup.
+- Changing the algorithm requires doing the **current one first**, so a stolen device token alone can't change the login.
+- A Content-Security-Policy was not added: jlTimer's page inlines its language strings, so `unsafe-inline` would be needed and wouldn't stop inline-handler injection. Instead the main injection hole was fixed: csTimer's battle tool inserted other players' names (and ELO) as raw HTML (`src/js/tools/battle.js`). They are now shown as text, verified with hostile room data that ran a script before the fix and not after.
 
 ## Goal
 

@@ -1,0 +1,14 @@
+{
+  "name": "jltimer-backend",
+  "private": true,
+  "type": "module",
+  "description": "jlTimer personal backup API (Cloudflare Worker + Turso)",
+  "scripts": {
+    "dev": "node src/dev-server.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
+  }
+}
