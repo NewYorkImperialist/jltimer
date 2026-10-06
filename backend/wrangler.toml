@@ -1,10 +1,12 @@
 name = "jltimer-api"
 main = "src/worker.js"
 compatibility_date = "2026-09-01"
+workers_dev = true
+preview_urls = false
 
 [vars]
 # The jlTimer site(s) allowed to call this API.
-ALLOWED_ORIGINS = "https://newyorkimperialist.github.io"
+ALLOWED_ORIGINS = "https://newyorkimperialist.github.io,http://localhost:8081"
 
 # Secrets (set with `npx wrangler secret put NAME`, never commit them):
 #   TURSO_URL       libsql://<db>-<org>.turso.io

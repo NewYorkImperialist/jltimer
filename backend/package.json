@@ -10,5 +10,8 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@libsql/client": "^0.18.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.147.0"
   }
 }

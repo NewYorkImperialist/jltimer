@@ -5,7 +5,6 @@
 // The same gesture signs out. The moves never leave the browser; only PBKDF2(moves) is sent,
 // and only for cancels that match the public fingerprint (move count + 12-bit tag).
 var cloud = execMain(function() {
-	var MIN_MOVES = 16;
 	var enc = new TextEncoder();
 
 	// ---------- local state (localStorage.devData: not exported, kept across imports) ----------
@@ -50,8 +49,8 @@ var cloud = execMain(function() {
 			var ct = res.headers.get('Content-Type') || '';
 			var read = ct.indexOf('json') != -1 ? res.json() : res.arrayBuffer();
 			return read.then(function(data) {
-				if (res.status == 401 && st['token'] && path != '/login' && path != '/logout') {
-					setState({ token: null }); // revoked elsewhere
+				if (res.status == 401 && st['token'] && data && data['error'] == 'not signed in') {
+					setState({ token: null }); // this device was signed out elsewhere
 				}
 				return { status: res.status, data: data };
 			});
@@ -83,8 +82,14 @@ var cloud = execMain(function() {
 	}
 
 	// ---------- moves ----------
-	// ["R", "R", "U'"] -> "R2 U'"; consecutive turns of the same layer are merged (R R = R2, R R' = nothing)
+	// the login is the exact sequence of turns as pressed: ["R", "R", "U'"] -> "R R U'"
 	function normalize(moves) {
+		return moves.map(function(m) { return $.trim(m); }).filter(Boolean).join(' ');
+	}
+
+	// first version merged consecutive turns of one layer (R R = R2, R R' = nothing); only used to
+	// recognise a login created that way when changing it
+	function legacyNormalize(moves) {
 		var out = [];
 		for (var i = 0; i < moves.length; i++) {
 			var m = /^(.*?)(2'|2|'|)$/.exec($.trim(moves[i]));
@@ -114,13 +119,8 @@ var cloud = execMain(function() {
 	// returns an error message, or null if the sequence is acceptable as a login
 	function checkQuality(norm) {
 		var t = tokens(norm);
-		if (t.length < MIN_MOVES) {
-			return 'Use at least ' + MIN_MOVES + ' moves (this one has ' + t.length + ').';
-		}
-		var layers = {};
-		t.forEach(function(x) { layers[x.replace(/['2]/g, '')] = 1; });
-		if (Object.keys(layers).length < 4) {
-			return 'Use at least 4 different layers or rotations.';
+		if (t.length == 0) {
+			return 'No moves were made.';
 		}
 		for (var p = 1; p <= t.length / 2; p++) { // repeated block, e.g. (R U R' U') x4
 			var periodic = true;
@@ -150,7 +150,7 @@ var cloud = execMain(function() {
 	function onCancelledSolve(moves) {
 		var norm = normalize(moves);
 		if (pending) {
-			return Promise.resolve(capture(norm));
+			return Promise.resolve(capture(norm, moves));
 		}
 		var st = getState();
 		var fp = st['fp'];
@@ -206,7 +206,7 @@ var cloud = execMain(function() {
 		if (kernel.getProp('input') != 'v') {
 			kernel.setProp('input', 'v');
 		}
-		pending = $.extend({ mode: mode, captures: [] }, extra);
+		pending = $.extend({ mode: mode, captures: [], raws: [] }, extra);
 		pending.steps = mode == 'change' ? ['current', 'first', 'confirm'] : ['first', 'confirm'];
 		kernel.hideDialog();
 		promptStep();
@@ -218,7 +218,7 @@ var cloud = execMain(function() {
 		render();
 	}
 
-	function capture(norm) {
+	function capture(norm, raw) {
 		var step = pending.steps[pending.captures.length];
 		if (!norm) {
 			pending = null;
@@ -235,10 +235,12 @@ var cloud = execMain(function() {
 		}
 		if (step == 'confirm' && norm != pending.captures[pending.captures.length - 1]) {
 			pending.captures.pop();
+			pending.raws.pop();
 			$.alert('That did not match. ' + STEP_TEXT.first + '.');
 			return true;
 		}
 		pending.captures.push(norm);
+		pending.raws.push(raw);
 		if (pending.captures.length < pending.steps.length) {
 			promptStep();
 			return true;
@@ -273,7 +275,16 @@ var cloud = execMain(function() {
 				return api('POST', '/recover', body).then(done.bind(null, cred));
 			}
 			body.currentKey = r[1];
-			return api('POST', '/credential', body).then(done.bind(null, cred));
+			return api('POST', '/credential', body).then(function(res) {
+				var legacy = legacyNormalize(job.raws[0]);
+				if (res.status != 401 || legacy == job.captures[0]) {
+					return res;
+				}
+				return deriveKey(legacy, st['salt'], st['iterations']).then(function(key) { // login made before raw moves
+					body.currentKey = key;
+					return api('POST', '/credential', body);
+				});
+			}).then(done.bind(null, cred));
 		}).catch(function() {
 			$.alert('jlTimer cloud unreachable. Nothing was changed.');
 		});
@@ -502,6 +513,7 @@ var cloud = execMain(function() {
 		} else if (setupNeeded) {
 			row.append(button('Set up login...', function() {
 				var token = prompt('Setup token (the SETUP_TOKEN secret of your API)');
+				token = $.trim(token || '').replace(/^[`'"*\s]+|[`'"*\s]+$/g, ''); // tolerate copy-paste extras
 				if (token) {
 					startCapture('setup', { setupToken: token });
 				}
@@ -509,6 +521,7 @@ var cloud = execMain(function() {
 		} else {
 			row.append(button('Use recovery code...', function() {
 				var code = prompt('Recovery code (XXXXX-XXXXX)');
+				code = $.trim(code || '');
 				if (code) {
 					startCapture('recover', { code: code });
 				}

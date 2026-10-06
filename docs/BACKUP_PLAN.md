@@ -4,7 +4,7 @@ Status: **built and tested locally, not deployed.** Code: [backend/](../backend/
 
 Changes from the original plan, found while building:
 - The browser **gzips snapshots** and the API only checks, hashes and stores the bytes. The Workers free plan's 10 ms CPU limit rules out parsing or compressing multi-megabyte JSON on the server.
-- Minimum algorithm length is **16 moves** (several PLLs are 15+), plus at least 4 different layers and no repeated block. There is no built-in list of known algorithms.
+- There is **no minimum length** (owner's choice). The only rule is that the sequence must not be one block repeated. Length is the main protection, so a short algorithm is much easier to guess (see the threat model).
 - First-time setup needs a one-time **`SETUP_TOKEN`** secret, so nobody else can claim the login between deploy and your setup.
 - Changing the algorithm requires doing the **current one first**, so a stolen device token alone can't change the login.
 - A Content-Security-Policy was not added: jlTimer's page inlines its language strings, so `unsafe-inline` would be needed and wouldn't stop inline-handler injection. Instead the main injection hole was fixed: csTimer's battle tool inserted other players' names (and ELO) as raw HTML (`src/js/tools/battle.js`). They are now shown as text, verified with hostile room data that ran a script before the fix and not after.
@@ -72,7 +72,7 @@ There's no login page. The login is a gesture on the normal virtual cube, and it
 
 Details:
 - The moves compared are everything turned between the scramble and Esc, in standard notation (`R U R' F2 …`), rotations included.
-- Setup (from the Export dialog, once) requires **at least 15 moves**. It rejects well-known algorithms (PLL/OLL/F2L sets, etc.) and obvious repeats.
+- Setup (from the Export dialog, once) accepts any sequence that isn't one block repeated. There is no minimum length; longer is safer.
 - **Only matching cancels contact the server.** At setup, jlTimer stores a local fingerprint: the algorithm's length plus a 12-bit salted tag. A cancel is sent for checking only if its move count and tag match. Ordinary cancelled solves never leave the browser and never count as failed logins, and the fingerprint reveals only about 12 bits of a 60+ bit secret. About 1 in 4,000 same-length cancels will be checked and rejected harmlessly.
 - If a cancelled attempt is a successful login or logout, nothing is recorded for it, even with "Record DNF on Esc" turned on.
 - Signing in needs a network connection; timing never waits for it.
@@ -91,7 +91,7 @@ A stolen database still forces 600 000 PBKDF2 rounds per guess. The moves themse
 | Threat | Mitigation |
 |---|---|
 | Someone gets the Turso token | It exists only as a Worker secret. It is never in the repo, the page or exports. It is scoped to this one database, and can be rotated in the Turso dashboard. |
-| Guessing the login online | Only the API can check a login, and the gesture adds no other way in. 5 failures per 15 min per IP, then a lockout, plus a global cap of 50 failures per hour. A 15+ move non-standard sequence has a very large space. Known algorithms are rejected at setup. |
+| Guessing the login online | Only the API can check a login, and the gesture adds no other way in. 5 failures per 15 min per IP, then a lockout, plus a global cap of 50 failures per hour. No minimum length is enforced, so safety depends on the algorithm chosen. The public fingerprint (length + 12-bit tag) lets an attacker skip about 4,095 of every 4,096 candidates offline. For a short sequence, that leaves few enough guesses that the online lockout is the main defense: roughly 5 per 15 min per address and 50 per hour overall. |
 | Database leak, offline guessing | Salted PBKDF2 (600 000 rounds) per guess. The moves are never stored. |
 | Shoulder surfing or screen recording | The cube is visible while you log in (chosen for fun), so anyone watching or any recording sees the sequence. Don't log in while recording or streaming; since you stay signed in, this is rare. If the sequence may have been seen, change it (`POST /credential`) and revoke other devices. |
 | Stolen device token | Permanent sign-in means a stolen token works until revoked. Tokens are random 256-bit values stored hashed in `device`, sent as a bearer header (not a cookie). The device list shows last use, so revoke anything unfamiliar; rotating `SESSION_SECRET` or revoking all devices signs everything out. Keep XSS protection strict (below), since a page script is the main way a token could be stolen. |
