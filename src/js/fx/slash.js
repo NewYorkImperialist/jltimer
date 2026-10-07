@@ -269,7 +269,7 @@ jlFx.register(function() {
 		}
 		running = true;
 		api.add(function(ctx, t, dt) {
-			var now = performance.now();
+			var now = jlFx.now();
 			var hp = hull(api);
 			var alive = [];
 			for (var i = 0; i < slashes.length; i++) {
@@ -320,7 +320,7 @@ jlFx.register(function() {
 			width: cr * (opts.width || 0.16),
 			alpha: opts.alpha || 1,
 			dur: opts.dur || DUR,
-			born: performance.now() + (opts.delay || 0)
+			born: jlFx.now() + (opts.delay || 0)
 		};
 	}
 
@@ -389,7 +389,7 @@ jlFx.register(function() {
 			push(api, makeSlash(api, seq[i][0], seq[i][1], seq[i][2], { width: 0.16, radius: 0.74 + i * 0.03, dur: 260, delay: i * 90, span: 5.4 }));
 		}
 		var cb = api.cube();
-		var born = performance.now() + 560;
+		var born = jlFx.now() + 560;
 		var cuts = [[-1, -0.75, 1, 0.75], [1, -0.85, -1, 0.85]];
 		cuts.forEach(function(cut, ci) {
 			slashes.push({

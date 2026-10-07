@@ -21,7 +21,8 @@
 //                    .moving while the twisty animates it; call it every frame to follow the turn
 //   progress(ev)     v3: {progress 0..1, moving} of this move's live turn animation
 //   layer(ev)        the turning slab: strips/cap polygons and belt(t, depth) path (see layer() below)
-//   add(fn)          run fn(ctx, t, dt) every frame (t = ms since added) until it returns false
+//   add(fn)          run fn(ctx, t, dt) every frame (t = effect ms since added) until it returns false
+//   jlFx.now()       effect clock in ms: use it instead of performance.now() so "Effect duration" stretches the effect
 //   shake(px, ms)    shake the cube container briefly (keep it subtle)
 //   rand()           seeded random 0..1 (deterministic per page load)
 //   reduced          true if the user prefers reduced motion (keep effects minimal then)
@@ -42,6 +43,12 @@ var jlFx = execMain(function() {
 	var turnTimes = [];
 	var combo = 0;
 	var seed = 20261006;
+	// effect clock: effects read time through jlFx.now() and api.add's t/dt, so "Effect duration" slows them all evenly
+	var stretch = 1.5;
+
+	function fxNow() {
+		return performance.now() / stretch;
+	}
 	var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 	// face normals in the cube's world space (U up, R right, F towards the viewer); the cube spans about +-0.5
@@ -94,6 +101,7 @@ var jlFx = execMain(function() {
 		kernel.regProp('vrc', 'jlFxV2', 1, 'Layer highlight (v2)', ['none',
 			['none'].concat(v2.map(function(e) { return e.id; })),
 			['None'].concat(v2.map(function(e) { return e.name; }))]);
+		kernel.regProp('vrc', 'jlFxStretch', 1, 'Effect duration', ['1.5', ['1', '1.5', '2', '3'], ['1x', '1.5x', '2x', '3x']]);
 		kernel.regProp('vrc', 'jlFxV3', 1, 'Layer laser (v3)', ['none',
 			['none'].concat(v3.map(function(e) { return e.id; })),
 			['None'].concat(v3.map(function(e) { return e.name; }))]);
@@ -378,12 +386,12 @@ var jlFx = execMain(function() {
 			var keep = false;
 			try {
 				ctx.save();
-				keep = a.fn(ctx, now - a.start, dt) !== false;
+				keep = a.fn(ctx, (now - a.start) / stretch, dt / stretch) !== false;
 				ctx.restore();
 			} catch (e) {
 				DEBUG && console.log('[fx]', e);
 			}
-			if (keep && now - a.start < 10000) { // no effect may run longer than 10 s
+			if (keep && now - a.start < 10000 * stretch) { // no effect may run longer than 10 s of effect time
 				alive.push(a);
 			}
 		}
@@ -477,11 +485,16 @@ var jlFx = execMain(function() {
 
 	$(function() {
 		regProp();
+		kernel.regListener('jlfx', 'property', function(signal, value) {
+			stretch = Math.max(1, parseFloat(value[1]) || 1);
+		}, /^jlFxStretch$/);
+		stretch = Math.max(1, parseFloat(kernel.getProp('jlFxStretch', '1.5')) || 1);
 		isReady = true;
 	});
 
 	return {
 		register: register,
+		now: fxNow,
 		list: function() {
 			return effects.slice();
 		},

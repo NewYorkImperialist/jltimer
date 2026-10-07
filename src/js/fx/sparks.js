@@ -161,7 +161,7 @@
 			var g = R * 7.5;    // gravity, px/s^2
 			var maxTail = R * 0.16;
 			var s = dt / 1000;
-			var now = performance.now();
+			var now = jlFx.now();
 			if (now < solveUntil) {
 				solveTick(api, dt);
 			}
@@ -386,7 +386,7 @@
 			for (var i = 0; i < 6; i++) {
 				burst(api, fs.charAt(i), i % 2 == 0, 14, R * 3.2, 900, R * 0.55);
 			}
-			solveUntil = performance.now() + 1500;
+			solveUntil = jlFx.now() + 1500;
 			solveAcc = 0;
 			api.shake(2.5, 300);
 			ensure(api);

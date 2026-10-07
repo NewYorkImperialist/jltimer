@@ -81,7 +81,7 @@
 	var NAMES = 'URFDLB';
 
 	function now() {
-		return performance.now();
+		return jlFx.now();
 	}
 
 	// Path2D of a string in font units (1 unit = 1 pixel cell), cached and bounded

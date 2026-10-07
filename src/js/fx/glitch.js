@@ -15,7 +15,7 @@
 	var lastEv = -1e9, lastPhase = '';
 
 	function now() {
-		return performance.now();
+		return jlFx.now();
 	}
 
 	// light page backgrounds wash out additive colors: switch to deeper inks + multiply there

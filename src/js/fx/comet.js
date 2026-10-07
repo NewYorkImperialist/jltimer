@@ -137,7 +137,7 @@
 	// is the page behind the cube light? (decides glow vs. ink rendering); cached briefly
 	var lightCache = { t: -1e9, v: false };
 	function isLight(api) {
-		var now = performance.now();
+		var now = jlFx.now();
 		if (now - lightCache.t < 3000) {
 			return lightCache.v;
 		}

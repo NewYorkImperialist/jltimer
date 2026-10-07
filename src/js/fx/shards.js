@@ -14,7 +14,7 @@
 	var FACES = 'URFDLB';
 
 	function now() {
-		return performance.now();
+		return jlFx.now();
 	}
 
 	// ---------- geometry ----------

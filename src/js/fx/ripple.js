@@ -242,7 +242,7 @@
 		}
 		running = true;
 		api.add(function(ctx) {
-			var now = performance.now();
+			var now = jlFx.now();
 			var c = api.cube().center;
 			var hull = silhouette(api);
 			var i, keep;
@@ -334,7 +334,7 @@
 				}
 				return;
 			}
-			var now = performance.now();
+			var now = jlFx.now();
 			var cb = api.cube();
 			var R = cb.radius;
 			var f = api.face(ev.face);
@@ -394,7 +394,7 @@
 				reducedFlash(api, { face: 'U', rotation: true });
 				return;
 			}
-			var now = performance.now();
+			var now = jlFx.now();
 			var order = 'URFDLB';
 			ripples = [];
 			for (var i = 0; i < 6; i++) {
@@ -418,7 +418,7 @@
 			var R = api.cube().radius;
 			ripples = [];
 			sheens = [];
-			pushRipple({ start: performance.now(), dur: 900, full: true, d0: R * 1.0, n: { x: 0, y: -1 }, half: Math.PI,
+			pushRipple({ start: jlFx.now(), dur: 900, full: true, d0: R * 1.0, n: { x: 0, y: -1 }, half: Math.PI,
 				reach: R * 0.4, width: 1.8, power: 0.6, crest: [255, 255, 255], shade: [70, 80, 100] });
 			ensureRunning(api);
 		}

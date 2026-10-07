@@ -167,7 +167,7 @@
 		running = true;
 		var acc = 0;
 		api.add(function(ctx, t, dt) {
-			var now = performance.now();
+			var now = jlFx.now();
 			hull = computeHull(api);
 			// heat dynamics: rise fast, cool after a pause
 			if (now - lastTurn > 350) {
@@ -392,7 +392,7 @@
 		name: 'Fever Mode',
 		onMove: function(api, ev) {
 			if (ev.phase == 'start') {
-				lastTurn = performance.now();
+				lastTurn = jlFx.now();
 				var h = heatFor(ev);
 				target = Math.max(target * 0.97, h); // escalate quickly, ease off slowly
 				ensureLoop(api);

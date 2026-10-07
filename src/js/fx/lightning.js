@@ -167,7 +167,7 @@ var LH = (function() {
 		}
 
 		function spark(api, edges, opt) {
-			var now = performance.now();
+			var now = jlFx.now();
 			var kept = [];
 			for (var q = 0; q < ends.length; q++) {
 				if (ends[q] > now) {
