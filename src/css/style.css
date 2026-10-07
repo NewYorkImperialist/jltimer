@@ -1713,3 +1713,173 @@ canvas.jlfx {
 	pointer-events: none;
 	z-index: 3;
 }
+
+/* PLL stats (js/stats/algstat.js): tools panel view and full table dialog */
+.dialogalgstats {
+	left: 12%;
+	right: 12%;
+	top: 7%;
+	bottom: 7%;
+}
+
+.m .dialogalgstats {
+	left: 2%;
+	right: 2%;
+	top: 4%;
+	bottom: 4%;
+}
+
+.jlas {
+	font-size: 0.9em;
+	text-align: center;
+}
+
+.dialog .value > div > .jlas-full {
+	position: static;
+	height: auto;
+	box-sizing: border-box;
+	padding: 0.4em 0.8em 1em;
+	font-size: 1.05em;
+}
+
+.jlas-bar0 {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.3em 0.7em;
+	margin: 0.2em 0 0.5em;
+}
+
+.jlas-sum {
+	opacity: 0.75;
+	font-size: 0.9em;
+}
+
+.jlas-open {
+	font-size: 0.9em;
+	padding: 0 0.3em;
+	border-radius: 0.3em;
+}
+
+.jlas-scroll {
+	overflow-x: auto;
+}
+
+.jlas:not(.jlas-full) .jlas-scroll {
+	max-height: 15em;
+	overflow-y: auto;
+}
+
+.jlas-table {
+	width: 100%;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.jlas-full .jlas-table {
+	max-width: 60em;
+	margin: 0 auto;
+}
+
+.jlas-table th, .jlas-table td {
+	padding: 0.2em 0.55em;
+	text-align: right;
+}
+
+.jlas-table th {
+	font-weight: bold;
+	font-size: 0.85em;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	user-select: none;
+}
+
+.jlas-table th.jlas-sorted {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
+.jlas-table td.jlas-name, .jlas-table th[data-col="name"] {
+	text-align: left;
+}
+
+.jlas-table td.jlas-name img {
+	display: inline-block;
+	width: 1.9em;
+	height: 1.9em;
+	vertical-align: middle;
+	margin-right: 0.5em;
+}
+
+.jlas:not(.jlas-full) .jlas-table td.jlas-name img {
+	width: 1.5em;
+	height: 1.5em;
+}
+
+.jlas-table td.jlas-name span {
+	vertical-align: middle;
+	font-weight: bold;
+}
+
+.jlas-table tbody tr:hover td {
+	background-color: rgba(128, 128, 128, 0.12);
+}
+
+.jlas-table td.jlas-tot {
+	min-width: 4.5em;
+}
+
+.jlas-bar {
+	display: flex;
+	height: 0.22em;
+	margin-top: 0.1em;
+	border-radius: 0.11em;
+	overflow: hidden;
+}
+
+.jlas-bar .cntbar {
+	display: block;
+	height: 100%;
+	border: none;
+}
+
+.jlas-table .jlas-tag {
+	font-size: 0.7em;
+	font-weight: bold;
+	margin-left: 0.4em;
+	padding: 0.05em 0.45em;
+	border-radius: 0.7em;
+}
+
+.jlas-slow td {
+	background-color: rgba(230, 60, 90, 0.08);
+}
+
+.jlas-slow td.jlas-tot, .jlas-slow td.jlas-recent {
+	font-weight: bold;
+}
+
+.jlas-table td .jlas-dim {
+	opacity: 0.45;
+}
+
+.jlas-skip td {
+	opacity: 0.7;
+}
+
+.jlas-empty {
+	max-width: 22em;
+	margin: 0 auto;
+	padding: 1em;
+	opacity: 0.8;
+}
+
+.jlas-note {
+	max-width: 60em;
+	margin: 0.9em auto 0;
+	font-size: 0.78em;
+	line-height: 1.45;
+	text-align: left;
+	opacity: 0.8;
+}
