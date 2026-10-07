@@ -5,7 +5,7 @@
 //   id, name                 'sparks', 'Spark Burst'
 //   stickerTint              optional {color: 0xRRGGBB, amount: 0..1}: the turning layer's own stickers are
 //                            recoloured toward color while the layer animates (no overlay drawing needed)
-//   v2                       optional: true lists it under "Layer highlight (v2)" (effects on the turning layer itself)
+//   v2 / v3                  optional: true for effects on the turning layer itself (only affects the list order)
 //   onMove(api, ev)          a layer started turning (ev.phase 'start') or finished ('end')
 //   onSolve(api, ev)         optional: the cube was solved at the end of a timed solve
 //   onScramble(api)          optional: a new attempt was scrambled (space pressed)
@@ -62,17 +62,12 @@ var jlFx = execMain(function() {
 		return seed / 0x7fffffff;
 	}
 
-	// the active effects: one from "Move effect" (v1) and one from "Layer highlight (v2)"; both may run together
+	// the active effect, chosen in "Move effect"
 	function actives() {
-		var ids = [kernel.getProp('jlFx', 'none'), kernel.getProp('jlFxV2', 'none'), kernel.getProp('jlFxV3', 'none')];
-		var ret = [];
-		for (var i = 0; i < effects.length; i++) {
-			var want = ids[effects[i].v3 ? 2 : effects[i].v2 ? 1 : 0];
-			if (effects[i].id == want) {
-				ret.push(effects[i]);
-			}
-		}
-		return ret;
+		var id = kernel.getProp('jlFx', 'none');
+		return effects.filter(function(e) {
+			return e.id == id;
+		});
 	}
 
 	function register(e) {
@@ -91,20 +86,22 @@ var jlFx = execMain(function() {
 		return true;
 	}
 
+	// one list: Column Glow (v3) first, then the layer highlights (v2), then the original effects
+	function ordered() {
+		var rank = function(e) {
+			return e.v3 ? 0 : e.v2 ? 1 : 2;
+		};
+		return effects.slice().sort(function(a, b) {
+			return rank(a) - rank(b);
+		});
+	}
+
 	function regProp() {
-		var v1 = effects.filter(function(e) { return !e.v2 && !e.v3; });
-		var v2 = effects.filter(function(e) { return e.v2; });
-		var v3 = effects.filter(function(e) { return e.v3; });
+		var list = ordered();
 		kernel.regProp('vrc', 'jlFx', 1, 'Move effect', ['none',
-			['none'].concat(v1.map(function(e) { return e.id; })),
-			['None'].concat(v1.map(function(e) { return e.name; }))]);
-		kernel.regProp('vrc', 'jlFxV2', 1, 'Layer highlight (v2)', ['none',
-			['none'].concat(v2.map(function(e) { return e.id; })),
-			['None'].concat(v2.map(function(e) { return e.name; }))]);
+			['none'].concat(list.map(function(e) { return e.id; })),
+			['None'].concat(list.map(function(e) { return e.name; }))]);
 		kernel.regProp('vrc', 'jlFxStretch', 1, 'Effect duration', ['1.5', ['1', '1.5', '2', '3'], ['1x', '1.5x', '2x', '3x']]);
-		kernel.regProp('vrc', 'jlFxV3', 1, 'Layer laser (v3)', ['none',
-			['none'].concat(v3.map(function(e) { return e.id; })),
-			['None'].concat(v3.map(function(e) { return e.name; }))]);
 	}
 
 	// ---------- geometry ----------
@@ -484,6 +481,16 @@ var jlFx = execMain(function() {
 	}
 
 	$(function() {
+		// settings from before the lists were merged: carry a v3/v2 choice over to "Move effect"
+		['jlFxV3', 'jlFxV2'].forEach(function(old) {
+			var v = kernel.getProp(old);
+			if (v && v != 'none') {
+				if (kernel.getProp('jlFx', 'none') == 'none') {
+					kernel.setProp('jlFx', v);
+				}
+				kernel.setProp(old, 'none');
+			}
+		});
 		regProp();
 		kernel.regListener('jlfx', 'property', function(signal, value) {
 			stretch = Math.max(1, parseFloat(value[1]) || 1);
