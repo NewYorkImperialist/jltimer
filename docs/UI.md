@@ -41,6 +41,17 @@ As with the other defaults, anything you have saved, or imported from csTimer, o
 
 The shortcuts work only while the timer is idle, with no dialog open and no focus in a text field. That way they never reach the cube or the timer mid-solve. They follow the existing *use keyboard shortcut* option.
 
+## UI look (draft)
+
+Options → interface (ui) → **UI look (draft)** restyles the layout (panels, buttons, type, spacing) without changing the color theme; the panels still take their colors from the theme or color palette. The default is **Classic** (no restyle, stored as `jlSkin: 'none'`). The looks are drafts and may change:
+
+- **Glass**: frosted, translucent floating panels with a light sheen, hairline borders, large radius and soft shadows (macOS Sonoma / visionOS style).
+- **Clean**: crisp product UI (Linear / Vercel style): solid cards with 1px hairlines, small radius, system sans with tabular digits, a compact toolbar and a quiet time table.
+- **Tonal**: Material You / Material 3 style: large rounded containers, tonal fills, pill buttons and chips, a navigation-rail button bar.
+- **Bento**: dashboard tiles like iOS widgets: the button bar, scramble, session row, summary and solve list each sit in their own rounded tile.
+
+Each look is one file in `src/js/skins/<id>.js` that calls `jlSkins.register({ id, name, css })` (framework in `src/js/themes.js`) with every rule scoped to `html.jls-<id>`. They are built into `js/jlthemes.js`.
+
 ## Editing the virtual cube keys
 
 About (click the logo) → **Virtual cube key map** tab. Click a key in the table and choose the move it should do from the menu that appears in that key. Several keys can do the same move. **none** turns a key off, and **default** restores its original move. Changed keys are underlined. **Reset keys** restores every key. The layout picker (qwerty, dvorak, colemak or a custom layout string) still decides which physical key sits in each position.
