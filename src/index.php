@@ -81,6 +81,7 @@
   <script type="text/javascript" src="js/tools/battle.js"></script>
   <script type="text/javascript" src="js/tools/syncseed.js"></script>
   <script type="text/javascript" src="js/tools/bldhelper.js"></script>
+  <script type="text/javascript" src="js/tools/plltrainer.js"></script>
   <script type="text/javascript" src="js/cloud.js"></script>
   <script type="text/javascript" src="js/themes.js"></script>
   <script type="text/javascript" src="js/fx.js"></script>

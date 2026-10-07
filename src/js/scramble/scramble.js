@@ -112,14 +112,23 @@ var scrMgr = (function(rn, rndEl) {
 			return filter.slice();
 		}
 		var valids = [];
+		var weights = [];
+		var hasWeight = false;
 		for (var i = 0; i < filter.length; i++) {
 			valids.push(i);
+			weights[i] = filter[i] ? Math.max(1, +filter[i] || 1) : 0;
+			hasWeight = hasWeight || weights[i] > 1;
 			if (!filter[i]) {
 				ret[i] = 0;
 				valids.pop();
 			} else if (equalProb == 1) {
 				ret[i] = 1;
 			}
+		}
+		// jlTimer: a filter value above 1 is a drill weight (PLL trainer). When the filter has any, the
+		// chance of a case is its weight, whatever the natural probability and the probability option.
+		if (hasWeight) {
+			return mathlib.rndProb(weights);
 		}
 		if (equalProb == 2) {
 			if (millerCnt++ < 0) {
@@ -709,11 +718,13 @@ var scramble = ISCSTIMER && execMain(function(rn, rndEl) {
 			if (data) {
 				data = mathlib.valuedArray(data.length, 1);
 				var hasVal = false;
+				var oldData = scrFlt[0] == type && scrFlt[1] || [];
 				for (var i = 0; i < chkBoxList.length; i++) {
 					if (!chkBoxList[i][0].checked) {
 						data[i] = 0;
 					} else {
 						hasVal = true;
+						data[i] = oldData[i] > 1 ? oldData[i] : 1; // keep drill weights of cases that stay selected
 					}
 				}
 				if (!hasVal) {
@@ -783,6 +794,13 @@ var scramble = ISCSTIMER && execMain(function(rn, rndEl) {
 				}
 			} else if (value[0] == 'scrEqPr') {
 				scrMgr.setEqPr(~~value[1]);
+			} else if (value[0] == 'scrFlt' && value[2] == 'modify' && type && value[1] != JSON.stringify(scrFlt)) {
+				// set from outside the options dialog (PLL trainer): use it now if it is for the current type
+				var newFlt = JSON.parse(value[1] || 'null');
+				if (newFlt && newFlt[0] == type) {
+					loadScrOpts();
+					genScramble();
+				}
 			} else if (value[0] == 'scrClk') {
 				ssdiv.css('cursor', {
 					'n': 'default',
@@ -901,7 +919,7 @@ var scramble = ISCSTIMER && execMain(function(rn, rndEl) {
 
 	$(function() {
 		kernel.regListener('scramble', 'time', procSignal);
-		kernel.regListener('scramble', 'property', procSignal, /^scr(?:Size|Mono|Type|Lim|Align|Wrap|Fast|KeyM|Hide|Neut|EqPr|Clk)$/);
+		kernel.regListener('scramble', 'property', procSignal, /^scr(?:Size|Mono|Type|Lim|Align|Wrap|Fast|KeyM|Hide|Neut|EqPr|Clk|Flt)$/);
 		kernel.regListener('scramble', 'button', procSignal, /^scramble$/);
 		kernel.regListener('scramble', 'ctrl', procSignal, /^scramble$/);
 		kernel.regListener('scramble', 'scrfix', procSignal);

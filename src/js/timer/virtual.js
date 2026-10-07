@@ -71,6 +71,11 @@ execMain(function(timer) {
 					insTime = 0;
 				}
 				timer.startTime(now);
+				if (readyTs && window.pllDrill && pllDrill.isActive()) {
+					// PLL trainer: time from the moment the case is shown, so the recognition is part of the solve
+					insTime = 0;
+					timer.startTime(readyTs);
+				}
 				moveCnt = 0;
 				tpsInputs = [];
 				timer.curTime([insTime > 17000 ? -1 : (insTime > 15000 ? 2000 : 0)]);
@@ -181,7 +186,8 @@ execMain(function(timer) {
 			scramble = curScramble.shift().match(/\d+\) (.*)$/)[1];
 			fixRelayCounter();
 		}
-		scramble = puzzleObj.parseScramble(scramble, true);
+		var setupRot = window.pllDrill && pllDrill.isActive() ? pllDrill.setupRotation() : '';
+		scramble = puzzleObj.parseScramble(scramble + (setupRot ? ' ' + setupRot : ''), true);
 		isReseted = false;
 
 		isApplyingScramble = true;
@@ -209,6 +215,7 @@ execMain(function(timer) {
 					curScramble = relayScrs.slice();
 				}
 				scrambleIt();
+				readyTs = now;
 				if (timer.checkUseIns()) {
 					timer.startTime(now);
 					timer.status(-3); //inspection
@@ -256,6 +263,7 @@ execMain(function(timer) {
 		}
 	}
 
+	var readyTs = 0; // when the cube was scrambled for the current attempt
 	var attemptMoves = []; // every move of the current attempt, for the cloud login gesture
 	var curScramble;
 	var relayScrs;

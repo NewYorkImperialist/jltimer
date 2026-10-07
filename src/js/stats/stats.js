@@ -1132,6 +1132,23 @@ var stats = execMain(function(kpretty, round, kpround) {
 			}
 		}
 
+		// jlTimer: a new empty session at the end of the list with this name and options, made current
+		// (used by the PLL trainer for its drill session); returns its index
+		function createNamedSession(name, opt) {
+			initNewSession(sessionIdxMax, false);
+			sessionData[sessionIdx]['name'] = name;
+			for (var key in opt || {}) {
+				sessionData[sessionIdx]['opt'][key] = opt[key];
+			}
+			times = [];
+			timesExtra = [];
+			times_stats_list.reset(times.length);
+			times_stats_table.reset(times.length);
+			save();
+			loadSession(sessionIdx);
+			return sessionIdx;
+		}
+
 		function doSessionDeletion(ssidx) {
 			// if not the last session, then swap to last session
 			if (ssidx != sessionIdxMax) {
@@ -1602,6 +1619,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 				return funcButton;
 			},
 			rank2idx: rank2idx,
+			createNamedSession: createNamedSession,
 			load: load,
 			save: save
 		}
