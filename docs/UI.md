@@ -74,3 +74,13 @@ The button bar buttons can be focused with Tab, and **Enter** or **Space** activ
 ## Getting the classic csTimer look back
 
 For the classic (pre-csTimer+) look, set UI design to **Normal** and Layout to **Familiar**. These changes are saved like any other setting. The virtual cube size of 100% matches csTimer.
+
+## Session manager
+
+Click **Session** in the time list header to open the session manager. jlTimer adds three things to csTimer's table:
+
+- **Drag to reorder**: drag a session by the **⠿** handle at the left of its row and drop it where the line appears. It works with a mouse, a finger or a pen (pointer events). Near the top or bottom edge of the dialog the list scrolls.
+- **Move to top / Move to bottom**: in each row's **...** menu, next to the ↑/↓ arrows. The first session has no *Move to top* and the last no *Move to bottom*.
+- **Filter sessions**: the box above the table shows only the sessions whose name contains the text, ignoring case. **X** next to it clears it, and it is cleared each time the dialog opens. While filtering, the name/scramble grouping is off, and dragging and the menu still work on the rows shown. Keys typed into the box never reach the timer or the virtual cube.
+
+All three change only each session's `rank` in `sessionData`, like the ↑/↓ arrows, so the stored data stays csTimer's format. The **Session** dropdown and Alt+↑/↓ session switching follow the same order.

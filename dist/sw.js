@@ -54,4 +54,4 @@ self.addEventListener('activate', function(event) {
 	);
 });
 
-var CACHE_NAME = "jltimer_cache_6f9f48aadd11b8c65130645b3f91ad7b";
+var CACHE_NAME = "jltimer_cache_c227567ee9564b01027d49227b209344";

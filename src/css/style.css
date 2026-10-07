@@ -747,6 +747,43 @@ div.helptable ul {
 	width: 100%;
 }
 
+/* jlTimer: session manager name filter and drag-to-reorder handle */
+.ssfilterbar {
+	padding-bottom: 0.2em;
+}
+
+.ssfilterbar input.ssfilter {
+	width: 12em;
+	max-width: 70%;
+	text-align: left;
+}
+
+.ssmgr .ssdrag {
+	cursor: grab;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+	width: 1.2em;
+}
+
+.ssmgr.ssdragon, .ssmgr.ssdragon * {
+	cursor: grabbing;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.ssmgr tr.ssdragging td {
+	opacity: 0.4;
+}
+
+.ssmgr tr.ssdropb td {
+	box-shadow: inset 0 3px 0 0 currentColor;
+}
+
+.ssmgr tr.ssdropa td {
+	box-shadow: inset 0 -3px 0 0 currentColor;
+}
+
 .cntbar {
 	display: inline-block;
 	text-align: center;

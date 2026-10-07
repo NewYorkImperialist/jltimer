@@ -1072,6 +1072,144 @@ var stats = execMain(function(kpretty, round, kpround) {
 		var ssmgrTable = $('<table>').appendTo(ssmgrDiv).addClass('table ssmgr');
 		var funcButton = $('<input type="button">').val('+');
 
+		// jlTimer: name filter above the session manager table. The timer ignores keys while a text input
+		// is focused (timer.js onkeydown), and a dialog is open anyway, so typing never reaches the cube.
+		var ssFilter = $('<input type="text" class="ssfilter" placeholder="Filter sessions" autocomplete="off">');
+		var ssFilterClr = $('<span class="click">').html('&nbsp;X&nbsp;');
+		ssmgrDiv.prepend($('<div class="ssfilterbar">').append(ssFilter, ssFilterClr));
+		ssFilter.on('input', function() {
+			genMgrTable();
+		});
+		ssFilterClr.click(function() {
+			ssFilter.val('');
+			genMgrTable();
+		});
+
+		// jlTimer: drag-and-drop reordering with pointer events (mouse, touch and pen) on the row's handle.
+		// Dropping only changes the session's rank, then the same save/refresh path as the up/down arrows.
+		var drag = null;
+
+		function dragUnits() {
+			var units = [];
+			ssmgrTable.find('tr[data-rank]').each(function() {
+				var tr = $(this);
+				if (!tr.is(':visible')) {
+					return;
+				}
+				var rank = ~~tr.attr('data-rank');
+				var rect = this.getBoundingClientRect();
+				var last = units[units.length - 1];
+				if (last && last.rank == rank) {
+					last.bottom = rect.bottom;
+					last.rows = last.rows.add(tr);
+				} else {
+					units.push({rank: rank, top: rect.top, bottom: rect.bottom, rows: tr});
+				}
+			});
+			return units;
+		}
+
+		function dragStart(e) {
+			var oe = e.originalEvent;
+			var rank = ~~$(this).parent().attr('data-rank');
+			if (drag || !rank || oe.button > 0) {
+				return;
+			}
+			e.preventDefault();
+			drag = {rank: rank, id: oe.pointerId, y: oe.clientY, newRank: 0};
+			ssmgrTable.addClass('ssdragon').find('tr[data-rank="' + rank + '"]').addClass('ssdragging');
+			$(document).on('pointermove.ssdrag', dragMove).on('pointerup.ssdrag', dragDrop).on('pointercancel.ssdrag', function() {
+				dragEnd();
+			});
+			drag.tid = setInterval(dragScroll, 30);
+		}
+
+		function dragMove(e) {
+			var oe = e.originalEvent;
+			if (!drag || oe.pointerId != drag.id) {
+				return;
+			}
+			e.preventDefault();
+			drag.y = oe.clientY;
+			dragMark();
+		}
+
+		// mark the drop position: before the first visible session whose middle is below the pointer
+		function dragMark() {
+			var units = dragUnits();
+			ssmgrTable.find('.ssdropb, .ssdropa').removeClass('ssdropb ssdropa');
+			drag.newRank = 0;
+			var self = -1;
+			for (var i = 0; i < units.length; i++) {
+				if (units[i].rank == drag.rank) {
+					self = i;
+				}
+			}
+			var pos = units.length;
+			for (var i = 0; i < units.length; i++) {
+				if (drag.y < (units[i].top + units[i].bottom) / 2) {
+					pos = i;
+					break;
+				}
+			}
+			if (units.length == 0 || pos == self || pos == self + 1) { // the visible order would not change
+				return;
+			}
+			if (pos < units.length) {
+				drag.newRank = units[pos].rank - 0.5;
+				units[pos].rows.first().addClass('ssdropb');
+			} else {
+				drag.newRank = units[pos - 1].rank + 0.5;
+				units[pos - 1].rows.last().addClass('ssdropa');
+			}
+		}
+
+		// scroll the dialog while the pointer is held near its top or bottom edge
+		function dragScroll() {
+			var box = ssmgrDiv.parent();
+			if (!drag || !box.length) {
+				return;
+			}
+			var rect = box[0].getBoundingClientRect();
+			var edge = Math.min(40, rect.height / 4);
+			var dy = drag.y < rect.top + edge ? -1 : drag.y > rect.bottom - edge ? 1 : 0;
+			if (dy != 0) {
+				var prev = box.scrollTop();
+				box.scrollTop(prev + dy * 8);
+				if (box.scrollTop() != prev) {
+					dragMark();
+				}
+			}
+		}
+
+		function dragDrop(e) {
+			var oe = e.originalEvent;
+			if (!drag || oe.pointerId != drag.id) {
+				return;
+			}
+			var rank = drag.rank;
+			var newRank = drag.newRank;
+			dragEnd();
+			if (newRank) {
+				moveSessionTo(ssSorted[rank - 1], newRank);
+				kernel.blur();
+				fixSessionSelect();
+				genMgrTable();
+			}
+		}
+
+		function dragEnd() {
+			if (!drag) {
+				return;
+			}
+			clearInterval(drag.tid);
+			drag = null;
+			$(document).off('.ssdrag');
+			ssmgrTable.removeClass('ssdragon').find('.ssdragging, .ssdropb, .ssdropa').removeClass('ssdragging ssdropb ssdropa');
+		}
+
+		ssmgrTable.on('pointerdown', '.ssdrag', dragStart);
+
 		var sessionData;
 		var ssSorted;
 
@@ -1313,11 +1451,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 			while (!row.is('tr')) {
 				row = row.parent();
 			}
-			var child = row.children();
-			if (child.length < 5) {
-				child = row.prev().children();
-			}
-			var rank = ~~child.first().html().replace(/-.*$/, "");
+			var rank = ~~row.attr('data-rank');
 			var idx = ssSorted[rank - 1];
 			switch (target.attr('data') || target.val()) {
 				case 'r':
@@ -1336,6 +1470,12 @@ var stats = execMain(function(kpretty, round, kpround) {
 						sessionData[ssSorted[rank]]['rank']--;
 						kernel.setProp('sessionData', JSON.stringify(sessionData));
 					}
+					break;
+				case 'mt': // jlTimer: move to top
+					moveSessionTo(idx, 0.5);
+					break;
+				case 'mb': // jlTimer: move to bottom
+					moveSessionTo(idx, ssSorted.length + 0.5);
 					break;
 				case 's':
 					loadSession(idx);
@@ -1385,6 +1525,12 @@ var stats = execMain(function(kpretty, round, kpround) {
 			kernel.blur();
 			fixSessionSelect();
 			genMgrTable();
+		}
+
+		// jlTimer: put session idx at a (fractional) rank; fixRank renumbers 1..n on the next refresh
+		function moveSessionTo(idx, newRank) {
+			sessionData[idx]['rank'] = newRank;
+			kernel.setProp('sessionData', JSON.stringify(sessionData));
 		}
 
 		function splitSession() {
@@ -1472,6 +1618,8 @@ var stats = execMain(function(kpretty, round, kpround) {
 				'<option value="' + (idx == sessionIdx ? ('o">' + ops[5]) : ('md">' + ops[6])) + '</option>' +
 				'<option value="x">' + ops[4] + '</option>' +
 				'<option value="v">' + STATS_EXPORTCSV + '</option>' +
+				(rank == 1 ? '' : '<option value="mt">Move to top</option>') +
+				(rank == ssSorted.length ? '' : '<option value="mb">Move to bottom</option>') +
 				'</select>';
 			var uClk = rank == 1 ? '<td></td>' : '<td class="click" data="u">&#8593;</td>';
 			var dClk = rank == ssSorted.length ? '<td></td>' : '<td class="click" data="d">&#8595;</td>';
@@ -1479,7 +1627,10 @@ var stats = execMain(function(kpretty, round, kpround) {
 			var ssTd0 = '<td>' + ssStat[0] + '</td>';
 			var ssTd1 = '<td>' + ssStat[1] + '</td>';
 			var dateVal = mathlib.time2str((sessionData[idx]['date'] || [])[1], '%Y-%M-%D');
-			return '<tr class="' + (idx == sessionIdx ? 'selected mhide' : 'mhide') + '">' +
+			var dragTd = '<td class="click ssdrag" title="Drag to reorder"%s>&#10303;</td>';
+			var rankAttr = ' data-rank="' + rank + '"';
+			return '<tr class="' + (idx == sessionIdx ? 'selected mhide' : 'mhide') + '"' + rankAttr + '>' +
+				dragTd.replace('%s', '') +
 				'<td class="click" data="s">' + rank + '-' + ssData['name'] + (idx == sessionIdx ? '*' : '') + '</td>' +
 				ssTd0 + ssTd1 +
 				'<td>' + dateVal + '</td>' +
@@ -1489,11 +1640,12 @@ var stats = execMain(function(kpretty, round, kpround) {
 				'<td class="seltd">' + sel + '</td>' +
 				'</tr>' +
 
-				'<tr class="' + (idx == sessionIdx ? 'selected ' : '') + 'mshow t">' +
+				'<tr class="' + (idx == sessionIdx ? 'selected ' : '') + 'mshow t"' + rankAttr + '>' +
+				dragTd.replace('%s', ' rowspan=2') +
 				'<td class="click" data="s" rowspan=2>' + rank + '-' + ssData['name'] + (idx == sessionIdx ? '*' : '') + '</td>' +
 				ssTd0 + scrTd + uClk + dClk +
 				'</tr>' +
-				'<tr class="' + (idx == sessionIdx ? 'selected ' : '') + 'mshow b">' +
+				'<tr class="' + (idx == sessionIdx ? 'selected ' : '') + 'mshow b"' + rankAttr + '>' +
 				ssTd1 +
 				'<td>' + dateVal + '&nbsp;' + (ssData['opt']['phases'] || 1) + 'P.</td>' +
 				'<td class="seltd" colspan=2>' + sel + '</td>' +
@@ -1513,7 +1665,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 				ssNames = ssNames.slice(0, 42) + '...';
 			}
 			return '<tr' + (isInGroup ? ' class="selected"' : '') + '>' +
-				'<td class="click" data="e" colspan=9 style="text-align:left;">' +
+				'<td class="click" data="e" colspan=10 style="text-align:left;">' +
 				(isInGroup ? '*' : '') + '[+] ' + group.length + ' session(s): ' + ssNames + '</td></tr>';
 		}
 
@@ -1527,14 +1679,15 @@ var stats = execMain(function(kpretty, round, kpround) {
 		var byGroup = false;
 
 		function genMgrTable() {
+			dragEnd();
 			fixRank();
 			ssmgrTable.empty().append(
-				'<tr class="mhide"><th class="click" data=' + (byGroup == 'name' ? '"g">[+]' : '"gn">[-]') + ' ' + STATS_SSMGR_NAME + '</th><th>' +
+				'<tr class="mhide"><th></th><th class="click" data=' + (byGroup == 'name' ? '"g">[+]' : '"gn">[-]') + ' ' + STATS_SSMGR_NAME + '</th><th>' +
 				STATS_SOLVE + '</th><th>' + STATS_AVG +
 				'</th><th>' + STATS_DATE +
 				'</th><th class="click" data=' + (byGroup == 'scr' ? '"g">[+]' : '"gs">[-]') + ' ' + SCRAMBLE_SCRAMBLE +
 				'</th><th>P.</th><th colspan=3>OP</th></tr>' +
-				'<tr class="mshow t"><th rowspan=2 class="click" data=' + (byGroup == 'name' ? '"g">[+]' : '"gn">[-]') + ' ' + STATS_SSMGR_NAME + '</th><th>' +
+				'<tr class="mshow t"><th rowspan=2></th><th rowspan=2 class="click" data=' + (byGroup == 'name' ? '"g">[+]' : '"gn">[-]') + ' ' + STATS_SSMGR_NAME + '</th><th>' +
 				STATS_SOLVE + '</th><th class="click" data=' + (byGroup == 'scr' ? '"g">[+]' : '"gs">[-]') + ' ' + SCRAMBLE_SCRAMBLE +
 				'</th><th colspan=2 rowspan=2>OP</th></tr>' +
 				'<tr class="mshow b"><th>' + STATS_AVG + '</th><th>' + STATS_DATE + ' & P.</th></tr>'
@@ -1542,8 +1695,15 @@ var stats = execMain(function(kpretty, round, kpround) {
 
 			var groups = [];
 			var lastGKey = NaN;
+			var flt = $.trim(ssFilter.val()).toLowerCase();
 			for (var i = 0; i < ssSorted.length; i++) {
 				var ssData = sessionData[ssSorted[i]];
+				if (flt) { // jlTimer: filter by name, no grouping while filtering
+					if ($('<div>').html('' + ssData['name']).text().toLowerCase().indexOf(flt) != -1) {
+						groups.push([i]);
+					}
+					continue;
+				}
 				var gKey = byGroup == 'scr' ? (ssData['opt'] || {})['scrType'] : ssData[byGroup];
 				if (byGroup && gKey == lastGKey) {
 					groups.at(-1).push(i);
@@ -1562,10 +1722,15 @@ var stats = execMain(function(kpretty, round, kpround) {
 					}
 				}
 			}
+			if (flt && groups.length == 0) {
+				ssmgrTable.append('<tr><td colspan=10>No matching sessions</td></tr>');
+			}
+			ssFilterClr.css('visibility', flt ? '' : 'hidden');
 			ssmgrTable.unbind('click').click(mgrClick).unbind('change').change(mgrClick);
 		}
 
 		function showMgrTable() {
+			ssFilter.val('');
 			genMgrTable();
 			kernel.showDialog([ssmgrDiv, 0, undefined, 0, [STATS_SSMGR_ORDER, function() {
 				if (!$.confirm(STATS_SSMGR_ODCFM)) {
