@@ -1897,6 +1897,8 @@ canvas.jlfx {
 
 /* PLL trainer (js/tools/plltrainer.js), in the tools panel: click spans only, so no control takes cube keys */
 .jlpt {
+	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+	font-variant-numeric: tabular-nums;
 	font-size: 0.9em;
 	text-align: center;
 	line-height: 1.35;
