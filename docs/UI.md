@@ -12,6 +12,10 @@ All jlTimer UI options live in the normal **Options** dialog (the first button i
 
 The defaults reproduce the csTimer+ design with csTimer's first color scheme and LCD digits. Colors and fonts use csTimer's own defaults, so an imported csTimer setup looks the same as on cstimer.net. A value you already saved, or imported from csTimer, is kept.
 
+## Searching the options
+
+The **Search settings** box at the top of the Options dialog filters every section at once. It matches, case-insensitively, the setting's label, the section name (e.g. *timer*, *color*) and, for drop-downs, the names of the choices (searching "Roboto" finds *select timer's font*, with "→ Roboto" shown next to it). Matching rows are listed flat, with the section name at the right and the matched text in bold link color. The section tabs and headers are hidden while you search. The rows are the normal option rows, not copies, so changing a setting in the results is the same as changing it in its section. **Esc** (or the × button) clears the box and brings back the normal view at the same scroll position. Press Esc again for the usual behavior. The box is cleared each time Options opens and never takes focus by itself, so the phone keyboard doesn't pop up. Keys typed in it don't reach the timer, the virtual cube or the shortcuts. Hidden internal settings (only shown with `?debug=1`) stay hidden. Code: the settings-search part of the `property` module in `src/js/kernel.js`, with `.optsrch*`/`.optgrp` styles in `src/css/style.css`.
+
 ## Timer defaults
 
 jlTimer also changes these csTimer defaults:

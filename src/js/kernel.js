@@ -70,6 +70,124 @@ var kernel = execMain(function() {
 		var right = $('<td />').addClass('tabValue');
 		table.append($('<tr />').append(left, right.append(scrollDiv.append(optTable))));
 
+		// settings search: filters the existing rows (same controls) across all sections
+		var searchInput = $('<input type="text" class="optsrchin" autocomplete="off" spellcheck="false" placeholder="Search settings" aria-label="Search settings">');
+		var searchClear = $('<span class="click optsrchclr" role="button" aria-label="Clear search">\u00d7</span>');
+		var optWrap = $('<div class="optwrap">').append(
+			$('<div class="optsrchbar">').append(searchInput, searchClear),
+			$('<div class="optholder">').append(table)
+		);
+		var searchRows = []; // [[tr, valTd, moduleName, optionLabels]]
+		var headRows = [];
+		var noMatchRow = $('<tr class="optnomatch"><td colspan=3>no matching settings</td></tr>');
+		var isSearching = false;
+		var searchScrollTop = 0;
+
+		function htmlText(str) {
+			return $('<div>').html(String(str).replace(/-?<br>-?/g, '')).text();
+		}
+
+		function eachLabelText(node, func) {
+			var child = node.firstChild;
+			while (child) {
+				var next = child.nextSibling;
+				if (child.nodeType == 3) {
+					func(child);
+				} else if (child.nodeType == 1 && !$(child).is('select,input,mark,.opthelp,.optgrp,.optmatchopt')) {
+					eachLabelText(child, func);
+				}
+				child = next;
+			}
+		}
+
+		function markText(node, q) {
+			eachLabelText(node, function(text) {
+				var idx;
+				while (text && (idx = text.nodeValue.toLowerCase().indexOf(q)) != -1) {
+					var hit = text.splitText(idx);
+					text = hit.splitText(q.length);
+					$(hit).wrap('<mark class="optmark">');
+				}
+			});
+		}
+
+		function applySearch() {
+			var q = $.trim(searchInput.val()).toLowerCase();
+			searchClear.toggle(q != '');
+			optTable.find('mark.optmark').each(function() {
+				$(this).replaceWith(this.firstChild);
+			});
+			optTable.find('.optmatchopt').remove();
+			for (var i = 0; i < searchRows.length; i++) {
+				searchRows[i][1][0].normalize();
+			}
+			if (!q) {
+				if (isSearching) {
+					isSearching = false;
+					table.removeClass('optsrch');
+					left.show();
+					noMatchRow.hide();
+					$.each(headRows, function(i, row) { row.show(); });
+					$.each(searchRows, function(i, row) { row[0].show(); });
+					scrollDiv.scrollTop(searchScrollTop);
+				}
+				return;
+			}
+			if (!isSearching) {
+				isSearching = true;
+				searchScrollTop = scrollDiv.scrollTop();
+				table.addClass('optsrch');
+				left.hide();
+				$.each(headRows, function(i, row) { row.hide(); });
+			}
+			var nMatch = 0;
+			for (var i = 0; i < searchRows.length; i++) {
+				var row = searchRows[i];
+				var label = '';
+				eachLabelText(row[1][0], function(text) {
+					label += text.nodeValue;
+				});
+				var optHits = $.grep(row[3], function(str) {
+					return str.toLowerCase().indexOf(q) != -1;
+				});
+				var match = label.toLowerCase().indexOf(q) != -1 || row[2].toLowerCase().indexOf(q) != -1 || optHits.length > 0;
+				row[0].toggle(match);
+				if (!match) {
+					continue;
+				}
+				nMatch++;
+				markText(row[1][0], q);
+				var grp = row[1].children('.optgrp');
+				markText(grp[0], q);
+				if (optHits.length > 0) {
+					var optSpan = $('<span class="optmatchopt">').text(optHits.slice(0, 3).join(', ') + (optHits.length > 3 ? ', \u2026' : ''));
+					markText(optSpan[0], q);
+					row[1].children('select').after(optSpan);
+				}
+			}
+			noMatchRow.toggle(nMatch == 0);
+			scrollDiv.scrollTop(0);
+		}
+
+		searchInput.on('input', applySearch).on('keydown keyup', function(e) {
+			if (e.which == 27) {
+				if (searchInput.val() == '') {
+					return; // default Esc behaviour
+				}
+				if (e.type == 'keydown') {
+					searchInput.val('');
+					applySearch();
+				}
+				e.preventDefault();
+			}
+			// keep typing away from the timer / virtual cube / shortcuts
+			e.stopPropagation();
+		});
+		searchClear.click(function() {
+			searchInput.val('');
+			applySearch();
+		});
+
 		var selectedTab = 0;
 		var prevScrollTop = 0;
 
@@ -96,6 +214,9 @@ var kernel = execMain(function() {
 		}
 
 		function onOptScroll() {
+			if (isSearching) {
+				return;
+			}
 			prevScrollTop = scrollDiv.scrollTop();
 			var curModule = 'kernel';
 			for (var m in subDivs) {
@@ -170,7 +291,14 @@ var kernel = execMain(function() {
 		function generateDiv() {
 			subDivs = {};
 			left.empty();
+			noMatchRow.detach();
 			optTable.empty();
+			searchRows = [];
+			headRows = [];
+			isSearching = false;
+			table.removeClass('optsrch');
+			left.show();
+			optTable.append(noMatchRow.hide());
 			scrollDiv.unbind('scroll').scroll(onOptScroll);
 			for (var module in MODULE_NAMES) {
 				if (selectedTab === 0) {
@@ -184,6 +312,8 @@ var kernel = execMain(function() {
 					$('<th class="sr">').html('<span class="icon">\ue9bb</span>')
 				);
 				optTable.append(curDiv[1]);
+				headRows.push(curDiv[1]);
+				var moduleName = htmlText(MODULE_NAMES[module]);
 
 				for (var key in proSets[module]) {
 					var proSet = proSets[module][key];
@@ -246,11 +376,15 @@ var kernel = execMain(function() {
 					if ($('strong[data="opt_' + key + '"]').length > 0) {
 						valTd.append($('<span class="click opthelp" data="' + key + '"/>').html(DEFAULT_HELP_SPAN).click(procClick));
 					}
-					optTable.append($('<tr>').append(valTd, srTd));
+					valTd.prepend($('<span class="optgrp">').text(moduleName));
+					var optRow = $('<tr>').append(valTd, srTd);
+					optTable.append(optRow);
+					searchRows.push([optRow, valTd, moduleName, type == 1 ? $.map(proSet[3][2] || [], htmlText) : []]);
 				}
 			}
 			optTable.append($('<tr style="height: 10em;">'));
 			subDivs[selectedTab][0].click();
+			applySearch();
 		}
 
 		function showDiv() {
@@ -259,9 +393,11 @@ var kernel = execMain(function() {
 				isDivOut = false;
 			}
 			$('.opthelp').html(DEFAULT_HELP_SPAN);
+			searchInput.val('');
+			applySearch();
 			scrollToModule();
 
-			ui.showDialog([table, $.noop, undefined, $.noop, [RESET_LANG, function(){
+			ui.showDialog([optWrap, $.noop, undefined, $.noop, [RESET_LANG, function(){
 				if (!$.confirm("Are you sure to reset all options?")) {
 					return false;
 				}
@@ -626,7 +762,7 @@ var kernel = execMain(function() {
 			".mybutton.enable,.tab.enable,.cntbar,.selected,table.opttable tr th:first-child,div.helptable h2,div.helptable h3,.sflt div.sgrp{background-color:?}" +
 			"#gray{background-color:?4}" +
 			"html:not(.m) .times:hover,html:not(.m) .click:hover,.times:active,.click:active,textarea{background-color:?}" +
-			".click{color:?}" +
+			".click,mark.optmark{color:?}" +
 			".mywindow,.popup,.dialog,.table,.table td,.table th,textarea,.tabValue,.opttable td.sr,.sflt .bimg{border-color:?}" +
 			"html:not(.m) #avgstr .click:hover,#avgstr .click:active{background-color:?}" +
 			"select,input[type='button'],input[type='text']{color:?;background:?;border-color:?}" +
