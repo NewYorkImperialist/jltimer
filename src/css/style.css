@@ -1883,3 +1883,219 @@ canvas.jlfx {
 	text-align: left;
 	opacity: 0.8;
 }
+
+.jlas-table .jlas-weak {
+	font-weight: bold;
+}
+
+.jlas-drill {
+	font-size: 0.9em;
+	padding: 0 0.5em;
+	border: 1px solid rgba(128, 128, 128, 0.45);
+	border-radius: 1em;
+}
+
+/* PLL trainer (js/tools/plltrainer.js), in the tools panel: click spans only, so no control takes cube keys */
+.jlpt {
+	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+	font-variant-numeric: tabular-nums;
+	font-size: 0.9em;
+	text-align: center;
+	line-height: 1.35;
+}
+
+.jlpt-head, .jlpt-ctrl, .jlpt-cur, .jlpt-res {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+}
+
+.jlpt-head {
+	gap: 0.3em 0.6em;
+	margin: 0.25em 0 0.5em;
+}
+
+.jlpt-title {
+	font-weight: bold;
+	letter-spacing: 0.02em;
+}
+
+.jlpt-state {
+	font-size: 0.75em;
+	padding: 0.1em 0.6em;
+	border: 1px solid rgba(128, 128, 128, 0.35);
+	border-radius: 1em;
+	opacity: 0.85;
+}
+
+.jlpt-btn {
+	padding: 0.15em 0.85em;
+	border: 1px solid rgba(128, 128, 128, 0.55);
+	border-radius: 1em;
+	font-size: 0.9em;
+	font-weight: bold;
+}
+
+.jlpt-ctrl {
+	gap: 0.35em 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.jlpt-chip {
+	padding: 0.1em 0.65em;
+	font-size: 0.85em;
+	border: 1px solid rgba(128, 128, 128, 0.4);
+	border-radius: 1em;
+}
+
+.jlpt-group {
+	display: inline-flex;
+	border: 1px solid rgba(128, 128, 128, 0.4);
+	border-radius: 1em;
+	overflow: hidden;
+}
+
+.jlpt-group .jlpt-chip {
+	border: none;
+	border-radius: 0;
+}
+
+.jlpt-group .jlpt-chip + .jlpt-chip {
+	border-left: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.jlpt-cur {
+	gap: 0.3em 0.6em;
+	max-width: 32em;
+	min-height: 2.2em;
+	margin: 0 auto 0.4em;
+	padding: 0.35em 0.6em;
+	border-radius: 0.6em;
+	background-color: rgba(128, 128, 128, 0.09);
+}
+
+.jlpt-cur img {
+	width: 3.2em;
+	height: 3.2em;
+}
+
+.jlpt-cname {
+	font-weight: bold;
+}
+
+.jlpt-alg {
+	font-family: ui-monospace, Menlo, Consolas, monospace;
+	font-size: 0.9em;
+	white-space: normal;
+}
+
+.jlpt-last {
+	margin-bottom: 0.3em;
+}
+
+.jlpt-res {
+	gap: 0.15em 0.55em;
+	font-size: 0.85em;
+	opacity: 0.55;
+	font-variant-numeric: tabular-nums;
+}
+
+.jlpt-res.jlpt-res0 {
+	font-size: 1em;
+	opacity: 1;
+}
+
+.jlpt-time {
+	font-weight: bold;
+}
+
+.jlpt-split {
+	font-size: 0.85em;
+	opacity: 0.8;
+}
+
+.jlpt-warn {
+	color: #d2335c;
+	font-size: 0.85em;
+}
+
+.jlpt-scroll {
+	max-height: 14em;
+	overflow-y: auto;
+}
+
+.jlpt-table {
+	width: 100%;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.jlpt-table th, .jlpt-table td {
+	padding: 0.15em 0.45em;
+	text-align: right;
+}
+
+.jlpt-table th {
+	font-size: 0.8em;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.jlpt-table th:first-child, .jlpt-table td.jlpt-name {
+	text-align: left;
+}
+
+.jlpt-table td.jlpt-name img {
+	display: inline-block;
+	width: 1.5em;
+	height: 1.5em;
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+.jlpt-table td.jlpt-name span {
+	vertical-align: middle;
+	font-weight: bold;
+}
+
+.jlpt-table tr.jlpt-off td {
+	opacity: 0.45;
+}
+
+.jlpt-table tbody tr:hover td {
+	background-color: rgba(128, 128, 128, 0.12);
+}
+
+.jlpt-table .jlpt-box {
+	display: inline-block;
+	width: 0.75em;
+	height: 0.75em;
+	margin-right: 0.4em;
+	border: 1px solid currentColor;
+	border-radius: 0.2em;
+	vertical-align: middle;
+	opacity: 0.8;
+}
+
+.jlpt-foot {
+	margin-top: 0.3em;
+	font-size: 0.75em;
+}
+
+.jlpt-dim {
+	opacity: 0.6;
+}
+
+.jlpt-pad {
+	padding: 0.8em;
+}
+
+.jlpt-run {
+	font-size: 0.75em;
+	margin-top: 0.15em;
+}
+
+.jlas-table th[data-col="sd"] {
+	text-transform: none;
+}

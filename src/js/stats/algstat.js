@@ -38,6 +38,8 @@ var algStat = execMain(function() {
 		['rec', 'recog', 'mean recognition: pause from the last OLL turn to the first PLL turn', 0],
 		['exe', 'exec', 'mean execution: first to last PLL turn', 0],
 		['tps', 'TPS', 'execution TPS: turns / execution time', 1],
+		['sd', '\u03c3', 'standard deviation of the PLL time', 0],
+		['score', 'weak', 'weakness score: (case mean - PLL mean) / PLL \u03c3 + 0.5 / \u221a(N + 1); higher = weaker', 1],
 		['mv', 'turns', 'mean turns (HTM, slice = 1, rotations not counted)', 0],
 		['best', 'best', 'best PLL time', 0],
 		['recent', 'last', 'mean PLL time of the most recent solves of this case', 0]
@@ -66,7 +68,9 @@ var algStat = execMain(function() {
 	// rec: output of recons.calcRecons(times, cfg.method)
 	// return {c: case, rec, exe, tot (ms), mv (HTM), pre/post: AUF before/after the alg (bool)} or undefined
 	function analyzeRecons(rec, cfg) {
-		if (!rec || !rec.data || rec.data.length < cubeutil.getStepCount(cfg.method)) {
+		// a full solve has every step; a trainer solve (PLL trainer, PLL training scrambles) starts with
+		// only this step left, so the recons hold this step only
+		if (!rec || !rec.data || rec.data.length < cubeutil.getStepCount(cfg.method) && rec.data.length != cfg.leftProg) {
 			return;
 		}
 		var sdata = rec.data[cfg.stage];
@@ -158,15 +162,21 @@ var algStat = execMain(function() {
 		return recs;
 	}
 
-	function loadOthers(step, callback) {
+	// scope 'a': all sessions, 'r': all sessions but the PLL trainer's drill session
+	function drillSession(scope) {
+		return scope == 'r' && window.pllDrill ? pllDrill.sessionIdx() : 0;
+	}
+
+	function loadOthers(step, scope, callback) {
 		var curSession = ~~kernel.getProp('session');
 		var sessionN = ~~kernel.getProp('sessionN');
+		var skipIdx = drillSession(scope);
 		var mgr = stats.getSessionManager();
 		var recs = [];
 		var proc = Promise.resolve();
 		for (var i = 0; i < sessionN; i++) {
 			var idx = mgr.rank2idx(i + 1);
-			if (idx == curSession) {
+			if (idx == curSession || idx == skipIdx) {
 				continue;
 			}
 			proc = proc.then((function(idx) {
@@ -182,6 +192,7 @@ var algStat = execMain(function() {
 			others = {
 				step: step,
 				session: curSession,
+				scope: scope,
 				recs: recs
 			};
 			callback();
@@ -208,10 +219,12 @@ var algStat = execMain(function() {
 			cs.post += r.post ? 1 : 0;
 			cs.tots.push(r.tot);
 		}
+		var stat = overallStat(recs, cfg);
 		var rows = [];
 		for (var c in cases) {
 			var cs = cases[c];
 			var isSkip = cs.c == cfg.skip;
+			var sd = isSkip ? -1 : stdDev(cs.tots, cs.tot / cs.n);
 			var recent = cs.tots.slice(-nRecent);
 			var sumRecent = 0;
 			for (var i = 0; i < recent.length; i++) {
@@ -230,6 +243,8 @@ var algStat = execMain(function() {
 				mv: isSkip ? -1 : cs.mv / cs.n,
 				best: isSkip ? -1 : cs.best,
 				recent: isSkip ? -1 : sumRecent / recent.length,
+				sd: sd,
+				score: isSkip ? -1e9 : weakScore(cs.tot / cs.n, cs.n, stat),
 				nRecent: recent.length,
 				pre: cs.pre / cs.n,
 				post: cs.post / cs.n
@@ -245,6 +260,93 @@ var algStat = execMain(function() {
 			bySlow[i].slow = i + 1;
 		}
 		return rows;
+	}
+
+	// ---------- weakness score ----------
+
+	var BOOST = 0.5;
+
+	function stdDev(vals, mean) {
+		if (vals.length < 2) {
+			return -1;
+		}
+		var sum = 0;
+		for (var i = 0; i < vals.length; i++) {
+			sum += (vals[i] - mean) * (vals[i] - mean);
+		}
+		return Math.sqrt(sum / (vals.length - 1));
+	}
+
+	// mean and sigma of all PLL times of the recs (skips excluded)
+	function overallStat(recs, cfg) {
+		var tots = [];
+		var sum = 0;
+		for (var i = 0; i < recs.length; i++) {
+			if (recs[i].c != cfg.skip) {
+				tots.push(recs[i].tot);
+				sum += recs[i].tot;
+			}
+		}
+		var mean = tots.length ? sum / tots.length : 0;
+		return {n: tots.length, mean: mean, sd: stdDev(tots, mean)};
+	}
+
+	// weakness = z-score of the case mean against all PLL times + a boost for cases with few solves
+	// (an unseen case scores the boost alone)
+	function weakScore(mean, n, stat) {
+		var z = n > 0 && stat.sd > 0 ? (mean - stat.mean) / stat.sd : 0;
+		return z + BOOST / Math.sqrt(n + 1);
+	}
+
+	// every case of the step (unseen ones too) with its score, weakest first
+	function weakness(recs, step) {
+		var cfg = STEPS[step || STEP];
+		var ident = cubeutil.getIdentData(cfg.ident);
+		var rows = aggregate(recs, step || STEP).filter(function(row) {
+			return !row.skip;
+		});
+		var seen = {};
+		for (var i = 0; i < rows.length; i++) {
+			seen[rows[i].c] = 1;
+		}
+		var stat = overallStat(recs, cfg);
+		for (var c = ident[2]; c < ident[3]; c++) {
+			if (!seen[c]) {
+				rows.push({c: c, name: ident[1](c)[2], n: 0, tot: -1, rec: -1, exe: -1, tps: -1, sd: -1, score: weakScore(0, 0, stat)});
+			}
+		}
+		rows.sort(function(a, b) {
+			return (b.score - a.score) || (a.c - b.c);
+		});
+		return {rows: rows, mean: stat.mean, sd: stat.sd, n: stat.n};
+	}
+
+	// recs of every session except skipIdx (the PLL trainer leaves out its own session)
+	function loadRecs(step, skipIdx, callback) {
+		var sessionN = ~~kernel.getProp('sessionN');
+		var mgr = stats.getSessionManager();
+		var recs = [];
+		var proc = Promise.resolve();
+		for (var i = 0; i < sessionN; i++) {
+			var idx = mgr.rank2idx(i + 1);
+			if (idx == skipIdx) {
+				continue;
+			}
+			proc = proc.then((function(idx) {
+				return storage.get(idx).then(function(times) {
+					for (var j = 0; j < times.length; j++) {
+						var r = analyzeTimes(step, times[j]);
+						r && recs.push(r);
+					}
+				});
+			}).bind(null, idx));
+		}
+		proc.then(function() {
+			recs.sort(function(a, b) {
+				return a.d - b.d;
+			});
+			callback(recs);
+		});
 	}
 
 	function sortRows(rows) {
@@ -317,6 +419,10 @@ var algStat = execMain(function() {
 				return row.nRecent < row.n ? fmtTime(row.recent) : '<span class="jlas-dim">' + fmtTime(row.recent) + '</span>';
 			case 'tps':
 				return fmtNum(row.tps, 2);
+			case 'sd':
+				return fmtTime(row.sd);
+			case 'score':
+				return row.skip ? '-' : '<span class="' + (row.score >= 0.5 ? 'jlas-weak' : '') + '">' + row.score.toFixed(2) + '</span>';
 			case 'mv':
 				return fmtNum(row.mv, 1);
 		}
@@ -336,7 +442,7 @@ var algStat = execMain(function() {
 		var scope = kernel.getProp('algStatScope', 's');
 		var nRecent = ~~kernel.getProp('algStatRecent', 12);
 		var html = ['<div class="jlas-bar0">'];
-		html.push(selectHtml('algStatScope', [['s', 'this session'], ['a', 'all sessions']], scope));
+		html.push(selectHtml('algStatScope', [['s', 'this session'], ['a', 'all sessions'], ['r', 'all but drill']], scope));
 		if (isFull) {
 			html.push(selectHtml('algStatRecent', [[5, 'last 5'], [12, 'last 12'], [25, 'last 25'], [50, 'last 50']], nRecent));
 		}
@@ -354,6 +460,9 @@ var algStat = execMain(function() {
 			recs.length + ' solves, ' + (rows.length - (nSkip ? 1 : 0)) + ' cases' + (nSkip ? ', ' + nSkip + ' skips' : '')) + '</span>');
 		if (!isFull) {
 			html.push('<span class="click jlas-open">full table</span>');
+		}
+		if (!isLoading && rows.length > 1 && window.pllDrill) {
+			html.push('<span class="click jlas-drill" title="drill your weakest cases (scored from all sessions but the drill one) on the virtual cube">drill weakest ' + pllDrill.getN() + '</span>');
 		}
 		html.push('</div>');
 
@@ -394,6 +503,11 @@ var algStat = execMain(function() {
 					'<b>Skip</b>: a solve whose PLL was already solved after OLL counts as a skip, also when it needed an AUF ' +
 					'(that AUF stays in the OLL step). Skips count in N and % but not in the time columns. ' +
 					'The ' + SLOW_N + ' slowest cases by mean are tagged #1-#' + SLOW_N + '. ' +
+					'<b>weak</b> is the weakness score: how many \u03c3 the case mean is above the mean of all PLL times shown, ' +
+					'plus 0.5 / \u221a(N + 1) so that rarely seen cases are drilled too (higher = weaker). ' +
+					'<b>drill weakest N</b> opens the PLL trainer (Tools) on the N weakest cases, scored from all sessions but the drill one. ' +
+					'In a trainer solve (only the PLL to solve) <b>recog</b> runs from the moment the case is shown. ' +
+					'<b>all but drill</b> leaves out the trainer\'s "PLL drill" session. ' +
 					'A dimmed <b>last ' + nRecent + '</b> means the case has no more than ' + nRecent + ' solves, so it equals the mean. ' +
 					'Counted: finished 3x3 solves with a move record (virtual or smart cube), DNFs excluded.' +
 					'</div>');
@@ -403,6 +517,12 @@ var algStat = execMain(function() {
 		div.find('select').change(procChange);
 		div.find('th[data-col]').click(procSort);
 		div.find('.jlas-open').click(showDialog);
+		div.find('.jlas-drill').click(function() {
+			if (isDialog) {
+				kernel.hideDialog();
+			}
+			pllDrill.drillWeakest();
+		});
 	}
 
 	function update() {
@@ -410,18 +530,19 @@ var algStat = execMain(function() {
 			return;
 		}
 		var recs = curSessionRecs(STEP);
-		if (kernel.getProp('algStatScope', 's') == 'a') {
-			if (!others || others.step != STEP || others.session != ~~kernel.getProp('session')) {
+		var scope = kernel.getProp('algStatScope', 's');
+		if (scope == 'a' || scope == 'r') {
+			if (!others || others.step != STEP || others.session != ~~kernel.getProp('session') || others.scope != scope) {
 				renderAll([], true);
 				var myTid = ++loadingTid;
-				loadOthers(STEP, function() {
+				loadOthers(STEP, scope, function() {
 					if (myTid == loadingTid) {
 						update();
 					}
 				});
 				return;
 			}
-			recs = others.recs.concat(recs);
+			recs = others.recs.concat(drillSession(scope) == ~~kernel.getProp('session') ? [] : recs);
 			// oldest first, so "last N" means the most recent solves
 			recs = recs.map(function(r, i) {
 				return [r, i];
@@ -461,8 +582,9 @@ var algStat = execMain(function() {
 
 	function exportCSV() {
 		var recs = curSessionRecs(STEP);
-		if (kernel.getProp('algStatScope', 's') == 'a' && others) {
-			recs = others.recs.concat(recs);
+		var scope = kernel.getProp('algStatScope', 's');
+		if (scope != 's' && others) {
+			recs = others.recs.concat(drillSession(scope) == ~~kernel.getProp('session') ? [] : recs);
 		}
 		var cfg = STEPS[STEP];
 		var ident = cubeutil.getIdentData(cfg.ident);
@@ -534,6 +656,9 @@ var algStat = execMain(function() {
 		analyzeRecons: analyzeRecons,
 		analyzeTimes: analyzeTimes,
 		curSessionRecs: curSessionRecs,
+		weakness: weakness,
+		weakScore: weakScore,
+		loadRecs: loadRecs,
 		showDialog: showDialog,
 		update: update
 	};
