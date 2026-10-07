@@ -8,22 +8,28 @@ execMain(function(timer) {
 	var isApplyingScramble = false; // scramble moves are applied instantly; no move effects for them
 
 	// live TPS: how fast turn inputs arrive (like WPM), not the animation speed. Counts turn inputs (not cube
-	// rotations) during a timed solve over a rolling 2 s window; shown on the cube when "Show live TPS" is on.
-	var TPS_WINDOW = 2000;
+	// rotations) during a timed solve over a short rolling window ("Live TPS window", default 0.5 s); shown above
+	// the "solve" text when "Show live TPS" is on.
 	var tpsInputs = [];
 	var tpsDiv = $('<div class="jltps">').hide();
 	var tpsTid = 0;
 
 	function tpsValue(now) {
-		while (tpsInputs.length && now - tpsInputs[0] > TPS_WINDOW) {
+		var win = (parseFloat(kernel.getProp('vrcTpsWin', '0.5')) || 0.5) * 1000;
+		while (tpsInputs.length > 2 && now - tpsInputs[1] > win) { // keep one input before the window as reference
 			tpsInputs.shift();
 		}
-		if (!tpsInputs.length) {
+		var n = tpsInputs.length;
+		if (n < 2 || now - tpsInputs[n - 1] > win) { // nothing pressed within the window: not turning
 			return 0;
 		}
-		// early in the solve the window is shorter than 2 s; measure from the solve start
-		var span = Math.min(TPS_WINDOW, Math.max(500, now - timer.startTime()));
-		return tpsInputs.length / (span / 1000);
+		// turns in the window divided by the time they took, measured from the input just before the window
+		var first = 0;
+		while (first < n - 1 && now - tpsInputs[first + 1] > win) {
+			first++;
+		}
+		var span = tpsInputs[n - 1] - tpsInputs[first];
+		return span > 0 ? (n - 1 - first) * 1000 / span : 0;
 	}
 
 	function tpsTick() {
@@ -145,9 +151,8 @@ execMain(function(timer) {
 			if (puzzleObj && window.jlFx) {
 				jlFx.attach(puzzleObj, div);
 			}
-			if (tpsDiv.parent()[0] !== div[0]) {
-				div.css('position', 'relative');
-				tpsDiv.appendTo(div);
+			if (!tpsDiv.parent().is('#multiphase')) {
+				tpsDiv.prependTo('#multiphase'); // right above the "solve" text
 			}
 			if (isInit && !puzzleObj) {
 				div.css('height', '');

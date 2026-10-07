@@ -49,7 +49,7 @@ jlTimer's default key map differs from csTimer's in one key: **`,` does M** (csT
 
 ## Live TPS
 
-Options → virtual cube → **Show live TPS** (off by default) shows how fast you are turning during a timed virtual solve, like WPM for typing: turn inputs (not cube rotations) per second over a rolling 2 s window, measured from when each key is pressed, not from the turn animation. It appears in the top-left corner of the cube while the timer runs and drops to 0 when you pause. The solve's average TPS is still shown with the result as before.
+Options → virtual cube → **Show live TPS** (off by default) shows how fast you are turning during a timed virtual solve, like WPM for typing: turn inputs (not cube rotations) per second over a short rolling window (**Live TPS window**: 0.25, 0.5 (default), 1 or 2 s), measured from when each key is pressed, not from the turn animation. It appears small, right above the "solve" text, while the timer runs and drops to 0 when nothing was pressed within the window. The solve's average TPS is still shown with the result as before.
 
 ## Move effects
 
