@@ -160,7 +160,7 @@ worker.js)
 cstimer = $(dest)/js/cstimer.js
 twisty = $(dest)/js/twisty.js
 # enhanced themes: one file per theme, shipped as a separate bundle loaded after the timer starts
-themeSrc = $(sort $(wildcard $(src)/js/themes/*.js)) $(sort $(wildcard $(src)/js/skins/*.js))
+themeSrc = $(sort $(wildcard $(src)/js/themes/*.js))
 jlthemes = $(dest)/js/jlthemes.js
 # move effects for the virtual cube, likewise a separate bundle
 fxSrc = $(sort $(wildcard $(src)/js/fx/*.js))
