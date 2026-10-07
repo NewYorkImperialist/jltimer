@@ -2185,3 +2185,78 @@ canvas.jlfx {
 	padding: 0;
 	border: none;
 }
+
+/* Options: settings search (kernel.js property module) */
+.optwrap .optsrchbar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2em;
+	display: flex;
+	align-items: center;
+}
+
+.optwrap .optsrchin {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto;
+	box-sizing: border-box;
+	margin: 0 0.2em;
+	text-align: left;
+	cursor: text;
+}
+
+.optwrap .optsrchclr {
+	display: none;
+	padding: 0 0.4em;
+	font-size: 1.2em;
+	line-height: 1.4em;
+	border-radius: 0.35rem;
+}
+
+.optwrap .optholder {
+	position: absolute;
+	top: 2.3em;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+.optholder > .options {
+	width: 100%;
+}
+
+.opttable .optgrp {
+	display: none;
+}
+
+.optsrch .opttable .optgrp {
+	display: inline;
+	float: right;
+	margin-left: 0.6em;
+	font-size: 0.85em;
+	opacity: 0.6;
+	white-space: nowrap;
+}
+
+.opttable .optmatchopt {
+	margin-left: 0.4em;
+	font-size: 0.85em;
+	opacity: 0.8;
+}
+
+.opttable .optmatchopt::before {
+	content: '\2192  ';
+}
+
+.optnomatch td {
+	text-align: center;
+	padding: 1em;
+	opacity: 0.7;
+}
+
+mark.optmark {
+	background: none;
+	font-weight: bold;
+}
