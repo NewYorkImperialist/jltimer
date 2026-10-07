@@ -1659,6 +1659,15 @@ html.jlt-on body {
 	background-color: transparent !important;
 }
 
+/* fullscreen (Options button) shows only body: carry the page background and artwork over to it */
+html.jlt-on body:fullscreen {
+	background: inherit !important;
+}
+
+html.jlt-on body:-webkit-full-screen {
+	background: inherit !important;
+}
+
 html.jlt-on .mywindow:not(.fixed),
 html.jlt-on #leftbar,
 html.jlt-on .dialog,
