@@ -51,7 +51,7 @@ var jlThemes = execMain(function() {
 	}
 
 	function regThemeProp() {
-		kernel.regProp('color', 'jlTheme', 1, 'Enhanced theme', ['none',
+		kernel.regProp('color', 'jlTheme', 1, 'Enhanced theme', ['sakura',
 			['none'].concat(themes.map(function(t) { return t.id; })),
 			['None'].concat(themes.map(function(t) { return t.name; }))]);
 	}
@@ -120,6 +120,74 @@ var jlThemes = execMain(function() {
 		register: register,
 		list: function() {
 			return themes.slice();
+		},
+		apply: apply
+	};
+});
+
+// jlTimer UI looks (drafts): restyle the layout (panels, buttons, type, spacing), independent of the background
+// theme. Each look lives in js/skins/<id>.js and calls jlSkins.register({ id, name, css }); scope every rule with
+// html.jls-<id>. Chosen in Options > interface > "UI look (draft)".
+var jlSkins = execMain(function() {
+	var skins = [];
+	var isReady = false;
+	var styleTag = $('<style id="jlskin-style">');
+
+	function find(id) {
+		for (var i = 0; i < skins.length; i++) {
+			if (skins[i].id == id) {
+				return skins[i];
+			}
+		}
+		return null;
+	}
+
+	function regSkinProp() {
+		kernel.regProp('ui', 'jlSkin', 1, 'UI look (draft)', ['none',
+			['none'].concat(skins.map(function(t) { return t.id; })),
+			['Classic'].concat(skins.map(function(t) { return t.name; }))]);
+	}
+
+	function apply(id) {
+		var html = $('html');
+		skins.forEach(function(t) {
+			html.removeClass('jls-' + t.id);
+		});
+		var t = find(id);
+		styleTag.text(t ? t.css || '' : '');
+		if (t) {
+			html.addClass('jls-' + t.id);
+		}
+	}
+
+	function register(t) {
+		if (!t || !/^[a-z0-9-]+$/.test(t.id) || find(t.id)) {
+			return false;
+		}
+		skins.push(t);
+		if (isReady) {
+			regSkinProp();
+			if (kernel.getProp('jlSkin') == t.id) {
+				apply(t.id);
+			}
+		}
+		return true;
+	}
+
+	$(function() {
+		styleTag.appendTo('head'); // after the theme styles, so a look can restyle themed panels
+		kernel.regListener('jlskins', 'property', function(signal, value) {
+			apply(value[1]);
+		}, /^jlSkin$/);
+		regSkinProp();
+		isReady = true;
+		apply(kernel.getProp('jlSkin', 'none'));
+	});
+
+	return {
+		register: register,
+		list: function() {
+			return skins.slice();
 		},
 		apply: apply
 	};

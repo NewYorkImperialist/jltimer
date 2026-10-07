@@ -776,7 +776,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		regListener('timer', 'session', updateTimerOffsetAsync.bind(null, false));
 		regListener('timer', 'scrfix', updateTimerOffsetAsync.bind(null, false));
 		$(window).bind('resize', updateTimerOffsetAsync.bind(null, false));
-		regProp('vrc', 'vrcSpeed', 1, PROPERTY_VRCSPEED, [50, [0, 25, 50, 100, 200, 500, 1000], '\u221E|40|20|10|5|2|1'.split('|')], 1);
+		regProp('vrc', 'vrcSpeed', 1, PROPERTY_VRCSPEED, [25, [0, 25, 50, 100, 200, 500, 1000], '\u221E|40|20|10|5|2|1'.split('|')], 1);
 		regProp('vrc', 'vrcSize', 1, 'Virtual cube size', [100, VRC_SIZES, VRC_SIZES.map(function(v) { return v + '%'; })], 1);
 		regProp('vrc', 'vrcLiveTps', 0, 'Show live TPS (how fast you are turning)', [false], 1);
 		regProp('vrc', 'vrcTpsWin', 1, 'Live TPS window', ['0.5', ['0.25', '0.5', '1', '2'], ['0.25 s', '0.5 s', '1 s', '2 s']], 1);

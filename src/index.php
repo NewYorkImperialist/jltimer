@@ -85,6 +85,7 @@
   <script type="text/javascript" src="js/fx.js"></script>
 <?php foreach (glob(__DIR__ . '/js/fx/*.js') as $f) { echo '  <script type="text/javascript" src="js/fx/' . basename($f) . "\" async></script>\n"; } ?>
 <?php foreach (glob(__DIR__ . '/js/themes/*.js') as $f) { echo '  <script type="text/javascript" src="js/themes/' . basename($f) . "\" async></script>\n"; } ?>
+<?php foreach (glob(__DIR__ . '/js/skins/*.js') as $f) { echo '  <script type="text/javascript" src="js/skins/' . basename($f) . "\" async></script>\n"; } ?>
   <script type="text/javascript" src="js/twisty/twistyreplay.js"></script>
   <script type="text/javascript" src="js/shortcut.js"></script>
   <script type="text/javascript" src="js/help.js"></script>

@@ -652,7 +652,7 @@ var kernel = execMain(function() {
 
 
 		// var cur_color = ["#000", "#efc", "#cda", "#ff0", "#dd0", "#000", "#dbb", "#fdd", "#fbb", "#000", "#dbb", "#00f", "#dbb"];
-		var cur_color = ["#000", "#efc", "#fdd", "#fbb", "#dbb", "#ff0", "#000", "#f40"];
+		var cur_color = ["#523", "#fee", "#fef", "#fcd", "#b36", "#fff", "#c57", "#d16"];
 		var col_map = [0, 1, 2, 0, 1|0x220, 5, 5|0x220, 6, 2|0x220, 2, 3, 0, 2|0x220, 4, 2|0x220, 1|0x220, 0, 2|0xef0, 2|0x220, 2|0x110, 7, 0];
 		var col_props = ['font', 'back', 'board', 'button', 'link', 'logo', 'logoback', 'pbs'];
 
@@ -857,16 +857,16 @@ var kernel = execMain(function() {
 			regProp('ui', 'uidesign', 1, PROPERTY_UIDESIGN, ['jl', ['n', 'mt', 'ns', 'mtns', 'cspt', 'jl'], PROPERTY_UIDESIGN_STR.split('|').concat('csTimer+', 'jlTimer')]);
 			regProp('ui', 'jlLayout', 1, 'Layout', ['c', ['c', 'm'], ['Familiar', 'Minimal']]);
 			regProp('ui', 'view', 1, PROPERTY_VIEW, ['a', ['a', 'm', 'd'], PROPERTY_VIEW_STR.split('|')]);
-			regProp('color', 'color', 1, PROPERTY_COLOR, ['1', ['u', 'e', 'r', '1', '2', '3', '4', '5', '6', '7', '8', '9'], PROPERTY_COLOR_STR.split('|').concat('jlTimer dark')]);
+			regProp('color', 'color', 1, PROPERTY_COLOR, ['u', ['u', 'e', 'r', '1', '2', '3', '4', '5', '6', '7', '8', '9'], PROPERTY_COLOR_STR.split('|').concat('jlTimer dark')]);
 			var parr = PROPERTY_COLORS.split('|');
-			regProp('color', 'col-font', 3, parr[0], ['#000000']);
-			regProp('color', 'col-back', 3, parr[1], ['#eeffcc']);
-			regProp('color', 'col-board', 3, parr[2], ['#ffdddd']);
-			regProp('color', 'col-button', 3, parr[3], ['#ffbbbb']);
-			regProp('color', 'col-link', 3, parr[4], ['#0000ff']);
-			regProp('color', 'col-logo', 3, parr[5], ['#ffff00']);
-			regProp('color', 'col-logoback', 3, parr[6], ['#000000']);
-			regProp('color', 'col-pbs', 3, 'PBs', ['#ff4400']);
+			regProp('color', 'col-font', 3, parr[0], ['#552233']);
+			regProp('color', 'col-back', 3, parr[1], ['#ffeeee']);
+			regProp('color', 'col-board', 3, parr[2], ['#ffeeff']);
+			regProp('color', 'col-button', 3, parr[3], ['#ffccdd']);
+			regProp('color', 'col-link', 3, parr[4], ['#bb3366']);
+			regProp('color', 'col-logo', 3, parr[5], ['#ffffff']);
+			regProp('color', 'col-logoback', 3, parr[6], ['#cc5577']);
+			regProp('color', 'col-pbs', 3, 'PBs', ['#dd1166']);
 			regProp('color', 'col-timer', 4, 'Timer', ['#f00#0d0#dd0#080#f00']);
 			regProp('color', 'colcube', 4, 'Cube', ['#ff0#fa0#00f#fff#f00#0d0']);
 			regProp('color', 'colpyr', 4, 'Pyraminx', ['#0f0#f00#00f#ff0']);
