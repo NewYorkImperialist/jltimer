@@ -47,6 +47,10 @@ About (click the logo) → **Virtual cube key map** tab. Click a key in the tabl
 
 jlTimer's default key map differs from csTimer's in one key: **`,` does M** (csTimer: Uw). The choices are stored in the `vrcKeyMove` setting (`{physicalKeyCode: qwertyKeyCodeOfMove}`, with `-1` for "none", inside `properties`). They apply to every virtual puzzle, because all of them read keys through `help.getMappedCode`. The move names in the table are the 3x3 moves; on other puzzles a key does whatever that key position does there.
 
+## Live TPS
+
+Options → virtual cube → **Show live TPS** (off by default) shows how fast you are turning during a timed virtual solve, like WPM for typing: turn inputs (not cube rotations) per second over a rolling 2 s window, measured from when each key is pressed, not from the turn animation. It appears in the top-left corner of the cube while the timer runs and drops to 0 when you pause. The solve's average TPS is still shown with the result as before.
+
 ## Move effects
 
 Options → virtual cube → **Move effect** adds an arcade-style flourish whenever a layer of the virtual cube turns (default **None**). There are 12: Arcade Combo, Comet Orbit, Fever Mode, RGB Glitch, Ink Splash, Lightning, Neon Trail, Zen Ripple, Crystal Shards, Shockwave, Blade Slash and Spark Burst. Each also has a finale when a timed solve ends. They draw on a transparent canvas over the cube that ignores the mouse, they stay on the face edges or outside the cube so stickers remain readable, and they shrink to a short outline flash when the system asks for reduced motion. The moves of a scramble don't trigger them.

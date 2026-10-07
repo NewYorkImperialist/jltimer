@@ -7,6 +7,43 @@ execMain(function(timer) {
 	var rawMoves = [];
 	var isApplyingScramble = false; // scramble moves are applied instantly; no move effects for them
 
+	// live TPS: how fast turn inputs arrive (like WPM), not the animation speed. Counts turn inputs (not cube
+	// rotations) during a timed solve over a rolling 2 s window; shown on the cube when "Show live TPS" is on.
+	var TPS_WINDOW = 2000;
+	var tpsInputs = [];
+	var tpsDiv = $('<div class="jltps">').hide();
+	var tpsTid = 0;
+
+	function tpsValue(now) {
+		while (tpsInputs.length && now - tpsInputs[0] > TPS_WINDOW) {
+			tpsInputs.shift();
+		}
+		if (!tpsInputs.length) {
+			return 0;
+		}
+		// early in the solve the window is shorter than 2 s; measure from the solve start
+		var span = Math.min(TPS_WINDOW, Math.max(500, now - timer.startTime()));
+		return tpsInputs.length / (span / 1000);
+	}
+
+	function tpsTick() {
+		if (!kernel.getProp('vrcLiveTps') || timer.status() < 1) {
+			tpsDiv.hide();
+			clearInterval(tpsTid);
+			tpsTid = 0;
+			return;
+		}
+		tpsDiv.text(tpsValue($.now()).toFixed(1) + ' TPS').show();
+	}
+
+	function tpsInput(now) {
+		tpsInputs.push(now);
+		if (kernel.getProp('vrcLiveTps') && !tpsTid) {
+			tpsTid = setInterval(tpsTick, 100);
+		}
+		tpsTick();
+	}
+
 	//mstep: 0 move start, 1 move doing, 2 move finish
 	function moveListener(move, mstep, ts) {
 		if (mstep == 1) {
@@ -29,6 +66,7 @@ execMain(function(timer) {
 				}
 				timer.startTime(now);
 				moveCnt = 0;
+				tpsInputs = [];
 				timer.curTime([insTime > 17000 ? -1 : (insTime > 15000 ? 2000 : 0)]);
 				timer.status(curScrSize == 3 && curScrType != "r3" ? cubeutil.getStepCount(kernel.getProp('vrcMP', 'n')) : 1);
 				var inspectionMoves = rawMoves[0];
@@ -48,6 +86,9 @@ execMain(function(timer) {
 				puzzleObj.toggleColorVisible(puzzleObj.isSolved(kernel.getProp('vrcMP', 'n')) == 0);
 			}
 			if (mstep == 0) {
+				if (!puzzleObj.isRotation(move)) {
+					tpsInput(now);
+				}
 				rawMoves[timer.status() - 1].push([puzzleObj.move2str(move), now - timer.startTime()]);
 				attemptMoves.push(puzzleObj.move2str(move));
 			}
@@ -103,6 +144,10 @@ execMain(function(timer) {
 			puzzleObj = ret;
 			if (puzzleObj && window.jlFx) {
 				jlFx.attach(puzzleObj, div);
+			}
+			if (tpsDiv.parent()[0] !== div[0]) {
+				div.css('position', 'relative');
+				tpsDiv.appendTo(div);
 			}
 			if (isInit && !puzzleObj) {
 				div.css('height', '');
