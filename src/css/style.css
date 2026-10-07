@@ -2108,3 +2108,43 @@ canvas.jlfx {
 .jlas-table th[data-col="sd"] {
 	text-transform: none;
 }
+
+/* jlTimer: the time list always shows a scrollbar that spans the whole session (spacer row, see stats.js).
+   Styled ::-webkit-scrollbar stays visible even with macOS overlay scrollbars; Firefox gets the standard props. */
+.myscroll.jl-timescroll {
+	padding-right: 0;
+	margin-right: 0;
+	overflow-anchor: none;
+}
+
+.myscroll.jl-timescroll::-webkit-scrollbar {
+	display: block;
+	width: 10px;
+}
+
+.myscroll.jl-timescroll::-webkit-scrollbar-track {
+	background: rgba(128, 128, 128, 0.12);
+	border-radius: 5px;
+}
+
+.myscroll.jl-timescroll::-webkit-scrollbar-thumb {
+	background: rgba(128, 128, 128, 0.6);
+	border-radius: 5px;
+	min-height: 24px;
+}
+
+.myscroll.jl-timescroll::-webkit-scrollbar-thumb:hover {
+	background: rgba(128, 128, 128, 0.85);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+	.myscroll.jl-timescroll {
+		scrollbar-width: thin;
+		scrollbar-color: rgba(128, 128, 128, 0.6) transparent;
+	}
+}
+
+#stats tr.jl-spacer > td {
+	padding: 0;
+	border: none;
+}

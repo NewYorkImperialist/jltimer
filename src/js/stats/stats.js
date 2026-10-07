@@ -5,7 +5,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 	var times = [];
 	var div = $('<div id="stats">');
 	var stext = $('<textarea rows="10" readonly>');
-	var scrollDiv = $('<div class="myscroll">');
+	var scrollDiv = $('<div class="myscroll jl-timescroll">');
 	var statOptDiv = $('<div>');
 
 	var table = $('<table>').click(procClick).addClass("table");
@@ -20,6 +20,10 @@ var stats = execMain(function(kpretty, round, kpround) {
 	var sumtableDiv = $('<div class="statc">');
 
 	var MAX_ITEMS = 50;
+	// jlTimer: an empty row as tall as the rows not shown yet, so the time list's scrollbar spans the whole
+	// session; scrolling into it shows the rows down to there
+	var spacerRow = $('<tr class="jl-spacer"><td colspan="15"></td></tr>');
+	var rowHeight = 0;
 
 	var isInit = true;
 
@@ -80,7 +84,9 @@ var stats = execMain(function(kpretty, round, kpround) {
 			timesExtra.splice(index, n_del);
 		});
 		sessionManager.save(index);
+		var view = table_ctrl.getView();
 		table_ctrl.updateTable(false);
+		table_ctrl.setView(view);
 		updateUtil(['delete', index, n_del]);
 		return true;
 	}
@@ -221,6 +227,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 			} else {
 				showAllRow.unbind('click').click(table_ctrl.showAll).show();
 			}
+			updateSpacer();
 			filterTh.unbind('click').click(changePattern);
 			timeTh.unbind('click').click(changeRank.bind(null, 0));
 			len1Th.unbind('click').click(changeRank.bind(null, 1));
@@ -285,8 +292,8 @@ var stats = execMain(function(kpretty, round, kpround) {
 			updateAvgRow(curDim);
 		}
 
-		function showMoreRows() {
-			var targetLength = shownIdxs.length + MAX_ITEMS;
+		function showMoreRows(n) {
+			var targetLength = shownIdxs.length + (n || MAX_ITEMS);
 			var rows = [];
 			while (hheadIdx >= 0 && shownIdxs.length < targetLength) {
 				if (filter(hheadIdx)) {
@@ -307,6 +314,61 @@ var stats = execMain(function(kpretty, round, kpround) {
 			if (hheadIdx < 0) {
 				showAllRow.unbind('click').hide();
 			}
+			updateSpacer();
+		}
+
+		function updateSpacer() {
+			var left = kernel.getProp('statinv') ? 0 : hheadIdx + 1;
+			if (left <= 0) {
+				spacerRow.detach();
+				return;
+			}
+			var row = showAllRow.prev('tr[data]');
+			rowHeight = row.length && row[0].offsetHeight || rowHeight;
+			if (!rowHeight) {
+				spacerRow.detach();
+				return;
+			}
+			showAllRow.after(spacerRow);
+			spacerRow.children().css('height', left * rowHeight);
+		}
+
+		// scrolled into the spacer: show the rows down to the bottom of the view
+		function fillToView() {
+			if (!spacerRow[0].parentNode || !rowHeight) {
+				return false;
+			}
+			var elem = scrollDiv[0];
+			var over = elem.getBoundingClientRect().bottom - spacerRow[0].getBoundingClientRect().top;
+			if (over <= 0) {
+				return false;
+			}
+			var top = elem.scrollTop;
+			showMoreRows(Math.ceil(over / rowHeight) + MAX_ITEMS);
+			if (hheadIdx < 0) {
+				showAllRow.unbind('click').hide();
+			}
+			updateSpacer();
+			elem.scrollTop = top;
+			return true;
+		}
+
+		// keep the scroll position across a rebuild (e.g. after deleting a solve)
+		function getView() {
+			var elem = scrollDiv[0];
+			return [shownIdxs.length, elem.scrollTop, elem.scrollHeight - elem.scrollTop];
+		}
+
+		function setView(view) {
+			if (shownIdxs.length < view[0] && hheadIdx >= 0) {
+				showMoreRows(view[0] - shownIdxs.length);
+				if (hheadIdx < 0) {
+					showAllRow.unbind('click').hide();
+				}
+				updateSpacer();
+			}
+			var elem = scrollDiv[0];
+			elem.scrollTop = kernel.getProp('statinv') ? elem.scrollHeight - view[2] : view[1];
 		}
 
 		function hideAll() {
@@ -317,6 +379,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 			if (nextIdx(hheadIdx) >= 0) {
 				showAllRow.unbind('click').click(showAll).show();
 			}
+			updateSpacer();
 		}
 
 		function appendRow(idx) {
@@ -358,6 +421,10 @@ var stats = execMain(function(kpretty, round, kpround) {
 			hideAll: hideAll,
 			getRowIndexOf: getRowIndexOf,
 			updateTable: updateTable,
+			getView: getView,
+			setView: setView,
+			fillToView: fillToView,
+			updateSpacer: updateSpacer,
 			updateFrom: updateFrom
 		}
 	})();
@@ -1846,6 +1913,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 		} else if (scrollDiv[0].offsetParent != null) {
 			scrollDiv.outerHeight(~~(div.height() - (statOptDiv.is(':hidden') ? 0 : statOptDiv.outerHeight()) - sumtableDiv.outerHeight() - 5));
 		}
+		table_ctrl.updateSpacer();
 	}
 
 	$(function() {
@@ -1890,6 +1958,9 @@ var stats = execMain(function(kpretty, round, kpround) {
 		kernel.addWindow('stats', BUTTON_TIME_LIST, div, true, true, 4);
 		scrollDiv.bind('scroll', function() {
 			var elem = scrollDiv[0];
+			if (table_ctrl.fillToView()) {
+				return;
+			}
 			if (elem.scrollHeight - elem.scrollTop < elem.clientHeight + 5 && !kernel.getProp('statinv')) {
 				showAllRow.click();
 			}
