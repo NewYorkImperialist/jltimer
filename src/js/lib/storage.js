@@ -219,12 +219,29 @@ var storage = execMain(function() {
 		});
 	}
 
+	// jlTimer: remove one non-session key (e.g. the pre-import undo copy)
+	function delKey(key) {
+		return new Promise(function(resolve, reject) {
+			if (indexedDB) {
+				getTrans("readwrite", function(objectStore) {
+					objectStore["delete"](key);
+				}, function() {
+					resolve(true);
+				});
+			} else {
+				delete localStorage[key];
+				resolve(true);
+			}
+		});
+	}
+
 	return {
 		set: set,
 		get: get,
 		del: del,
 		setKey: setKey,
 		getKey: getKey,
+		delKey: delKey,
 		importAll: importAll,
 		exportAll: exportAll
 	};

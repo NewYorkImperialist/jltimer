@@ -7,18 +7,20 @@ The supported path is csTimer's own **file export/import**. jlTimer kept that fo
 ## Steps
 
 1. **On cstimer.net**: click **Export** (the second button in the button bar), then **Export to file**. This saves `cstimer_YYYYMMDD_hhmmss.txt`. Keep this file as your backup.
-2. **On jlTimer** (optional, if you already timed something there): **Export → Export to file**. This saves `jltimer_….txt`, because the next step replaces jlTimer's data.
-3. **On jlTimer**: **Export → Import from file**, then choose the cstimer.net file. A confirmation dialog shows how many sessions will change and how many solves will be added or removed. **Confirm**, and the page reloads with your data.
-4. Check a few sessions: solve counts, a commented solve, a +2/DNF, and a virtual-cube solve's replay.
+2. **On jlTimer**: **Export → Import from file**, then choose the cstimer.net file. An **import preview** lists each session (name, puzzle, solve count, date range) as it is now and as it is in the file, with totals and warnings. Choose **Replace all**, **Merge** or **Cancel** (see below). The page reloads with your data.
+3. Check a few sessions: solve counts, a commented solve, a +2/DNF, and a virtual-cube solve's replay.
 
-### Import replaces data; it doesn't merge
+### Replace all, Merge, and the safety net
 
-`loadData` (`src/js/export.js:63`) works like this:
+Before anything changes, jlTimer downloads your current data as `jltimer_backup_before_import_YYYYMMDD_HHMMSS.txt`, in the normal export format (skipped when you have no solves yet). It also keeps a copy for **Undo import** until you reload the page.
 
-- If the file contains `properties`, it **clears `localStorage`**. Login tokens (`wcaData`, `gglData`) and account IDs (`locData`, `devData`) are kept. Then it writes the file's `properties`.
-- Then `storage.importAll` (`src/js/lib/storage.js:169`) **clears the IndexedDB `sessions` store** and writes the sessions from the file. This also removes an uploaded background image.
+- **Replace all** is csTimer's import. `loadData` (`src/js/export.js`) clears `localStorage`, keeping the login and account keys (`wcaData`, `gglData`, `locData`, `devData`), and writes the file's `properties`. Then `storage.importAll` (`src/js/lib/storage.js`) clears the IndexedDB `sessions` store and writes the file's sessions. jlTimer keeps an uploaded background image across the import; csTimer drops it.
+- **Merge** keeps everything you have and adds the file's solves. File session N goes into your session N when both exist and have the **same name**. Otherwise it is added as a new session after your last one, with its own name and options. In a matched session, a file solve is skipped when a solve with the same timestamp, raw time and scramble already exists, so a solve whose penalty or comment you changed is not duplicated, and your copy wins. Added solves are sorted into the session by timestamp. Your settings and session options stay; only fields your session entry lacks are taken from the file. csTimer has no fixed session limit (`sessionN` just grows), so merge adds one new session per unmatched non-empty file session and no more.
+- After the reload, an **integrity check** recounts the solves per session in storage and compares them with what the import meant to write. It shows a one-line result, and if anything differs it offers Undo import.
 
-So import **replaces** jlTimer's settings and solves with the file's contents. To combine timers instead, use *Import session(s) from other timers*. It appends sessions and also accepts csTimer files (`src/js/lib/tdconverter.js:47`).
+Imports from the csTimer or Google servers show the same preview. *Import session(s) from other timers* still appends sessions without a preview. jlTimer cloud restore and sync don't use the preview: they call `loadData` directly, as before.
+
+The import still reloads the page. The undo copy is kept in IndexedDB only across that reload and then in memory, so a later reload or closing the tab drops it. The downloaded backup file stays.
 
 ## What the file contains
 
