@@ -65,6 +65,7 @@ stats/hugestat.js \
 stats/dlystat.js \
 stats/recons.js \
 stats/algstat.js \
+stats/dashboard.js \
 stats/trainstat.js \
 tools/tools.js \
 tools/image.js \
