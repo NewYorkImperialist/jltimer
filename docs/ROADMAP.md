@@ -1,6 +1,6 @@
 # jlTimer roadmap (planning only)
 
-This document is a plan. **None of it is implemented.** There is no scaffolding, schema, dependency or runtime code for these items in the repo.
+This document is a plan. Items marked **Status** have a first version; the rest is not implemented.
 
 csTimer already does much of the groundwork. Each item below says what exists, what would be **extended**, and what would be **new**.
 
@@ -59,12 +59,14 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 - **Reuse:** `trend.js`, `distribution.js`, `dlystat.js`, `hugestat.js`, `stattool.js` and `timestat.js` (aoN, trimmed means, σ).
 - **Add:** a combined view with rolling averages, consistency (σ, IQR), session-vs-session comparison and date ranges. Use canvas or SVG, as the existing tools do; don't add a chart framework.
 - **Limits:** the tools panel holds up to 4 tools (`NTools`). A dashboard probably belongs in a dialog.
+- **Status:** a first version exists: Tools > Reconstruct > analysis opens a dialog with overview cards, rolling-average progress, CFOP step breakdown, last-layer skip/EO rates, consistency and slowest solves, for this session or all sessions over a chosen range (`stats/dashboard.js`, see UI.md). Session-vs-session comparison and IQR are not done.
 
 ## 6. Bulk analysis of virtual-solve move histories
 
 - **Reuse:** `stats/recons.js` already computes per-solve step splits from the recorded move history (`calcRecons`, extra infos `recons_cf4op`, `recons_roux`, `recons_cf3zb`, …). It offers the tools *Reconstruction > step / cases / scatter*.
 - **Add:** batch runs over all sessions with progress and caching, CSV/JSON export of results, and TPS/pause metrics (move timestamps are in the record).
 - **Limits:** computing is per solve and synchronous. Use a worker (`worker.js` pattern) for big histories. Only virtual and smart-cube solves have move data.
+- **Status:** batch runs with progress and in-memory caching, plus TPS / pause / rotation metrics, are done in the analysis dashboard (#5). It runs on the main thread in 25 ms slices (about 0.1 ms per solve, so no worker was needed). CSV/JSON export of the per-solve results is not done.
 
 ## 7. CFOP phase and OLL/PLL case identification
 

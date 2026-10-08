@@ -2260,3 +2260,298 @@ mark.optmark {
 	background: none;
 	font-weight: bold;
 }
+
+/* jlTimer analysis dashboard (js/stats/dashboard.js): plain, theme colors via the palette classes
+   (.cntbar = button color, .click = link color, .table borders) and SVG strokes read from col-* */
+.dialogjldash {
+	left: 8%;
+	right: 8%;
+	top: 4%;
+	bottom: 4%;
+}
+
+.m .dialogjldash {
+	left: 1%;
+	right: 1%;
+	top: 2%;
+	bottom: 2%;
+}
+
+@media (max-width: 640px) {
+	.dialogjldash {
+		left: 1%;
+		right: 1%;
+		top: 2%;
+		bottom: 2%;
+	}
+}
+
+.dialog .value > div > .jld {
+	position: static;
+	height: auto;
+	box-sizing: border-box;
+	max-width: 60em;
+	margin: 0 auto;
+	padding: 0.3em 0.8em 1em;
+	text-align: left;
+	font-variant-numeric: tabular-nums;
+	overflow-wrap: break-word;
+}
+
+.jld-tool {
+	font-size: 0.85em;
+	text-align: center;
+	padding: 0.4em;
+	line-height: 1.5;
+}
+
+.jld-tool .jld-open {
+	display: inline-block;
+	margin-top: 0.4em;
+	padding: 0.1em 0.7em;
+	border: 1px solid rgba(128, 128, 128, 0.45);
+	border-radius: 1em;
+}
+
+.jld-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.3em 0.6em;
+	margin: 0.2em 0 0.4em;
+}
+
+.jld-status {
+	font-size: 0.85em;
+	opacity: 0.75;
+}
+
+.jld-prog {
+	margin: 1.5em auto;
+	max-width: 24em;
+	text-align: center;
+}
+
+.jld-progtrack {
+	height: 0.45em;
+	border: 1px solid rgba(128, 128, 128, 0.45);
+	border-radius: 0.25em;
+	overflow: hidden;
+}
+
+.jld-progtrack .cntbar {
+	display: block;
+	height: 100%;
+	border: none;
+}
+
+.jld-progtext {
+	margin-top: 0.4em;
+	font-size: 0.85em;
+	opacity: 0.8;
+}
+
+.jld.jld-busy > .jld-sec {
+	opacity: 0.4;
+}
+
+.jld-sec {
+	margin: 0.9em 0 0;
+	padding-top: 0.6em;
+	border-top: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.jld-sec h3 {
+	margin: 0 0 0.2em;
+	font-size: 1em;
+	font-weight: bold;
+}
+
+.jld-take {
+	margin: 0 0 0.6em;
+	line-height: 1.4;
+}
+
+.jld-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(8.2em, 1fr));
+	gap: 0.4em;
+}
+
+.jld-card {
+	padding: 0.35em 0.5em;
+	border: 1px solid rgba(128, 128, 128, 0.35);
+	border-radius: 0.3em;
+}
+
+.jld-cl, .jld-cs {
+	font-size: 0.75em;
+	opacity: 0.75;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.jld-cv {
+	font-size: 1.25em;
+	font-weight: bold;
+	line-height: 1.3;
+}
+
+.jld-chart {
+	overflow: hidden;
+}
+
+.jld-svg {
+	display: block;
+	font-size: 11px;
+	font-family: inherit;
+	font-variant-numeric: tabular-nums;
+}
+
+.jld-svg text {
+	fill: currentColor;
+	fill-opacity: 0.75;
+}
+
+.jld-legend {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.2em 0.4em;
+	font-size: 0.8em;
+	margin-bottom: 0.3em;
+}
+
+.jld-key {
+	display: inline-block;
+	width: 1.6em;
+	border-top: 2px solid;
+	margin-left: 0.6em;
+	vertical-align: middle;
+}
+
+.jld-legend .jld-key:first-child, .jld-legend .jld-sw:first-child {
+	margin-left: 0;
+}
+
+.jld-keydash {
+	border-top-style: dashed;
+}
+
+.jld-sw {
+	display: inline-block;
+	width: 0.9em;
+	height: 0.6em;
+	border: none;
+	margin-left: 0.6em;
+}
+
+.jld-legend .jld-dim {
+	margin-left: 0.8em;
+}
+
+.jld-scroll {
+	overflow-x: auto;
+}
+
+.jld-table {
+	border-collapse: collapse;
+	white-space: nowrap;
+	font-size: 0.9em;
+}
+
+.jld-table th, .jld-table td {
+	padding: 0.2em 0.5em;
+	text-align: right;
+}
+
+.jld-table th {
+	font-size: 0.85em;
+	font-weight: bold;
+}
+
+.jld-table .jld-l {
+	text-align: left;
+}
+
+.jld-table tr.jld-sum td {
+	font-weight: bold;
+}
+
+.jld-table td.jld-tot {
+	min-width: 4em;
+}
+
+.jld-sbar {
+	display: flex;
+	height: 0.22em;
+	margin-top: 0.1em;
+	overflow: hidden;
+}
+
+.jld-sbar span {
+	display: block;
+	height: 100%;
+}
+
+/* recognition: text color, faint; execution: link color (inline, from col-link) */
+.jld .jld-rec {
+	background-color: currentColor;
+	opacity: 0.35;
+}
+
+.jld-cols {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 0.6em 1.2em;
+}
+
+.jld-cases img {
+	display: inline-block;
+	width: 1.6em;
+	height: 1.6em;
+	vertical-align: middle;
+	margin-right: 0.4em;
+}
+
+.jld-cases span {
+	vertical-align: middle;
+}
+
+.jld-dim {
+	opacity: 0.6;
+}
+
+.jld-small, .jld-sub {
+	font-size: 0.8em;
+	margin-top: 0.4em;
+}
+
+.jld-sub {
+	opacity: 0.8;
+	margin-top: 0.8em;
+}
+
+.jld-more {
+	margin-top: 0.5em;
+	font-size: 0.9em;
+}
+
+.jld-replay {
+	padding: 0 0.3em;
+}
+
+.jld-empty {
+	padding: 2em 1em;
+	text-align: center;
+	opacity: 0.8;
+}
+
+.jld-note {
+	margin-top: 1.2em;
+	font-size: 0.78em;
+	line-height: 1.45;
+	opacity: 0.75;
+}

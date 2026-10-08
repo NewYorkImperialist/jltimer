@@ -59,6 +59,24 @@ Options → virtual cube → **Show live TPS** (off by default) shows how fast y
 
 Tools → **Reconstruct → PLL stats** (next to *cases*) shows how fast each PLL is midsolve. Every finished 3x3 solve with a move record (virtual cube or smart cube, DNFs excluded) is split into CFOP steps by csTimer's reconstruction (`recons.calcRecons`, `cf4op`) and its PLL case is identified (`cubeutil` case tables, any AUF). Nothing extra is stored: it is computed from the saved solves each time. The tools panel shows a short table (case, N, mean, TPS) and **full table** opens a dialog with every column: N, share, mean, recognition (pause from the last OLL turn to the first PLL turn), execution (first to last PLL turn, AUFs included), execution TPS, turns, best and the mean of the last 5/12/25/50 solves of the case. Click a header to sort. The scope is this session or all sessions. The 3 slowest cases by mean are tagged #1-#3. A PLL skip (also one that needed only an AUF, which then stays in the OLL step) is its own row, counted in N and share but not in the times. **CSV** downloads one row per solve. Code: `js/stats/algstat.js`; its `STEPS` table is where OLL/COLL/ZBLL can be added.
 
+## Analysis dashboard
+
+Tools → **Reconstruct → analysis** → *open analysis* opens a large dialog that recreates the useful parts of an offline analysis report, computed live from your solves. Nothing is computed on page load or by the tools panel; work starts only when the dialog opens.
+
+- **Scope**: *this session* or *all sessions* (every session with the current session's scramble type, merged by date). **Range**: last 100 / 500 / 1000 / 5000 solves, last 7 / 30 / 90 / 365 days, or all. Both are remembered as ordinary properties (`jlDashScope`, `jlDashRange`).
+- **Overview**: solves (and how many have a move record), mean / median, σ, DNF rate, best single / ao5 / ao12 / ao100 in the range (csTimer's `TimeStat`, same trimming as the session stats), TPS overall and while turning, pause share, rotations per solve.
+- **Progress**: rolling ao100 (ao12 / ao5 for short ranges) with a dashed best-so-far line, inline SVG.
+- **Steps**: CFOP cross, F2L 1-4, OLL, PLL: recognition, execution, time (bar), turns, execution TPS, pause, rotations, and the difference against all solves in the scope (or last 100 vs all when the range is everything).
+- **Last layer**: OLL / PLL / LL skip rates and last-layer edge orientation at OLL against chance, slowest 5 OLL and PLL cases, link to *PLL stats*.
+- **Consistency**: histogram of times with the median, σ per block of 100 solves (fastest and slowest 5% of each block left out so one forgotten timer does not dominate).
+- **Slowest solves**: top 10 with the step that lost the most time against its mean; *replay* opens csTimer's replay of that solve (the dashboard closes; reopening it is instant).
+
+Each section starts with a one-line takeaway computed from the numbers.
+
+**How it is computed.** Solves with a move record (virtual or smart cube, 3x3) are split by csTimer's own reconstruction (`recons.calcRecons(times, 'cf4op')`) and their OLL / PLL cases identified with `cubeutil.getIdentData`. From the move timestamps: a **pause** is a gap of 300 ms or more between two inputs; turning time is the rest; rotations made at 0 ms (inspection) are ignored and other x / y / z rotations are counted separately, never as turns. TPS = turns / solve time (ratio of sums). A PLL skip includes "only an AUF was left" (chance 1/18; 1/72 with no AUF), as in *PLL stats*.
+
+**Performance.** About 0.1 ms per solve: the user's 10.5k-solve session takes about 1.4 s cold, in 25 ms slices with a progress bar (longest main-thread gap about 45 ms), and waits while the timer runs. Per-solve results stay in memory for the page's lifetime, keyed by session, date, move-record length and time, so reopening takes a few tens of ms and a new solve adds only its own work. No storage keys, no IndexedDB changes. Code: `js/stats/dashboard.js`, `.jld*` styles in `css/style.css`.
+
 ## Move effects
 
 Options → virtual cube → **Move effect** adds an arcade-style flourish whenever a layer of the virtual cube turns (default **None**). There are 12: Arcade Combo, Comet Orbit, Fever Mode, RGB Glitch, Ink Splash, Lightning, Neon Trail, Zen Ripple, Crystal Shards, Shockwave, Blade Slash and Spark Burst. Each also has a finale when a timed solve ends. They draw on a transparent canvas over the cube that ignores the mouse, they stay on the face edges or outside the cube so stickers remain readable, and they shrink to a short outline flash when the system asks for reduced motion. The moves of a scramble don't trigger them.
