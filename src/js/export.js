@@ -57,7 +57,7 @@ var exportFunc = execMain(function() {
 			logohint.push(LGHINT_INVALID);
 			return;
 		}
-		loadData(dataobj);
+		previewImport(dataobj, inFileMeta);
 	}
 
 	function loadData(data, skipConfirm, onDone) {
@@ -101,16 +101,440 @@ var exportFunc = execMain(function() {
 				kernel.loadProp();
 			}
 			storage.importAll(data).then(function() {
-				onDone && onDone();
-				location.reload();
+				// onDone may return a promise (e.g. saving the undo copy): reload only once it settled
+				var reload = function() {
+					location.reload();
+				};
+				Promise.resolve(onDone && onDone()).then(reload, reload);
 			});
 		}, $.noop);
 	}
 
+	// ---------- jlTimer: safer import ----------
+	// Importing a file used to replace everything after one confirm. Now it shows a preview (per session:
+	// now vs file), then Replace all or Merge. Either way the current data is first downloaded as a backup
+	// file and kept for "Undo import" until the next reload, and after the reload the solve counts in
+	// storage are checked against what the import should have written.
+	// Cloud restore/sync keep calling loadData directly and never see the preview.
+	var UNDO_KEY = 'jlImportUndo'; // IndexedDB (sessions store) key: pre-import export text, survives the import's reload only
+	var MARK_KEY = 'jlImport'; // sessionStorage: what the import that just reloaded the page did and expects
+	var undoText = null; // pre-import data, in memory until the page is reloaded
+	var undoDiv = $('<div class="expOauth jlimpundo">').hide();
+
+	function downloadText(text, name) {
+		if (!window.Blob) {
+			return false;
+		}
+		var tmpFile = $('<a class="click"/>');
+		tmpFile.attr('href', URL.createObjectURL(new Blob([text], {
+			'type': 'text/plain'
+		})));
+		tmpFile.attr('download', name);
+		tmpFile.appendTo('body');
+		tmpFile[0].click();
+		tmpFile.remove();
+		return true;
+	}
+
+	function plainText(html) { // session names are stored as HTML; show them as text without running anything
+		try {
+			return new DOMParser().parseFromString(String(html), 'text/html').body.textContent;
+		} catch (e) {
+			return String(html);
+		}
+	}
+
+	function fmtNum(n) {
+		return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	}
+
+	function fmtDay(ts) {
+		return ts ? mathlib.time2str(ts, '%Y-%M-%D') : '';
+	}
+
+	function parseObj(val, def) {
+		try {
+			var ret = mathlib.str2obj(val);
+			return ret && typeof ret == 'object' ? ret : def;
+		} catch (e) {
+			return def;
+		}
+	}
+
+	// per-session view of an export object. Sessions beyond sessionN are not imported (storage.importAll),
+	// so they are not counted. A file without properties keeps the current sessionN.
+	function summarize(data, fallbackN) {
+		var props = 'properties' in data ? parseObj(data['properties'], {}) : null;
+		var sd = props ? parseObj(props['sessionData'], {}) : parseObj(kernel.getProp('sessionData'), {});
+		var n = props ? (~~props['sessionN'] || 15) : fallbackN;
+		var ret = { n: n, list: [], total: 0, newest: 0, props: props, sd: sd };
+		for (var i = 1; i <= n; i++) {
+			var times = parseObj(data['session' + i], []);
+			if (!$.isArray(times)) {
+				times = [];
+			}
+			var first = 0, last = 0;
+			for (var j = 0; j < times.length; j++) {
+				var ts = times[j] && times[j][3];
+				if (ts > 0) {
+					first = first && first < ts ? first : ts;
+					last = last > ts ? last : ts;
+				}
+			}
+			var entry = sd[i] && typeof sd[i] == 'object' ? sd[i] : {};
+			var name = entry['name'] === undefined ? i : entry['name'];
+			var type = scramble.getTypeName((entry['opt'] || {})['scrType'] || '333') || '';
+			ret.list.push({
+				idx: i,
+				name: name,
+				label: plainText(name),
+				puzzle: plainText(type.split('>').pop()),
+				times: times,
+				count: times.length,
+				first: first,
+				last: last,
+				entry: entry
+			});
+			ret.total += times.length;
+			ret.newest = Math.max(ret.newest, last);
+		}
+		return ret;
+	}
+
+	function solveKey(t) {
+		t = $.isArray(t) ? t : [];
+		return (t[3] || 0) + '|' + ((t[0] || [])[1]) + '|' + t[1];
+	}
+
+	// Merge rule: file session N goes into current session N if both exist and their names are equal;
+	// otherwise (different name, or N beyond the current sessions) it becomes a new session at the end.
+	// In a matched session the solves are united, a solve counting as present when its timestamp, raw
+	// time (ignoring the penalty) and scramble match; the local copy wins. Current session settings are
+	// kept, only missing fields are taken from the file. Empty file sessions are skipped.
+	function mergeData(cur, file) {
+		var props = JSON.parse(JSON.stringify(cur.props || {}));
+		var sd = JSON.parse(JSON.stringify(cur.sd || {}));
+		var out = { 'properties': props };
+		var counts = [];
+		var report = [];
+		var n = cur.n;
+		for (var i = 1; i <= cur.n; i++) {
+			out['session' + i] = cur.list[i - 1].times;
+			counts[i - 1] = cur.list[i - 1].count;
+		}
+		for (var i = 0; i < file.list.length; i++) {
+			var f = file.list[i];
+			if (f.count == 0) {
+				continue;
+			}
+			var c = f.idx <= cur.n ? cur.list[f.idx - 1] : null;
+			if (c && String(c.name) === String(f.name)) {
+				var seen = {};
+				for (var j = 0; j < c.times.length; j++) {
+					seen[solveKey(c.times[j])] = 1;
+				}
+				var add = [];
+				for (var j = 0; j < f.times.length; j++) {
+					if (!$.isArray(f.times[j])) {
+						continue;
+					}
+					var key = solveKey(f.times[j]);
+					if (!seen[key]) {
+						seen[key] = 1;
+						add.push(f.times[j]);
+					}
+				}
+				var entry = sd[c.idx] = sd[c.idx] && typeof sd[c.idx] == 'object' ? sd[c.idx] : {};
+				for (var key in f.entry) {
+					if (entry[key] === undefined && key != 'stat' && key != 'date' && key != 'rank') {
+						entry[key] = JSON.parse(JSON.stringify(f.entry[key]));
+					}
+				}
+				if (add.length == 0) {
+					continue;
+				}
+				var merged = c.times.concat(add).map(function(t, k) {
+					return [t, k];
+				});
+				merged.sort(function(a, b) {
+					return ((a[0][3] || 0) - (b[0][3] || 0)) || (a[1] - b[1]);
+				});
+				merged = merged.map(function(p) {
+					return p[0];
+				});
+				out['session' + c.idx] = merged;
+				counts[c.idx - 1] = merged.length;
+				delete entry['stat']; // recomputed when the session is opened, as in "merge sessions"
+				entry['date'] = [(merged[0] || [])[3], (merged.at(-1) || [])[3]];
+				report.push({ idx: c.idx, label: c.label, added: add.length, isNew: false });
+			} else {
+				n++;
+				var entry = JSON.parse(JSON.stringify(f.entry));
+				entry['name'] = f.name;
+				entry['opt'] = entry['opt'] || {};
+				entry['rank'] = n; // after all current sessions, in file order
+				delete entry['stat'];
+				sd[n] = entry;
+				out['session' + n] = f.times;
+				counts[n - 1] = f.count;
+				report.push({ idx: n, from: f.idx, label: f.label, added: f.count, isNew: true });
+			}
+		}
+		props['sessionN'] = n;
+		props['sessionData'] = JSON.stringify(sd);
+		var added = 0;
+		for (var i = 0; i < report.length; i++) {
+			added += report[i].added;
+		}
+		return { data: out, counts: counts, report: report, added: added };
+	}
+
+	function countsOf(sum) {
+		return sum.list.map(function(s) {
+			return s.count;
+		});
+	}
+
+	function sessionRef(s) {
+		return (s.isNew ? 'new session ' : 'session ') + s.idx + ' "' + s.label + '"';
+	}
+
+	function mergeReportText(report) {
+		return report.map(function(s) {
+			return sessionRef(s) + ': +' + fmtNum(s.added);
+		}).join(', ');
+	}
+
+	function countCell(s, other) {
+		var td = $('<td>');
+		if (!s) {
+			return td.text('-');
+		}
+		td.append($('<span>').text(fmtNum(s.count)));
+		if (other && s.count < other.count) {
+			td.append($('<b>').text(' (-' + fmtNum(other.count - s.count) + ')'));
+		}
+		if (s.first) {
+			td.append('<br>', $('<span class="jlimpdate">').text(fmtDay(s.first) + (fmtDay(s.last) != fmtDay(s.first) ? ' - ' + fmtDay(s.last) : '')));
+		}
+		return td;
+	}
+
+	function buildPreview(cur, file, merge, meta) {
+		var div = $('<div class="jlimp">');
+		if (meta) {
+			div.append($('<div>').text('File: ' + (meta.name || '') +
+				(meta.modified ? ' (saved ' + mathlib.time2str(meta.modified / 1000, '%Y-%M-%D %h:%m') + ')' : '')));
+		}
+		var table = $('<table class="table jlimptable">').append(
+			$('<tr>').append('<th>#</th>', $('<th>').text('Session'), $('<th>').text('Now'), $('<th>').text('File')));
+		var hidden = 0;
+		var warns = [];
+		var replaced = [];
+		for (var i = 1; i <= Math.max(cur.n, file.n); i++) {
+			var c = cur.list[i - 1];
+			var f = file.list[i - 1];
+			if ((!c || c.count == 0) && (!f || f.count == 0)) {
+				hidden++;
+				continue;
+			}
+			var nameTd = $('<td class="jlimpname">');
+			var main = c || f;
+			nameTd.append($('<span>').text(main.label), ' ', $('<span class="jlimpdate">').text(main.puzzle));
+			if (c && f && String(c.name) !== String(f.name)) {
+				nameTd.append('<br>', $('<span class="jlimpdate">').text('file: ' + f.label + ' ' + f.puzzle));
+				if (c.count > 0) {
+					replaced.push(c);
+				}
+			}
+			table.append($('<tr>').append($('<td>').text(i), nameTd, countCell(c), countCell(f, c)));
+			if (c && c.count > 0 && (!f || f.count == 0)) {
+				warns.push('Session ' + i + ' "' + c.label + '" (' + fmtNum(c.count) + ' solves) is ' +
+					(f ? 'empty' : 'not') + ' in the file: Replace all removes it.');
+			}
+		}
+		table.append($('<tr>').append('<th></th>', $('<th>').text('Total'),
+			$('<th>').text(fmtNum(cur.total)), $('<th>').text(fmtNum(file.total))));
+		div.append($('<div class="jlimpscroll">').append(table));
+		if (hidden) {
+			div.append($('<div class="jlimpdate">').text(hidden + ' empty session' + (hidden == 1 ? '' : 's') + ' not shown.'));
+		}
+		if (file.total < cur.total) {
+			warns.unshift('The file has fewer solves than you have now (' + fmtNum(file.total) + ' vs ' +
+				fmtNum(cur.total) + '): Replace all removes at least ' + fmtNum(cur.total - file.total) + '.');
+		}
+		for (var i = 0; i < replaced.length; i++) {
+			warns.push('Session ' + replaced[i].idx + ' is "' + replaced[i].label + '" here but "' + file.list[replaced[i].idx - 1].label +
+				'" in the file: Replace all overwrites it, Merge adds the file\'s one as a new session.');
+		}
+		if (file.newest && cur.newest > file.newest) {
+			warns.push('The file is older than your data: its newest solve is from ' + fmtDay(file.newest) +
+				', yours from ' + fmtDay(cur.newest) + '.');
+		}
+		if (!file.props) {
+			warns.push('The file has no settings; only solves are imported.');
+		}
+		if (warns.length) {
+			var ul = $('<ul class="jlimpwarn">');
+			for (var i = 0; i < warns.length; i++) {
+				ul.append($('<li>').text(warns[i]));
+			}
+			div.append($('<div>').append($('<b>').text('Warnings')), ul);
+		}
+		div.append($('<div class="jlimpnote">').append(
+			$('<div>').text('Replace all: your data becomes exactly the file (sessions, solves and settings).'),
+			$('<div>').text(merge.added ? 'Merge: adds ' + fmtNum(merge.added) + ' solve' + (merge.added == 1 ? '' : 's') +
+				' and removes nothing (' + mergeReportText(merge.report) + ').' :
+				'Merge: nothing to add, every solve in the file is already here.'),
+			$('<div>').text(cur.total ? 'Either way, your current data is downloaded first as a backup file, and Export > Undo import can restore it until you reload the page.' :
+				'You have no solves now, so no backup file is downloaded; Export > Undo import can still restore your current settings until you reload the page.')));
+		return div;
+	}
+
+	var previewDiv = null;
+
+	function previewImport(data, meta) {
+		if (!data || typeof data != 'object' || $.isArray(data)) {
+			logohint.push(LGHINT_INVALID);
+			return;
+		}
+		storage.exportAll().then(function(curObj) {
+			curObj['properties'] = parseObj(localStorage['properties'], {});
+			var n = ~~kernel.getProp('sessionN');
+			var cur = summarize(curObj, n);
+			var file = summarize(data, n);
+			var merge = mergeData(cur, file);
+			var div = buildPreview(cur, file, merge, meta);
+			previewDiv && previewDiv.remove(); // the dialog parks old contents off-screen; drop the last preview
+			previewDiv = div;
+			kernel.showDialog([div, undefined, undefined, $.noop, ['Replace all', function() {
+				applyImport('replace', data, countsOf(file), { total: file.total, sessions: file.n }, cur.total > 0);
+				return true;
+			}], ['Merge', function() {
+				if (!merge.added) {
+					logohint.push('Nothing to merge: every solve in the file is already here');
+					return true;
+				}
+				applyImport('merge', merge.data, merge.counts, { added: merge.added, report: merge.report }, cur.total > 0);
+				return true;
+			}], [CANCEL_LANG, function() {
+				return true;
+			}]], 'export', 'Import preview');
+		});
+	}
+
+	// stores what to check after the reload, keeps a copy of the old data for undo, keeps the background image
+	function finishLoad(mark, oldText, bgImg) {
+		var jobs = [];
+		if (oldText) {
+			jobs.push(storage.setKey(UNDO_KEY, oldText));
+		}
+		if (bgImg !== undefined) {
+			jobs.push(storage.setKey('bgImgFile', bgImg));
+		}
+		return Promise.all(jobs).then(function() {
+			try {
+				window.sessionStorage[MARK_KEY] = JSON.stringify(mark);
+			} catch (e) {}
+		});
+	}
+
+	function applyImport(mode, data, counts, info, download) {
+		logohint.push(download ? 'Saving a backup of your current data...' : 'Importing...');
+		Promise.all([exportFunc.getExportString(), storage.getKey('bgImgFile')]).then(function(r) {
+			var oldText = r[0];
+			var fileName = 'jltimer_backup_before_import_' + mathlib.time2str(new Date() / 1000, '%Y%M%D_%h%m%s') + '.txt';
+			if (!download || !downloadText(oldText, fileName)) {
+				fileName = null;
+			}
+			var mark = { 'mode': mode, 'counts': counts, 'info': info, 'backup': fileName };
+			setTimeout(function() { // let the download start before the page reloads
+				loadData(data, true, finishLoad.bind(null, mark, oldText, r[1]));
+			}, fileName ? 500 : 0);
+		});
+	}
+
+	function undoImport() {
+		if (!undoText) {
+			return;
+		}
+		if (!$.confirm('Restore your data from before the import? Solves recorded since the import are removed.')) {
+			return;
+		}
+		var data = JSON.parse(undoText);
+		var counts = countsOf(summarize(data, ~~kernel.getProp('sessionN')));
+		storage.getKey('bgImgFile').then(function(bgImg) {
+			loadData(data, true, finishLoad.bind(null, { 'mode': 'undo', 'counts': counts }, null, bgImg));
+		});
+	}
+
+	// after the reload: recount the solves per session in storage and compare with what was written
+	function checkImport() {
+		var mark = null;
+		try {
+			mark = JSON.parse(window.sessionStorage[MARK_KEY] || 'null');
+			delete window.sessionStorage[MARK_KEY];
+		} catch (e) {}
+		Promise.all([storage.getKey(UNDO_KEY), storage.exportAll()]).then(function(r) {
+			if (r[0] !== undefined) {
+				storage.delKey(UNDO_KEY); // in memory from here on: gone after the next reload
+			}
+			if (!mark || !mark['counts']) {
+				return;
+			}
+			if (mark['mode'] != 'undo' && typeof r[0] == 'string') {
+				undoText = r[0];
+				undoDiv.empty().append($('<span class="click">').text('Undo import (restore the data from before the last import)').click(function() {
+					kernel.hideDialog();
+					undoImport();
+				})).show();
+			}
+			var counts = mark['counts'];
+			var n = ~~kernel.getProp('sessionN');
+			var bad = [];
+			var total = 0;
+			for (var i = 1; i <= Math.max(n, counts.length); i++) {
+				var have = (r[1]['session' + i] || []).length;
+				var want = ~~counts[i - 1];
+				total += have;
+				if (have != want) {
+					bad.push('session ' + i + ' has ' + fmtNum(have) + ', expected ' + fmtNum(want));
+				}
+			}
+			if (n != counts.length) {
+				bad.unshift(n + ' sessions, expected ' + counts.length);
+			}
+			var info = mark['info'] || {};
+			var head = mark['mode'] == 'undo' ? 'Restored the data from before the import.' :
+				mark['mode'] == 'merge' ? 'Merged the file: added ' + fmtNum(info['added']) + ' solves (' + mergeReportText(info['report'] || []) + ').' :
+				'Imported the file, replacing all data.';
+			var check = bad.length ? 'Check FAILED: ' + bad.join('; ') + '.' :
+				'Check OK: ' + fmtNum(total) + ' solves in ' + n + ' sessions, as expected.';
+			logohint.push(bad.length ? 'Import check failed' : 'Import check OK');
+			var div = $('<div class="jlimp">').append($('<div>').text(head), $('<div class="jlimpcheck">').text(check));
+			if (mark['backup']) {
+				div.append($('<div class="jlimpdate">').text('Your previous data was downloaded as ' + mark['backup'] + '.'));
+			}
+			var values = [div, $.noop, undefined, $.noop];
+			if (undoText) {
+				div.append($('<div class="jlimpdate">').text('Undo import stays available in Export until you reload the page.'));
+				values.push(['Undo import', function() {
+					undoImport();
+					return true;
+				}]);
+			}
+			kernel.showDialog(values, 'export', bad.length ? 'Import check failed' : 'Import done');
+		});
+	}
+
+	var inFileMeta = null;
+
 	function importFile(reader) {
 		if (this.files.length) {
 			var f = this.files[0];
-			reader.readAsText(f, "UTF-8")
+			inFileMeta = { name: f.name, modified: f.lastModified };
+			reader.readAsText(f, "UTF-8");
+			this.value = ''; // choosing the same file again still fires 'change'
 		}
 	}
 
@@ -332,7 +756,9 @@ var exportFunc = execMain(function() {
 					return baseObj;
 				});
 			}
-			return jobs.then(loadData);
+			return jobs.then(function(data) {
+				previewImport(data, { name: 'csTimer server' });
+			});
 		};
 
 		var jobs = Promise.resolve({'data':1});
@@ -388,7 +814,7 @@ var exportFunc = execMain(function() {
 					return updateUserInfoFromGGL();
 				}
 				updateUserInfoFromGGL();
-				loadData(data);
+				previewImport(data, { name: 'Google Drive' });
 			}).error(function() {
 				$.alert(EXPORT_ERROR + '\nPlease Re-login');
 				logoutFromGGL();
@@ -650,15 +1076,7 @@ var exportFunc = execMain(function() {
 				});
 			} else if (atexpa == 'f') {
 				if (window.Blob) {
-					var blob = new Blob([expString], {
-						'type': 'text/plain'
-					});
-					var tmpFile = $('<a class="click"/>');
-					tmpFile.attr('href', URL.createObjectURL(blob));
-					tmpFile.attr('download', 'jltimer_' + mathlib.time2str(new Date() / 1000, '%Y%M%D_%h%m%s') + '.txt');
-					tmpFile.appendTo('body');
-					tmpFile[0].click();
-					tmpFile.remove();
+					downloadText(expString, 'jltimer_' + mathlib.time2str(new Date() / 1000, '%Y%M%D_%h%m%s') + '.txt');
 				}
 			} else if (atexpa == 'ggl') {
 				var gglToken = getDataId('gglData', 'access_token');
@@ -716,7 +1134,8 @@ var exportFunc = execMain(function() {
 				$('<table class="expUpDown">').append($('<tr>').append(
 					$('<td>').append(inServGGL),
 					$('<td>').append(outServGGL)))),
-			exportTable);
+			exportTable, undoDiv);
+		checkImport();
 		if (window.FileReader && window.Blob) {
 			var reader = new FileReader();
 			reader.onload = importData;

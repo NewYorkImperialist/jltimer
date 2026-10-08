@@ -127,3 +127,14 @@ Click **Session** in the time list header to open the session manager. jlTimer a
 - **Filter sessions**: the box above the table shows only the sessions whose name contains the text, ignoring case. **X** next to it clears it, and it is cleared each time the dialog opens. While filtering, the name/scramble grouping is off, and dragging and the menu still work on the rows shown. Keys typed into the box never reach the timer or the virtual cube.
 
 All three change only each session's `rank` in `sessionData`, like the ↑/↓ arrows, so the stored data stays csTimer's format. The **Session** dropdown and Alt+↑/↓ session switching follow the same order.
+
+## Import preview and undo
+
+**Export → Import from file** no longer replaces everything straight away. It opens an **Import preview**: one row per session that has solves on either side, with name, puzzle, solve count and date range for **Now** and **File** (a drop is shown in bold, e.g. `1,000 (-1,377)`), totals, and warnings. The warnings cover a file with fewer solves than you have, sessions that Replace all would empty, a slot holding a differently named session in the file, a file whose newest solve is older than yours, and a file without settings. On a phone the table stays inside the dialog.
+
+- **Replace all**: the old behavior; your data becomes the file.
+- **Merge**: adds the file's new solves and removes nothing. The preview says how many solves it would add to which sessions; if there is nothing new it changes nothing. The rules are in [MIGRATION.md](MIGRATION.md#replace-all-merge-and-the-safety-net).
+- **Cancel** (or a click outside) leaves everything as it was.
+
+Replace all and Merge first download your current data as `jltimer_backup_before_import_….txt`. After the reload a dialog reports what happened and the result of the integrity check (solve counts per session in storage compared with what was written). **Undo import** in that dialog, or in the Export dialog, restores the data from before the import, settings included, until you reload the page.
+
