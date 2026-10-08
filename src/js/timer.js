@@ -302,7 +302,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 						txt = moveCnt + " turns<br>" + ~~(100000 * moveCnt / value[0][1]) / 100.0 + " tps";
 					}
 					reconsSpan.html(txt).unbind('click').click(function() {
-						replay.popupReplay(value[1], value[4][0], puzzle);
+						replay.popupReplay(value[1], value[4][0], puzzle, {'dnf': value[0][0] == -1});
 					});
 				} else {
 					reconsDiv.hide();

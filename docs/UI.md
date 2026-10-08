@@ -112,6 +112,19 @@ Each section starts with a one-line takeaway computed from the numbers.
 
 **Performance.** About 0.1 ms per solve: the user's 10.5k-solve session takes about 1.4 s cold, in 25 ms slices with a progress bar (longest main-thread gap about 45 ms), and waits while the timer runs. Per-solve results stay in memory for the page's lifetime, keyed by session, date, move-record length and time, so reopening takes a few tens of ms and a new solve adds only its own work. No storage keys, no IndexedDB changes. Code: `js/stats/dashboard.js`, `.jld*` styles in `css/style.css`.
 
+## Annotated replay
+
+The virtual replay (the *Review* / turns link under a solve, the solve detail dialog, and *replay* in the analysis dashboard) has a timeline strip under the slider and a short table under the controls. It is display-only and computed when the dialog opens; nothing is stored.
+
+- **Step bar** (3x3 solves that end solved): one segment per CFOP step (cross, f2l-1 to f2l-4, oll, pll) from csTimer's reconstruction (`recons.calcRecons(..., 'cf4op')`), placed by time. The hatched part of a segment is recognition (last turn of the previous step to the first turn of this one), the solid part is execution. The label shrinks to fit: "pll Ub 30 mv 10.7s", "pll Ub 10.7s", "Ub", "pll", "p"; hover a segment for the full text. OLL and PLL segments carry the case name (`cubeutil.getIdentData`, as in *PLL / OLL stats*). Click a segment to jump to the start of that step (the cube as it was after the previous step's last turn); the next turn from there is the step's first turn. A dark line marks the current position.
+- **Pauses**: under the bar, every gap of 300 ms or more between two inputs (rotations count as inputs); gaps of 1 s or more are taller and darker. Hover for the length.
+- **Slips**: a turn immediately undone by the next one (R R', U2 U2), usually a mistyped key. The pair is marked with a small triangle above the bar (warning color) and both turns are shown in that color in the move list on the right. Orientation moves recorded at 0 ms are not counted.
+- **Summary table**: step, recognition, execution, turns, TPS (turns / step time, as in the *step* tool) and **vs avg**: the step time (recognition + execution) against its mean over the latest 100 solves of the current session that have a reconstruction (shown when at least 5 do). The step that lost the most is in the warning color. Click a row to jump like a segment. A skipped step shows as "skip". Under it: number and total of pauses (and how many are 1 s or longer) and the number of slips.
+- **Other puzzles and other cases**: for any other puzzle, a DNF, or moves that do not solve the scramble, there is no step bar or table; the pauses and slips are still shown on a plain track. The image tool's scramble replay shows no annotations. The solve detail dialog and the timer pass the DNF flag, so a solve whose saved scramble doesn't match its moves (seen in some old imported data) still gets its steps from there; other callers check that the moves solve the scramble.
+- The replay dialog is larger than before (class `dialogreplay`) and sizes the cube to the space left by the bar and table; at phone width the whole dialog fits without sideways scrolling.
+
+Code: `js/twisty/twistyreplay.js`, `.rpl-*` styles in `css/style.css`.
+
 ## Move effects
 
 Options → virtual cube → **Move effect** adds an arcade-style flourish whenever a layer of the virtual cube turns (default **None**). There are 12: Arcade Combo, Comet Orbit, Fever Mode, RGB Glitch, Ink Splash, Lightning, Neon Trail, Zen Ripple, Crystal Shards, Shockwave, Blade Slash and Spark Burst. Each also has a finale when a timed solve ends. They draw on a transparent canvas over the cube that ignores the mouse, they stay on the face edges or outside the cube so stickers remain readable, and they shrink to a short outline flash when the system asks for reduced motion. The moves of a scramble don't trigger them.

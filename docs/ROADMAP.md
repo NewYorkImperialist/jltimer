@@ -79,6 +79,7 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 - **Reuse:** `twisty/twistyreplay.js` (`popupReplay`, `goToStep`, timeline) and phase boundaries from `recons.js`.
 - **Add:** phase markers on the timeline, detection of pauses above a threshold, and labels such as "cross 8 moves, 2.1 s".
 - **Limits:** this is display-only and needs no new data.
+- **Status:** done. The replay dialog shows a CFOP step bar (recognition hatched, execution solid, labels like "cross 6 mv 1.9s", OLL/PLL case names, click to jump to a step), pauses of 300 ms or more (1 s or more emphasized), slips (a turn undone by the next one) on the bar and in the move list, and a per-step table with recognition, execution, turns, TPS and the difference to the mean of the latest 100 solves of the session. Other puzzles, DNFs and unsolved move sequences get only the pauses and slips. See *Annotated replay* in UI.md.
 
 ## 9. Weak-case statistics and targeted practice
 
