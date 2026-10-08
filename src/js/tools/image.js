@@ -1042,7 +1042,7 @@ var image = (function() {
 			}
 			recons[1] = recons[1].join(' ');
 			img.click(function(recons) {
-				replay.popupReplay.apply(null, recons);
+				replay.popupReplay(recons[0], recons[1], recons[2], {'plain': true});
 			}.bind(null, recons));
 		} else {
 			img.click(function(svg, scale) {

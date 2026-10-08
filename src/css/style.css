@@ -893,6 +893,13 @@ div.helptable ul {
 	bottom: 20%;
 }
 
+.dialogreplay {
+	left: 22%;
+	right: 22%;
+	top: 6%;
+	bottom: 6%;
+}
+
 .dialogcfm {
 	left: 30%;
 	right: 30%;
@@ -1240,6 +1247,22 @@ html.m .mhide, html:not(.m) .mshow {
 .m .dialogoption, .m .dialogshare, .m .dialoginput, .m .dialogstats, .m .dialogcasestats, .m .dialogssmgr, .m .dialogscropt, .m .dialogexport, .m .dialoglogo, .m .dialogdonate {
 	left: 5%;
 	right: 5%;
+}
+
+.m .dialogreplay {
+	left: 2%;
+	right: 2%;
+	top: 3%;
+	bottom: 3%;
+}
+
+@media (max-width: 640px) {
+	.dialogreplay {
+		left: 2%;
+		right: 2%;
+		top: 3%;
+		bottom: 3%;
+	}
 }
 
 .m .dialogcfm {
@@ -2571,4 +2594,126 @@ mark.optmark {
 	font-size: 0.78em;
 	line-height: 1.45;
 	opacity: 0.75;
+}
+
+/* jlTimer annotated replay (twisty/twistyreplay.js): CFOP step bar (recog light, exec full .cntbar),
+   pauses in the font color, slips in the warning color */
+.rpl-tl {
+	position: relative;
+	margin: 0.6em 0.3em 0.1em;
+	font-size: 0.75em;
+	user-select: none;
+}
+
+.rpl-segs {
+	position: relative;
+	height: 1.6em;
+	box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.45);
+}
+
+.rpl-segs.rpl-plain {
+	height: 0.3em;
+	border: 1px solid rgba(128, 128, 128, 0.45);
+	border-radius: 0.15em;
+}
+
+.rpl-seg {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	box-sizing: border-box;
+	border-right: 1px solid rgba(128, 128, 128, 0.6);
+	overflow: hidden;
+	cursor: pointer;
+}
+
+.rpl-seg > .cntbar {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	border: none;
+}
+
+.rpl-seg > .rpl-rec {
+	left: 0;
+	background: repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 4px);
+	opacity: 0.35;
+}
+
+.rpl-lbl {
+	position: absolute;
+	left: 2px;
+	right: 2px;
+	top: 0;
+	line-height: 1.6em;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	pointer-events: none;
+	font-variant-numeric: tabular-nums;
+}
+
+.rpl-head {
+	position: absolute;
+	top: -0.2em;
+	bottom: -0.65em;
+	width: 2px;
+	margin-left: -1px;
+	background: currentColor;
+	pointer-events: none;
+}
+
+.rpl-marks {
+	position: relative;
+	height: 0.45em;
+	margin-top: 0.15em;
+}
+
+.rpl-pause {
+	position: absolute;
+	top: 0.1em;
+	bottom: 0.1em;
+	min-width: 2px;
+	background: currentColor;
+	opacity: 0.3;
+}
+
+.rpl-pause.rpl-long {
+	top: 0;
+	bottom: 0;
+	opacity: 0.85;
+}
+
+.rpl-slip {
+	position: absolute;
+	top: -0.55em;
+	width: 0;
+	height: 0;
+	margin-left: -0.35em;
+	border-left: 0.35em solid transparent;
+	border-right: 0.35em solid transparent;
+	border-top: 0.5em solid #d2335c;
+	pointer-events: none;
+}
+
+.rpl-slipmv {
+	color: #d2335c;
+}
+
+.rpl-sumdiv {
+	font-size: 0.8em;
+}
+
+.rpl-sum {
+	margin: 0.3em auto 0;
+	font-variant-numeric: tabular-nums;
+}
+
+.table.rpl-sum td, .table.rpl-sum th {
+	padding: 0.1em 0.6em;
+}
+
+.rpl-info {
+	margin-top: 0.2em;
+	opacity: 0.8;
 }
