@@ -71,8 +71,8 @@ execMain(function(timer) {
 					insTime = 0;
 				}
 				timer.startTime(now);
-				if (readyTs && window.pllDrill && pllDrill.isActive()) {
-					// PLL trainer: time from the moment the case is shown, so the recognition is part of the solve
+				if (readyTs && activeDrill()) {
+					// PLL / OLL trainer: time from the moment the case is shown, so the recognition is part of the solve
 					insTime = 0;
 					timer.startTime(readyTs);
 				}
@@ -106,6 +106,9 @@ execMain(function(timer) {
 			var curProgress;
 			if (mstep == 2) {
 				curProgress = puzzleObj.isSolved(kernel.getProp('vrcMP', 'n'));
+				if (curProgress != 0 && drillSetup && activeDrill() && activeDrill().isDone(drillSetup, attemptMoves)) {
+					curProgress = 0; // OLL trainer: the attempt ends once the last layer is oriented
+				}
 				timer.updateMulPhase(totPhases, curProgress, now);
 				fixRelayCounter();
 			}
@@ -186,8 +189,11 @@ execMain(function(timer) {
 			scramble = curScramble.shift().match(/\d+\) (.*)$/)[1];
 			fixRelayCounter();
 		}
-		var setupRot = window.pllDrill && pllDrill.isActive() ? pllDrill.setupRotation() : '';
-		scramble = puzzleObj.parseScramble(scramble + (setupRot ? ' ' + setupRot : ''), true);
+		var drill = activeDrill();
+		var setupRot = drill ? drill.setupRotation() : '';
+		scramble = scramble + (setupRot ? ' ' + setupRot : '');
+		drillSetup = drill && curScrSize == 3 ? scramble : '';
+		scramble = puzzleObj.parseScramble(scramble, true);
 		isReseted = false;
 
 		isApplyingScramble = true;
@@ -264,6 +270,12 @@ execMain(function(timer) {
 	}
 
 	var readyTs = 0; // when the cube was scrambled for the current attempt
+	var drillSetup = ''; // during a trainer drill: the scramble of the attempt with its setup rotation
+
+	// the jlTimer trainer (tools/algtrainer.js) whose drill is running, or null
+	function activeDrill() {
+		return window.algDrill ? algDrill.active() : null;
+	}
 	var attemptMoves = []; // every move of the current attempt, for the cloud login gesture
 	var curScramble;
 	var relayScrs;

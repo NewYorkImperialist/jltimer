@@ -40,7 +40,7 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 - **Reuse:** `timer/virtual.js`, which scrambles the virtual cube from the current scramble, records `rawMoves` and detects solved via `puzzleObj.isSolved(vrcMP)`. Training scramble types (`pll`, `oll`, `zbll`, …). The existing "last layer" training input (`input: 'l'`, `timer.js` `keyboardTimer`). Smart-cube training mode (`giiMode` `t`/`at`, partial solve checks).
 - **Add:** an automatic setup from the case (inverse of the preferred alg, or the scramble generator), and repeat / next / reveal-solution controls. Completion rules per subset (e.g. OLL done = LL oriented, ignore AUF). `cubeutil.getProgress` already handles partial states.
 - **Limits:** the keyboard key map is fixed (`help.getMappedCode`). New controls must not consume cube keys. Depends on #1 for solutions.
-- **Status:** a PLL-only first version exists: Tools > Reconstruction > PLL trainer (`tools/plltrainer.js`). It drills on csTimer's `pll` training scrambles in a "PLL drill" session, with an optional random y and a built-in alg per case for the reveal.
+- **Status:** PLL and OLL versions exist: Tools > Reconstruction > PLL trainer / OLL trainer (`tools/algtrainer.js`, one shared trainer with a config per step). They drill on csTimer's `pll` / `oll` training scrambles in their own "PLL drill" / "OLL drill" sessions, with an optional random y and a built-in alg per case for the reveal. An OLL attempt ends once the last layer is oriented (any AUF or permutation; a full LL solve counts too).
 
 ## 3. Random AUF, orientation variation, equivalent-case scrambles
 
@@ -83,7 +83,7 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 - **Reuse:** `stats/trainstat.js` (per-case N/best/mean for training scrambles, from `scramcase_<type>` extra info), the case stats in `recons.js`, and scramble case filters with probabilities (`scrFlt`, `scrEqPr`).
 - **Add:** a "weakness" score (slow mean, high σ, DNF rate) and an action that sets the case filter or weights to drill the weakest N cases.
 - **Limits:** the filter is stored per scramble type. Weighting would extend `probs`, not replace it.
-- **Status:** done for PLL. The PLL stats table has a `weak` column, score = (case mean − PLL mean) / PLL σ + 0.5 / √(N + 1), and a *drill weakest N* action. Case filter values above 1 are now weights (`scrMgr.rndState`).
+- **Status:** done for PLL and OLL. The PLL stats and OLL stats tables have a `weak` column, score = (case mean − step mean) / step σ + 0.5 / √(N + 1), and a *drill weakest N* action that opens the step's trainer. Case filter values above 1 are now weights (`scrMgr.rndState`). OLL stats also show the edge orientation at the start of the OLL against chance, and a family filter.
 
 ## 10. Comparing alternative algorithms with my own results
 

@@ -80,7 +80,7 @@ tools/onlinecomp.js \
 tools/battle.js \
 tools/syncseed.js \
 tools/bldhelper.js \
-tools/plltrainer.js \
+tools/algtrainer.js \
 cloud.js \
 themes.js \
 fx.js \

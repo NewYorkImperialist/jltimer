@@ -392,6 +392,16 @@ var cubeutil = (function() {
 				chkList.push(a);
 			}
 		}
+		// jlTimer: the cube's own frame first. With a permuted last layer a state can also look like a solved
+		// F2L + another case on a side axis (e.g. OLL 24 seen as OLL 23 with R on top), and the pattern order
+		// alone would then pick the wrong case.
+		if (chkList[0] === 0) {
+			for (var i = 0; i < patterns.length; i++) {
+				if (solvedProgress([facelet, 0], patterns[i]) == 0) {
+					return i;
+				}
+			}
+		}
 		for (var i = 0; i < patterns.length; i++) {
 			for (var j = 0; j < chkList.length; j++) {
 				if (solvedProgress([facelet, chkList[j]], patterns[i]) == 0) {

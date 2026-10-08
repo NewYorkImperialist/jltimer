@@ -57,7 +57,28 @@ Options → virtual cube → **Show live TPS** (off by default) shows how fast y
 
 ## PLL stats
 
-Tools → **Reconstruct → PLL stats** (next to *cases*) shows how fast each PLL is midsolve. Every finished 3x3 solve with a move record (virtual cube or smart cube, DNFs excluded) is split into CFOP steps by csTimer's reconstruction (`recons.calcRecons`, `cf4op`) and its PLL case is identified (`cubeutil` case tables, any AUF). Nothing extra is stored: it is computed from the saved solves each time. The tools panel shows a short table (case, N, mean, TPS) and **full table** opens a dialog with every column: N, share, mean, recognition (pause from the last OLL turn to the first PLL turn), execution (first to last PLL turn, AUFs included), execution TPS, turns, best and the mean of the last 5/12/25/50 solves of the case. Click a header to sort. The scope is this session or all sessions. The 3 slowest cases by mean are tagged #1-#3. A PLL skip (also one that needed only an AUF, which then stays in the OLL step) is its own row, counted in N and share but not in the times. **CSV** downloads one row per solve. Code: `js/stats/algstat.js`; its `STEPS` table is where OLL/COLL/ZBLL can be added.
+Tools → **Reconstruct → PLL stats** (next to *cases*) shows how fast each PLL is midsolve. Every finished 3x3 solve with a move record (virtual cube or smart cube, DNFs excluded) is split into CFOP steps by csTimer's reconstruction (`recons.calcRecons`, `cf4op`) and its PLL case is identified (`cubeutil` case tables, any AUF). Nothing extra is stored: it is computed from the saved solves each time. The tools panel shows a short table (case, N, mean, TPS, weak) and **full table** opens a dialog with every column: N, share, mean, recognition (pause from the last OLL turn to the first PLL turn), execution (first to last PLL turn, AUFs included), execution TPS, σ, weakness score, turns, best and the mean of the last 5/12/25/50 solves of the case. Click a header to sort. The scope is this session, all sessions, or all sessions but the trainer's drill session. The 3 slowest cases by mean are tagged #1-#3. A PLL skip (also one that needed only an AUF, which then stays in the OLL step) is its own row, counted in N and share but not in the times. **CSV** downloads one row per solve. **drill weakest N** opens the PLL trainer (below). Code: `js/stats/algstat.js`; its `STEPS` table holds one entry per step (PLL, OLL), each with its own tool.
+
+## OLL stats
+
+Tools → **Reconstruct → OLL stats** is the same table for the 57 OLLs, from the same reconstructions (the OLL step: from the last F2L turn to the turn that orients the last layer). Recognition is the pause from the last F2L turn to the first OLL turn; a U turn before the alg counts as a pre-AUF (in exec and turns; hover a row for its rate). An **OLL skip** (last layer already oriented when F2L is done) is its own row. Two additions:
+
+- **edges at OLL**: how many last-layer edges were already oriented when the OLL started: all four (an OLL skip counts here), two (line or L; hover for the split) or none (a dot case), next to the chance with random edges (12.5 / 75 / 12.5%; line 25%, L 50%). With F2L that influences edges, "all" is far above 12.5%.
+- **families**: a list next to the scope shows only one family. The family is the first part of csTimer's case name (Point = dot, Square, SLBS = small lightning, Fish, Knight, CO = corners oriented, OCLL = edges oriented, Awkward, P, T, C, W, BLBS = big lightning, L, I).
+
+The OLL view keeps its own settings (`ollStatScope`, `ollStatSort`, `ollStatDir`, `ollStatRecent`, `ollStatFam`), so sorting one table doesn't change the other. Both views share one reconstruction per solve, so opening the second is quick (on a 10.5k-solve session the first one takes about 1 s, the second about 0.1 s). **drill weakest N** opens the OLL trainer.
+
+## PLL and OLL trainers
+
+Tools → **Reconstruct → PLL trainer** and **OLL trainer** drill the weakest cases on the virtual cube (`js/tools/algtrainer.js`, one trainer per step from the same code). Each lists every case with its N, mean and weakness score from the real solves (all sessions but the drill one), its chance in the drill and its mean in the drill session.
+
+- **start drill** switches to the trainer's own session ("PLL drill" / "OLL drill", created on first use) with csTimer's `pll` / `oll` training scrambles; **stop** goes back to the previous session and scramble filter. Only one drill runs at a time: starting one stops the other. Leaving the drill session by hand ends the drill.
+- Modes: **weakest N** (PLL 3/5/7/10, OLL 3/5/10/15; equal chances), **weighted** (every case, weight e^score clamped to ±1.5) and **pick** (click rows; in the OLL trainer the cases are grouped by family, and a family row picks or unpicks the whole family). The case filter values are weights (`scrMgr.rndState`; the OLL skip is never drilled).
+- **random y** turns the whole cube by a random y at each setup. **show alg** reveals the case image, its name and a common alg (the 57 OLL algs are checked by the tests to set up their case).
+- The time runs from Space (case shown) to the last turn, so it is recognition + execution, split as in the stats.
+- **OLL completion**: an OLL attempt ends as soon as the last layer is oriented with the F2L of the setup intact, whatever the AUF or permutation, so finishing the whole last layer counts too. The check replays the scramble and the attempt's moves on a cubie model in the scramble's own frame (`isDone`, called from `timer/virtual.js`), so a state that only looks oriented on another axis doesn't end the attempt. Algs with f/f' (typed as F + S, the key map has no Fw) are counted whole: for trainer solves the stats keep everything up to the end of the attempt in the OLL step.
+
+Settings: `pllDr*` and `ollDr*` (mode, N, picks, random y, drill session, previous session and filter, on/off), saved like other options.
 
 ## Move effects
 
