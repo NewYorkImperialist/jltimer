@@ -20,6 +20,15 @@ var jlDash = execMain(function() {
 	var ROT = /^[xyz]/;
 	var PLL_SKIP = 21;
 	var OLL_SKIP = 0;
+	// chokes: a solve on a great pace into the step (pace under the CHOKE_PCT percentile of the times shown)
+	// whose step took CHOKE_LOST more than the case's median, or CHOKE_LOST2 more when the pace was
+	// CHOKE_MARGIN better still
+	var CHOKE_PCT = 0.05;
+	var CHOKE_LOST = 1500;
+	var CHOKE_LOST2 = 1000;
+	var CHOKE_MARGIN = 500;
+	var CHOKE_MIN_N = 5; // solves of a case needed for its median
+	var CHOKE_ROWS = 30;
 
 	var cache = {}; // solve key -> analysis object | 0 (no move record)
 	var aggCache = null; // {key, res}
@@ -573,6 +582,17 @@ var jlDash = execMain(function() {
 			return row;
 		});
 
+		// chokes into PLL and into OLL
+		res.chokeThr = sorted.length ? sorted[Math.floor(CHOKE_PCT * (sorted.length - 1))] : 0;
+		res.chokes = {
+			PLL: findChokes(list, vals, an, 'PLL', res.chokeThr),
+			OLL: findChokes(list, vals, an, 'OLL', res.chokeThr)
+		};
+		// kept for chokesAt (tests, other thresholds)
+		res.anIdx = an;
+		res.vals = vals;
+		res.list = list;
+
 		// consistency: sigma per block of consecutive solves
 		var bs = ok.length >= 300 ? 100 : Math.max(10, Math.round(ok.length / 8));
 		res.blockSize = bs;
@@ -584,6 +604,74 @@ var jlDash = execMain(function() {
 		res.tsd = trimSd(ok);
 		return res;
 	};
+
+	function median(arr) {
+		var a = arr.slice().sort(function(x, y) {
+			return x - y;
+		});
+		return a.length ? (a[(a.length - 1) >> 1] + a[a.length >> 1]) / 2 : 0;
+	}
+
+	// chokes into step ('PLL' or 'OLL') among the complete, non-DNF solves list[an[k]]: pace = solve time - step
+	// time + the case's median step time; a choke has pace < thr and a step time CHOKE_LOST over the median
+	// (CHOKE_LOST2 when pace < thr - CHOKE_MARGIN). A skip's pace is its final time: it counts in great, never as a choke.
+	// return {step, thr, great: solves with pace < thr, rows (newest first), lost: total ms lost, top: [[case, n]]}
+	function findChokes(list, vals, an, step, thr) {
+		var s = step == 'PLL' ? 6 : 5;
+		var key = step == 'PLL' ? 'pll' : 'oll';
+		var skip = step == 'PLL' ? PLL_SKIP : OLL_SKIP;
+		var byCase = {};
+		for (var k = 0; k < an.length; k++) {
+			var a = list[an[k]].a;
+			var c = a[key];
+			if (c < 0 || c == skip) {
+				continue;
+			}
+			var bc = byCase[c] = byCase[c] || {t: [], mv: []};
+			bc.t.push(a.st[s][0] + a.st[s][1]);
+			bc.mv.push(a.st[s][2]);
+		}
+		for (var c in byCase) {
+			byCase[c].med = byCase[c].t.length >= CHOKE_MIN_N ? median(byCase[c].t) : -1;
+			byCase[c].mvMed = median(byCase[c].mv);
+		}
+		var ret = {step: step, thr: thr, great: 0, rows: [], lost: 0, top: []};
+		var cnt = {};
+		for (var k = 0; k < an.length; k++) {
+			var i = an[k];
+			var e = list[i];
+			var a = e.a;
+			var c = a[key];
+			if (c == skip && vals[i] < thr) {
+				// a skip on a great pace: nothing lost in the step
+				ret.great++;
+			}
+			if (c < 0 || c == skip || byCase[c].med < 0) {
+				continue;
+			}
+			var med = byCase[c].med;
+			var T = a.st[s][0] + a.st[s][1];
+			var pace = vals[i] - T + med;
+			if (pace >= thr) {
+				continue;
+			}
+			ret.great++;
+			if (T >= med + CHOKE_LOST || pace < thr - CHOKE_MARGIN && T >= med + CHOKE_LOST2) {
+				ret.rows.push({t: vals[i], d: e.t[3] || 0, rec: e.t, s: e.s, i: e.i, pace: pace, c: c, st: T, med: med,
+					mv: a.st[s][2], mvMed: byCase[c].mvMed});
+				ret.lost += T - med;
+				cnt[c] = (cnt[c] || 0) + 1;
+			}
+		}
+		ret.rows.reverse();
+		for (var c in cnt) {
+			ret.top.push([~~c, cnt[c]]);
+		}
+		ret.top.sort(function(x, y) {
+			return y[1] - x[1] || x[0] - y[0];
+		});
+		return ret;
+	}
 
 	function caseRows(map, step) {
 		var rows = [];
@@ -877,6 +965,7 @@ var jlDash = execMain(function() {
 		html.push(renderLL(res));
 		html.push(renderConsistency(res, w));
 		html.push(renderSlowest(res));
+		html.push(renderChokes(res));
 		html.push('<div class="jld-note">Computed in your browser from the saved solves; nothing is stored. ' +
 			'Step splits use csTimer\'s reconstruction (CFOP, <i>cf4op</i>) and need a move record (virtual cube or smart cube, 3x3). ' +
 			'A pause is a gap of ' + PAUSE + ' ms or more between two inputs. Rotations (x, y, z) are counted separately and are not turns. ' +
@@ -885,6 +974,10 @@ var jlDash = execMain(function() {
 		dialogDiv.html(html.join(''));
 		bindBar();
 		dialogDiv.find('.jld-replay').click(procReplay);
+		dialogDiv.find('.jld-chokestep').click(function() {
+			kernel.setProp('jlDashChoke', $(this).attr('data-step'));
+			render();
+		});
 		dialogDiv.find('.jld-pllstats').click(function() {
 			if (window.algStat && algStat.showDialog) {
 				algStat.showDialog();
@@ -1055,8 +1148,8 @@ var jlDash = execMain(function() {
 		}
 		var rows = [
 			['OLL skip', ll.ollSkip / ll.n, 1 / 216, ll.ollSkip, '1/216'],
-			['PLL skip', ll.pllSkip / ll.n, 1 / 18, ll.pllSkip, '1/18', 'PLL solved after OLL, also when only an AUF was left (no AUF at all: 1/72)'],
-			['LL skip', ll.llSkip / ll.n, 1 / 3888, ll.llSkip, '1/3888', 'OLL and PLL skip in the same solve'],
+			['PLL skip', ll.pllSkip / ll.n, 1 / 72, ll.pllSkip, '1/72', 'PLL solved after OLL, also when only an AUF was left (no AUF at all: 1/288)'],
+			['LL skip', ll.llSkip / ll.n, 1 / 15552, ll.llSkip, '1/15552', 'OLL and PLL skip in the same solve'],
 			['LL edges oriented: 4', ll.eoN ? ll.eo[4] / ll.eoN : 0, 1 / 8, ll.eo[4], '12.5%', 'last-layer edges already oriented when OLL starts'],
 			['LL edges oriented: 2', ll.eoN ? ll.eo[2] / ll.eoN : 0, 6 / 8, ll.eo[2], '75%', 'last-layer edges already oriented when OLL starts'],
 			['LL edges oriented: 0', ll.eoN ? ll.eo[0] / ll.eoN : 0, 1 / 8, ll.eo[0], '12.5%', 'last-layer edges already oriented when OLL starts']
@@ -1081,7 +1174,7 @@ var jlDash = execMain(function() {
 		var eoRate = ll.eoN ? ll.eo[4] / ll.eoN : 0;
 		var take = 'Edges are already oriented at OLL in ' + fP(eoRate, 0) + ' of solves (chance 12.5%)';
 		take += eoRate > 0.2 ? ', so your F2L is setting up the last layer. ' : '. ';
-		take += 'OLL skips ' + fP(ll.ollSkip / ll.n) + ' (chance 0.5%), PLL skips ' + fP(ll.pllSkip / ll.n) + ' (chance 5.6%).';
+		take += 'OLL skips ' + fP(ll.ollSkip / ll.n) + ' (chance 0.5%), PLL skips ' + fP(ll.pllSkip / ll.n) + ' (chance 1.4%).';
 		if (res.plls.rows.length) {
 			take += ' Slowest PLL: ' + esc(caseName('PLL', res.plls.rows[0].c)) + ' (' + fS(res.plls.rows[0].mean) + ' s).';
 		}
@@ -1120,7 +1213,7 @@ var jlDash = execMain(function() {
 			}
 			rows.push('<tr><td class="jld-l">' + (k + 1) + '</td><td>' + fT(r.t) + '</td><td class="jld-l">' + fD(r.d) + '</td><td class="jld-l">' +
 				(r.step >= 0 ? STEPS[r.step] + ' <span class="jld-dim">+' + fS(r.over) + ' s</span>' : '<span class="jld-dim">no move record</span>') + '</td><td>' +
-				(hasMoves(r.rec) ? '<span class="click jld-replay" data-k="' + k + '">replay</span>' : '') + '</td></tr>');
+				(hasMoves(r.rec) ? '<span class="click jld-replay" data-list="slow" data-k="' + k + '">replay</span>' : '') + '</td></tr>');
 		});
 		rows.push('</table>');
 		var top = null;
@@ -1134,9 +1227,63 @@ var jlDash = execMain(function() {
 		return sec('Slowest solves', take, '<div class="jld-scroll">' + rows.join('') + '</div>');
 	}
 
+	function sessionName(idx) {
+		try {
+			return (JSON.parse(kernel.getProp('sessionData'))[idx] || {}).name || idx;
+		} catch (e) {
+			return idx;
+		}
+	}
+
+	function renderChokes(res) {
+		var step = kernel.getProp('jlDashChoke', 'PLL') == 'OLL' ? 'OLL' : 'PLL';
+		var ch = res.chokes && res.chokes[step];
+		var title = 'Chokes <span class="jld-chokesel">' + ['PLL', 'OLL'].map(function(s) {
+			return '<span class="click jld-chokestep' + (s == step ? ' jld-on' : '') + '" data-step="' + s + '">' + s + '</span>';
+		}).join(' ') + '</span>';
+		if (!res.nAn || !ch) {
+			return sec(title, 'No solves with a move record in this range.', '');
+		}
+		var thrTxt = 'pace under ' + fS(ch.thr) + ' s, your fastest ' + Math.round(CHOKE_PCT * 100) + '% of these solves';
+		var take = '';
+		if (!ch.great) {
+			take = 'No solve had a great pace into ' + step + ' (' + thrTxt + ').';
+		} else if (!ch.rows.length) {
+			take = 'None of the ' + fN(ch.great) + ' solves with a great pace into ' + step + ' (' + thrTxt + ') was lost in the ' + step + '.';
+		} else {
+			take = fN(ch.rows.length) + ' of the ' + fN(ch.great) + ' solves with a great pace into ' + step + ' (' + thrTxt + ') were lost in the ' + step +
+				' (' + fP(ch.rows.length / ch.great) + '), ' + fS(ch.lost, 1) + ' s in all. Most choked: ' + ch.top.slice(0, 4).map(function(x) {
+					return esc(caseName(step, x[0])) + ' ' + x[1];
+				}).join(', ') + '.';
+		}
+		if (!ch.rows.length) {
+			return sec(title, take, '', 'jld-chokes');
+		}
+		var stTitle = step + ' step time (recognition + execution), your median for the case in brackets';
+		var rows = ['<table class="table jld-table jld-cases jld-chokes"><tr><th class="jld-l">#</th><th class="jld-l">date</th><th>final</th>' +
+			'<th title="the time the solve was heading for: final - ' + step + ' time + your median ' + step + ' time for the case">pace</th>' +
+			'<th class="jld-l">' + step + ' case</th><th title="' + stTitle + '">' + step + ' (usual)</th>' +
+			'<th title="' + step + ' time - your median for the case">lost</th><th title="turns of the step (HTM), your median for the case in brackets">turns</th><th></th></tr>'];
+		ch.rows.slice(0, CHOKE_ROWS).forEach(function(r, k) {
+			rows.push('<tr><td class="jld-l" title="solve ' + (r.i + 1) + ' of session ' + esc(String(sessionName(r.s))) + '">' + (r.i + 1) + '</td>' +
+				'<td class="jld-l">' + fD(r.d) + '</td><td>' + fT(r.t) + '</td><td>' + fS(r.pace) + '</td>' +
+				'<td class="jld-l">' + caseImg(step, r.c) + '<span>' + esc(caseName(step, r.c)) + '</span></td>' +
+				'<td>' + fS(r.st) + ' <span class="jld-dim">(' + fS(r.med) + ')</span></td><td>+' + fS(r.st - r.med) + '</td>' +
+				'<td>' + r.mv + ' <span class="jld-dim">(' + (r.mvMed % 1 ? r.mvMed.toFixed(1) : r.mvMed) + ')</span></td><td>' +
+				(hasMoves(r.rec) ? '<span class="click jld-replay" data-list="choke" data-k="' + k + '">replay</span>' : '') + '</td></tr>');
+		});
+		rows.push('</table>');
+		var more = ch.rows.length > CHOKE_ROWS ? '<div class="jld-dim jld-small">Latest ' + CHOKE_ROWS + ' of ' + fN(ch.rows.length) + ' shown.</div>' : '';
+		return sec(title, take, '<div class="jld-scroll">' + rows.join('') + '</div>' + more +
+			'<div class="jld-dim jld-small">A choke: pace (final − ' + step + ' time + your median ' + step + ' time for the case) under ' + fS(ch.thr) +
+			' s and a ' + step + ' at least ' + fS(CHOKE_LOST, 1) + ' s over your median for the case (' + fS(CHOKE_LOST2, 1) + ' s when the pace was ' +
+			fS(CHOKE_MARGIN, 1) + ' s better still). Medians are over this range; a case needs ' + CHOKE_MIN_N + ' solves.</div>', 'jld-chokes');
+	}
+
 	function procReplay(e) {
 		var k = ~~$(e.target).attr('data-k');
-		var r = shown && shown.res.slow[k];
+		var step = kernel.getProp('jlDashChoke', 'PLL') == 'OLL' ? 'OLL' : 'PLL';
+		var r = shown && ($(e.target).attr('data-list') == 'choke' ? (shown.res.chokes[step].rows[k]) : shown.res.slow[k]);
 		if (!r || !hasMoves(r.rec) || !window.replay) {
 			return;
 		}
@@ -1218,6 +1365,11 @@ var jlDash = execMain(function() {
 		},
 		lastResult: function() {
 			return shown && shown.res;
+		},
+		// chokes of the last result at another pace threshold (ms)
+		chokesAt: function(thr, step) {
+			var res = shown && shown.res;
+			return res && res.list ? findChokes(res.list, res.vals, res.anIdx, step || 'PLL', thr) : null;
 		}
 	};
 });

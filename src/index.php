@@ -66,6 +66,7 @@
   <script type="text/javascript" src="js/stats/dlystat.js"></script>
   <script type="text/javascript" src="js/stats/recons.js"></script>
   <script type="text/javascript" src="js/stats/algstat.js"></script>
+  <script type="text/javascript" src="js/stats/collstat.js"></script>
   <script type="text/javascript" src="js/stats/dashboard.js"></script>
   <script type="text/javascript" src="js/stats/trainstat.js"></script>
   <script type="text/javascript" src="js/tools/tools.js"></script>

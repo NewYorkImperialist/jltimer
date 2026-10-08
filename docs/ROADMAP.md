@@ -59,7 +59,7 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 - **Reuse:** `trend.js`, `distribution.js`, `dlystat.js`, `hugestat.js`, `stattool.js` and `timestat.js` (aoN, trimmed means, σ).
 - **Add:** a combined view with rolling averages, consistency (σ, IQR), session-vs-session comparison and date ranges. Use canvas or SVG, as the existing tools do; don't add a chart framework.
 - **Limits:** the tools panel holds up to 4 tools (`NTools`). A dashboard probably belongs in a dialog.
-- **Status:** a first version exists: Tools > Reconstruct > analysis opens a dialog with overview cards, rolling-average progress, CFOP step breakdown, last-layer skip/EO rates, consistency and slowest solves, for this session or all sessions over a chosen range (`stats/dashboard.js`, see UI.md). Session-vs-session comparison and IQR are not done.
+- **Status:** a first version exists: Tools > Reconstruct > analysis opens a dialog with overview cards, rolling-average progress, CFOP step breakdown, last-layer skip/EO rates, consistency, slowest solves and chokes (great pace into PLL / OLL lost in that step), for this session or all sessions over a chosen range (`stats/dashboard.js`, see UI.md). Session-vs-session comparison and IQR are not done.
 
 ## 6. Bulk analysis of virtual-solve move histories
 
@@ -85,7 +85,7 @@ csTimer already does much of the groundwork. Each item below says what exists, w
 - **Reuse:** `stats/trainstat.js` (per-case N/best/mean for training scrambles, from `scramcase_<type>` extra info), the case stats in `recons.js`, and scramble case filters with probabilities (`scrFlt`, `scrEqPr`).
 - **Add:** a "weakness" score (slow mean, high σ, DNF rate) and an action that sets the case filter or weights to drill the weakest N cases.
 - **Limits:** the filter is stored per scramble type. Weighting would extend `probs`, not replace it.
-- **Status:** done for PLL and OLL. The PLL stats and OLL stats tables have a `weak` column, score = (case mean − step mean) / step σ + 0.5 / √(N + 1), and a *drill weakest N* action that opens the step's trainer. Case filter values above 1 are now weights (`scrMgr.rndState`). OLL stats also show the edge orientation at the start of the OLL against chance, and a family filter.
+- **Status:** done for PLL and OLL. The PLL stats and OLL stats tables have a `weak` column, score = (case mean − step mean) / step σ + 0.5 / √(N + 1), and a *drill weakest N* action that opens the step's trainer. Case filter values above 1 are now weights (`scrMgr.rndState`). OLL stats also show the edge orientation at the start of the OLL against chance, and a family filter. Both tables have a *slips* column (executions 4+ moves over the case median, AUF excluded). COLL / ZBLL stats (`stats/collstat.js`) show per OCLL shape and COLL case how often the corners are solved with the OLL against chance, whether it pays off, LL skips against chance and an estimate of known ZBLLs. No ZBLL trainer yet.
 
 ## 10. Comparing alternative algorithms with my own results
 

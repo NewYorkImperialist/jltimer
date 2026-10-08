@@ -9,7 +9,7 @@
  * identified with cubeutil's case tables (AUF does not change the case).
  *
  * The STEPS table below holds one entry per step; each entry gets its own tool (View) with the
- * same table. COLL / ZBLL could be added the same way.
+ * same table. COLL / ZBLL stats (collstat.js) pair the OLL and PLL records of a solve instead.
  */
 var algStat = execMain(function() {
 
@@ -71,11 +71,17 @@ var algStat = execMain(function() {
 			['sd', '\u03c3', 'standard deviation of the ' + step + ' time', 0],
 			['score', 'weak', 'weakness score: (case mean - ' + step + ' mean) / ' + step + ' \u03c3 + 0.5 / \u221a(N + 1); higher = weaker', 1],
 			['mv', 'turns', 'mean turns (HTM, slice = 1, rotations not counted)', 0],
+			['slip', 'slips', 'slips: share of executions with ' + SLIP + '+ moves more than your median for this case ' +
+				'(moves as executed, so a typo and its undo count; AUF turns at the start and end of the step not counted), ' +
+				'then the mean extra moves of those; needs ' + SLIP_MIN_N + ' solves of the case. Hover a row for the time they cost', 0],
 			['best', 'best', 'best ' + step + ' time', 0],
 			['recent', 'last', 'mean ' + step + ' time of the most recent solves of this case', 0]
 		];
 	}
 	var SLOW_N = 3;
+	var SLIP = 4; // a slip: this many moves or more above the case's median move count (moves as executed, no AUF)
+	var SLIP_MIN_N = 5; // solves of a case needed for its median
+	var SLIP_HI = 1.25; // a case slipping this many times the overall slip rate is shown bold
 
 	var solveCache = {};
 
@@ -91,7 +97,9 @@ var algStat = execMain(function() {
 	}
 
 	// rec: output of recons.calcRecons(times, cfg.method)
-	// return {c: case, rec, exe, tot (ms), mv (HTM), pre/post: AUF before/after the alg (bool)} or undefined
+	// return {c: case, rec, exe, tot (ms), mv (HTM), mvc (moves as executed, without the AUF turns at the start and end),
+	// pre/post: AUF before/after the alg (bool), OLL only: coll (COLL case when all LL edges are oriented, else -1)}
+	// or undefined
 	function analyzeRecons(rec, cfg) {
 		// a full solve has every step; a trainer solve (PLL / OLL trainer, training scrambles) starts with
 		// only the last steps left (PLL: 1, OLL: 2, the trainer stops once the LL is oriented), so the
@@ -115,7 +123,7 @@ var algStat = execMain(function() {
 			return;
 		}
 		if (cur == cfg.skip || moves.length == 0) {
-			return {c: cfg.skip, rec: 0, exe: 0, tot: 0, mv: 0, pre: false, post: false};
+			return {c: cfg.skip, rec: 0, exe: 0, tot: 0, mv: 0, mvc: 0, pre: false, post: false, coll: -1};
 		}
 		// first turn of the step from its own move list (calcRecons keeps 0 for the very first step)
 		var tsFirst = moves[0][1];
@@ -125,8 +133,10 @@ var algStat = execMain(function() {
 			exe: sdata[2] - tsFirst,
 			tot: sdata[2] - sdata[0],
 			mv: sdata[3],
+			mvc: (sdata[6] || []).length,
 			pre: false,
-			post: false
+			post: false,
+			coll: -1
 		};
 		// AUF: turns of the last-layer face, the one face whose turn keeps only this step left
 		// (the check must use that face: the 6-axis progress would also accept e.g. the final F'
@@ -142,6 +152,38 @@ var algStat = execMain(function() {
 		}
 		ret.pre = !!llFace && moves[0][0].charAt(0) == llFace;
 		ret.post = !!llFace && moves[moves.length - 1][0].charAt(0) == llFace;
+		// moves as executed (every input turn counts, so a typo and its undo count 2, unlike HTM; a slice
+		// counts 1; no rotations) without the AUF: the last-layer face turns before the first and after the
+		// last other turn. For the slip column: a pre- or post-AUF must not look like extra turns.
+		var eff = sdata[6];
+		if (llFace && eff && eff.length) {
+			var fIdx = 'URFDLB'.indexOf(llFace);
+			var i0 = 0;
+			var i1 = eff.length;
+			while (i0 < i1 && ~~(eff[i0] / 3) == fIdx) {
+				i0++;
+			}
+			while (i1 > i0 && ~~(eff[i1 - 1] / 3) == fIdx) {
+				i1--;
+			}
+			ret.mvc = i1 - i0;
+		}
+		// OLL with all LL edges oriented (OCLL): the corners-only case, i.e. the COLL case (collstat.js).
+		// The step's own transform is not enough here: its inverse has the corner permutation of the alg
+		// that was done, not of the cube (it matches the cube only when the alg solved the corners). The cube
+		// at the start of the step is the inverse of this step and every later one (a full solve ends solved).
+		if (cfg.ident == 'OLL' && ollEdges(cur) == 'all' && rec.data.length >= cubeutil.getStepCount(cfg.method)) {
+			var full = newCube();
+			var tmp = newCube();
+			full.init(sdata[4].ca, sdata[4].ea);
+			for (var k = cfg.stage - 1; k >= 0; k--) {
+				mathlib.CubieCube.CubeMult(full, rec.data[k][4], tmp);
+				full.init(tmp.ca, tmp.ea);
+			}
+			var start = newCube();
+			start.invFrom(full);
+			ret.coll = cubeutil.getIdentData('COLL')[0](start.toFaceCube());
+		}
 		return ret;
 	}
 
@@ -169,6 +211,7 @@ var algStat = execMain(function() {
 		for (var k = cfg.stage - 1; k >= 0; k--) {
 			ret[3] += data[k][3];
 			Array.prototype.push.apply(ret[5], data[k][5]);
+			Array.prototype.push.apply(ret[6], data[k][6] || []);
 		}
 		return ret;
 	}
@@ -244,7 +287,7 @@ var algStat = execMain(function() {
 		var cases = {};
 		for (var i = 0; i < recs.length; i++) {
 			var r = recs[i];
-			var cs = cases[r.c] = cases[r.c] || {c: r.c, n: 0, tot: 0, rec: 0, exe: 0, mv: 0, best: 1e9, pre: 0, post: 0, tots: []};
+			var cs = cases[r.c] = cases[r.c] || {c: r.c, n: 0, tot: 0, rec: 0, exe: 0, mv: 0, best: 1e9, pre: 0, post: 0, tots: [], mvcs: []};
 			cs.n++;
 			cs.tot += r.tot;
 			cs.rec += r.rec;
@@ -254,6 +297,7 @@ var algStat = execMain(function() {
 			cs.pre += r.pre ? 1 : 0;
 			cs.post += r.post ? 1 : 0;
 			cs.tots.push(r.tot);
+			cs.mvcs.push(r.mvc === undefined ? r.mv : r.mvc);
 		}
 		var stat = overallStat(recs, cfg);
 		var rows = [];
@@ -261,6 +305,7 @@ var algStat = execMain(function() {
 			var cs = cases[c];
 			var isSkip = cs.c == cfg.skip;
 			var sd = isSkip ? -1 : stdDev(cs.tots, cs.tot / cs.n);
+			var sl = isSkip ? null : slipStat(cs.mvcs, cs.tots);
 			var recent = cs.tots.slice(-nRecent);
 			var sumRecent = 0;
 			for (var i = 0; i < recent.length; i++) {
@@ -283,8 +328,18 @@ var algStat = execMain(function() {
 				score: isSkip ? -1e9 : weakScore(cs.tot / cs.n, cs.n, stat),
 				nRecent: recent.length,
 				pre: cs.pre / cs.n,
-				post: cs.post / cs.n
+				post: cs.post / cs.n,
+				slip: sl ? sl.rate : -1,
+				slipN: sl ? sl.n : 0,
+				slipX: sl ? sl.extra : 0,
+				slipCost: sl ? sl.cost : 0,
+				slipMed: sl ? sl.med : -1
 			});
+		}
+		// cases that slip clearly more than the others (bold)
+		var slips = slipTotal(rows);
+		for (var i = 0; i < rows.length; i++) {
+			rows[i].slipHi = rows[i].slip >= 0 && rows[i].slipN >= 3 && rows[i].slip >= slips.rate * SLIP_HI;
 		}
 		// the slowest cases (by mean time) are the ones to practice
 		var bySlow = rows.filter(function(row) {
@@ -296,6 +351,55 @@ var algStat = execMain(function() {
 			bySlow[i].slow = i + 1;
 		}
 		return rows;
+	}
+
+	// ---------- slips ----------
+
+	function median(vals) {
+		var a = vals.slice().sort(function(x, y) {
+			return x - y;
+		});
+		return a.length ? (a[(a.length - 1) >> 1] + a[a.length >> 1]) / 2 : 0;
+	}
+
+	// slips of one case: executions with SLIP+ moves over the case's median (moves as executed, without the AUF)
+	// mvcs, tots: move counts and times of the case's solves; null with fewer than SLIP_MIN_N solves
+	// return {med, n: slips, rate, extra: mean moves over the median of the slips, cost: mean time of the
+	// slips - mean time of the other solves (0 if either is empty)}
+	function slipStat(mvcs, tots) {
+		if (mvcs.length < SLIP_MIN_N) {
+			return null;
+		}
+		var med = median(mvcs);
+		var n = 0, extra = 0, tSlip = 0, tOk = 0;
+		for (var i = 0; i < mvcs.length; i++) {
+			if (mvcs[i] >= med + SLIP) {
+				n++;
+				extra += mvcs[i] - med;
+				tSlip += tots[i];
+			} else {
+				tOk += tots[i];
+			}
+		}
+		return {
+			med: med,
+			n: n,
+			rate: n / mvcs.length,
+			extra: n ? extra / n : 0,
+			cost: n && n < mvcs.length ? tSlip / n - tOk / (mvcs.length - n) : 0
+		};
+	}
+
+	// slips over all cases with enough solves: {n: solves counted, slips, rate}
+	function slipTotal(rows) {
+		var n = 0, slips = 0;
+		for (var i = 0; i < rows.length; i++) {
+			if (rows[i].slip >= 0) {
+				n += rows[i].n;
+				slips += rows[i].slipN;
+			}
+		}
+		return {n: n, slips: slips, rate: n ? slips / n : 0};
 	}
 
 	// ---------- OLL families and edge orientation ----------
@@ -502,6 +606,12 @@ var algStat = execMain(function() {
 				return row.skip ? '-' : '<span class="' + (row.score >= 0.5 ? 'jlas-weak' : '') + '">' + row.score.toFixed(2) + '</span>';
 			case 'mv':
 				return fmtNum(row.mv, 1);
+			case 'slip':
+				if (row.slip < 0) {
+					return '-';
+				}
+				return '<span class="' + (row.slipHi ? 'jlas-weak' : '') + '">' + Math.round(row.slip * 100) + '%</span>' +
+					(row.slipN ? ' <span class="jlas-dim">+' + row.slipX.toFixed(1) + '</span>' : '');
 		}
 	}
 
@@ -522,6 +632,14 @@ var algStat = execMain(function() {
 			fmtPct(eo.dot, eo.n) + '</b> <span class="jlas-dim">(chance 12.5 / 75 / 12.5%)</span></div>';
 	}
 
+	function slipNote() {
+		return '<b>slips</b>: the share of the case\'s executions that took ' + SLIP + ' or more moves over your median for that case ' +
+			'(a typo or a lost place in the alg, then a repair), and the mean extra moves of those. Moves are counted as executed, ' +
+			'not in HTM: a typo and its undo (R R\') are 2 moves, a slice is 1, rotations none. Turns of the last-layer face at the very ' +
+			'start and end of the step (the AUFs) are not counted, so an AUF never looks like a slip. A case needs ' + SLIP_MIN_N +
+			' solves; a rate ' + SLIP_HI + ' times the overall one or more is bold. Hover a row for its usual move count and how much time its slips cost. ';
+	}
+
 	function noteHtml(step, nRecent) {
 		var cfg = STEPS[step];
 		if (step == 'OLL') {
@@ -535,7 +653,7 @@ var algStat = execMain(function() {
 				'Skips count in N and % but not in the time columns. ' +
 				'<b>edges at OLL</b>: how many last-layer edges were oriented when the OLL started (all four, also for a skip; two, as a line or an L; ' +
 				'none, a dot case), against the chance with random edges (12.5 / 75 / 12.5%). Hover it for line vs L. ' +
-				'The ' + SLOW_N + ' slowest cases by mean are tagged #1-#' + SLOW_N + '. ' +
+				'The ' + SLOW_N + ' slowest cases by mean are tagged #1-#' + SLOW_N + '. ' + slipNote() +
 				'<b>weak</b> is the weakness score: how many σ the case mean is above the mean of all OLL times shown, ' +
 				'plus 0.5 / √(N + 1) so that rarely seen cases are drilled too (higher = weaker). ' +
 				'<b>drill weakest N</b> opens the OLL trainer (Tools) on the N weakest cases, scored from all sessions but the drill one. ' +
@@ -553,7 +671,7 @@ var algStat = execMain(function() {
 			'a y rotation instead of a pre-AUF counts as recognition. Hover a row for its AUF rates. ' +
 			'<b>Skip</b>: a solve whose PLL was already solved after OLL counts as a skip, also when it needed an AUF ' +
 			'(that AUF stays in the OLL step). Skips count in N and % but not in the time columns. ' +
-			'The ' + SLOW_N + ' slowest cases by mean are tagged #1-#' + SLOW_N + '. ' +
+			'The ' + SLOW_N + ' slowest cases by mean are tagged #1-#' + SLOW_N + '. ' + slipNote() +
 			'<b>weak</b> is the weakness score: how many σ the case mean is above the mean of all PLL times shown, ' +
 			'plus 0.5 / √(N + 1) so that rarely seen cases are drilled too (higher = weaker). ' +
 			'<b>drill weakest N</b> opens the PLL trainer (Tools) on the N weakest cases, scored from all sessions but the drill one. ' +
@@ -662,8 +780,13 @@ var algStat = execMain(function() {
 					nSkip = rows[i].n;
 				}
 			}
+			var slips = slipTotal(rows);
 			html.push('<span class="jlas-sum">' + (isLoading ? 'loading...' :
 				recs.length + ' solves, ' + (rows.length - (nSkip ? 1 : 0)) + ' cases' + (nSkip ? ', ' + nSkip + ' skips' : '')) + '</span>');
+			if (isFull && !isLoading && slips.n) {
+				html.push('<span class="jlas-sum jlas-slipsum" title="executions with ' + SLIP + '+ moves over the median of their case, ' +
+					'over the cases with ' + SLIP_MIN_N + '+ solves">slips ' + fmtPct(slips.slips, slips.n) + '</span>');
+			}
 			if (!isFull) {
 				html.push('<span class="click jlas-open">full table</span>');
 			}
@@ -707,6 +830,11 @@ var algStat = execMain(function() {
 					var hover = row.skip ? '' : step == 'PLL' ?
 						': pre-AUF in ' + Math.round(row.pre * 100) + '%, post-AUF in ' + Math.round(row.post * 100) + '% of solves' :
 						': pre-AUF in ' + Math.round(row.pre * 100) + '% of solves';
+					if (row.slip >= 0) {
+						hover += '; usually ' + row.slipMed + ' moves without AUF; slips: ' + row.slipN + ' of ' + row.n +
+							(row.slipN ? ', +' + row.slipX.toFixed(1) + ' moves' + (row.slipCost ? ', ' + (row.slipCost >= 0 ? '+' : '−') +
+								(Math.abs(row.slipCost) / 1000).toFixed(2) + ' s against the other solves' : '') : '');
+					}
 					html.push('<tr class="' + (row.slow ? 'jlas-slow' : '') + (row.skip ? ' jlas-skip' : '') + '" title="' + row.name + hover + '">');
 					for (var i = 0; i < COLS.length; i++) {
 						if (!isFull && !COLS[i][3]) {
@@ -804,7 +932,7 @@ var algStat = execMain(function() {
 				recs = others.recs.concat(drillSession(scope) == ~~kernel.getProp('session') ? [] : recs);
 			}
 			var ident = cubeutil.getIdentData(cfg.ident);
-			var lines = ['date,case,recog,exec,total,turns,tps,preAUF,postAUF'];
+			var lines = ['date,case,recog,exec,total,turns,movesNoAUF,tps,preAUF,postAUF'];
 			for (var i = 0; i < recs.length; i++) {
 				var r = recs[i];
 				var isSkip = r.c == cfg.skip;
@@ -815,6 +943,7 @@ var algStat = execMain(function() {
 					(r.exe / 1000).toFixed(3),
 					(r.tot / 1000).toFixed(3),
 					r.mv,
+					r.mvc === undefined ? r.mv : r.mvc,
 					r.exe > 0 ? (r.mv / r.exe * 1000).toFixed(2) : '',
 					r.pre ? 1 : 0,
 					r.post ? 1 : 0
@@ -889,6 +1018,7 @@ var algStat = execMain(function() {
 		eoStat: eoStat,
 		ollDone: ollDone,
 		ollEdges: ollEdges,
+		slipStat: slipStat,
 		families: families,
 		caseFamily: caseFamily,
 		loadRecs: loadRecs,
