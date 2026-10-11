@@ -25,6 +25,7 @@ jlTimer also changes these csTimer defaults:
 | entering in times with | timer | **virtual** on computers; **timer** on phones and tablets (touch screen, no mouse) | `input: 'v'` / `'t'` |
 | timer update is | 0.1s | **none** | `timeU: 'n'` |
 | use WCA inspection | Never | Never (unchanged) | `useIns: 'n'` |
+| use gesture control (touch: hold and slide for +2 / DNF / next scramble...) | on | **off**: the ring of gesture icons no longer appears when a held finger drifts | `useGES: false` |
 | VRC base speed (tps) | 10 | **40** | `vrcSpeed: 25` |
 | multi-phase (virtual cube) | None | **CFOP** | `vrcMP: 'cfop'` |
 | Show phase splits while solving (new, timer section) | always shown | **off**: splits appear when the solve ends | `mpLive: false` |
