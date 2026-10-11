@@ -22,10 +22,10 @@ jlTimer also changes these csTimer defaults:
 
 | Option | csTimer default | jlTimer default | Stored as |
 |---|---|---|---|
-| entering in times with | timer | **virtual** | `input: 'v'` |
+| entering in times with | timer | **virtual** on computers; **timer** on phones and tablets (touch screen, no mouse) | `input: 'v'` / `'t'` |
 | timer update is | 0.1s | **none** | `timeU: 'n'` |
 | use WCA inspection | Never | Never (unchanged) | `useIns: 'n'` |
-| VRC base speed (tps) | 10 | **20** | `vrcSpeed: 50` |
+| VRC base speed (tps) | 10 | **40** | `vrcSpeed: 25` |
 | multi-phase (virtual cube) | None | **CFOP** | `vrcMP: 'cfop'` |
 | Show phase splits while solving (new, timer section) | always shown | **off**: splits appear when the solve ends | `mpLive: false` |
 | Record DNF when a solve is cancelled with Esc (new, timer section) | always records a DNF | **off**: Esc mid-solve discards the attempt, shows the previous result and loads the next scramble | `escDNF: false` |
