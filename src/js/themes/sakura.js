@@ -16,9 +16,9 @@ jlThemes.register({
 		var FAR = [[360, 312], [385, 372], [362, 445], [300, 330], [232, 348], [1230, 62], [1290, 84]];
 		var PETAL = 'M0 0C-6.5-3-8-11-3.6-16.5L0-14 3.6-16.5C8-11 6.5-3 0 0Z'; // the artwork's own petal (#pt)
 		var GRADS = [ // soft versions of #pg, #pw, #pd, close to the hazy sky so the petals feel painted in
-			[[0.05, '#df8aa6'], [0.5, '#efb4c6'], [1, '#f8d9e3']],
-			[[0.05, '#e79fb5'], [0.5, '#f5c8d5'], [1, '#fbe6ec']],
-			[[0.05, '#d57696'], [0.55, '#eaa6bb'], [1, '#f5d0dc']]];
+			[[0.05, '#dc7a9b'], [0.5, '#f0aac0'], [1, '#f9d6e1']],
+			[[0.05, '#e592ad'], [0.5, '#f6c1d1'], [1, '#fce4eb']],
+			[[0.05, '#d06a8e'], [0.55, '#ea9db6'], [1, '#f6cbd8']]];
 		var PX = 4; // sprite pixels per artwork unit
 		var PAD = 4;
 		var SW = (16 + 2 * PAD) * PX;
@@ -147,7 +147,7 @@ jlThemes.register({
 					flip: rnd(0, 6.3),
 					flipW: rnd(0.6, 1.8),
 					age: src ? 0 : 1.5, // the edge ones are already falling
-					alpha: lerp(0.25, 0.48, z) * rnd(0.9, 1.08), // faint, like part of the painting
+					alpha: lerp(0.33, 0.6, z) * rnd(0.9, 1.08), // faint, like part of the painting
 					front: sprites[color][blur ? 1 : 0],
 					back: sprites[color == 2 ? 0 : 1][blur ? 1 : 0],
 					landY: env.h * (0.8 + 0.22 * z + rnd(-0.03, 0.03)),
