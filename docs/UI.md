@@ -10,6 +10,7 @@ All jlTimer UI options live in the normal **Options** dialog (the first button i
 | Layout (ui) | **Familiar**, **Minimal** | Familiar | `jlLayout: 'c' / 'm'` |
 | Virtual cube size (virtual cube) | percentage | 100 | `vrcSize` |
 | Animated background (color) | Off, On, **On, pause while timing** | On, pause while timing (Off when the system asks for reduced motion) | `jlThemeAnim: 'n' / 'y' / 'p'` |
+| PB celebration (ui) | Off, Single only, **Single + averages** | Single + averages | `jlPbFx: 'n' / 's' / 'a'` |
 
 The defaults reproduce the csTimer+ design with csTimer's first color scheme and LCD digits. Colors and fonts use csTimer's own defaults, so an imported csTimer setup looks the same as on cstimer.net. A value you already saved, or imported from csTimer, is kept.
 
@@ -151,6 +152,16 @@ Options → color, right under **Cube** (the six cube colours):
 Changes apply immediately to every 3D NxN cube on screen (main cube, replay) without resetting it. 2x2 to 11x11 use the styles; pyraminx, skewb, megaminx etc. keep their own colours and the classic look; heli/redi/dino take the colours but not the styles.
 
 How it works: `src/js/cubeskin.js` holds the presets and props and exposes `jlCubeSkin.style()`. `twisty/twistynnn.js` gives every sticker a second, hidden 2x2 plane behind it (the body) and `applySkin()` updates the shared materials in place (sticker scale, border, body visibility), so a change costs nothing per frame. The canvas renderer (`lib/threemin.js`, `jlSkinQuad`) reads three optional material fields: `jlRound` (rounded quad path with bezier corners), `jlShade` (16 precomputed fill colours per material, picked by the face normal) and `jlSheen` (one extra translucent fill). Frame cost while turning at 40 tps: about 0.55 ms mean per animation frame for Classic and 0.7 ms for Glossy with 4x CPU throttling, 60 fps either way.
+
+## PB celebration
+
+When a new solve sets a new **session best** (the same bests csTimer marks in the time list: single, and the two averages of the time list, ao5 and ao12 by default), a short celebration animation (about 2.5 s) plays over the page, with a "NEW BEST / ao5 12.47" title next to the time for about 1.5 s. While the celebration is enabled, csTimer's own scrolling "Session best …!" logo hint is dropped for solves that get the celebration. It is still shown when the option is Off, or for a best the option doesn't celebrate. If one solve sets several bests, the label names the biggest one (the longest average). Option **PB celebration** (ui section): *Off*, *Single only*, *Single + averages* (default). The UI deliberately doesn't describe or preview the animation, so the first one is a surprise.
+
+- **When it plays.** Only for a new solve from any timer (keyboard, touch, virtual cube, bluetooth, typed in), via stats.js's `timestd` signal. Editing a penalty, deleting, importing or switching sessions never plays it. DNFs never count. Not for the first solves of a session: a single needs at least 5 solves in the session and an improvement over an earlier best; an average of n needs at least 2n solves and an improvement over an earlier average.
+- **Timing safety.** It never delays the next solve. Any key press (auto-repeat ignored), touch or pointer press, or the timer leaving idle (ready, inspection, running) stops drawing at once. The overlay then fades out in 0.12 s with a CSS transition, with no more script work. The overlay is a fixed full-window canvas with `pointer-events: none` (z-index 45: above the panels, below dialogs) and never takes keys. It is hidden (`display: none`) when idle. The detection runs after the time is saved, and the animation starts in the next task, so the timer finishes handling the stop first.
+- **Reduced motion** (`prefers-reduced-motion`): only the label fades in, with a few petals falling gently.
+- **Testing.** `jlPbFx.preview()` plays it from the console. With `?debug=1`, a *preview* link appears next to the option. `jlPbFx.newBests()` returns the bests the newest solve just set.
+- Code: `src/js/pbfx.js` (detection, drawing; sprites are pre-rendered once per size), `.jlpb*` styles in `src/css/style.css`. Detection reads csTimer's own `TimeStat` for the time list (`stats.getTimesStatsList()._bestAvg`), so it always agrees with the PB highlighting.
 
 ## Keyboard access
 

@@ -27,7 +27,8 @@
     "src/js/mybg.js",
     "src/js/themes.js",
     "src/js/fx.js",
-    "src/js/cubeskin.js"
+    "src/js/cubeskin.js",
+    "src/js/pbfx.js"
   ],
   "include": [
     "src/js/fx/*.js"

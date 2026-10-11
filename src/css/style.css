@@ -2106,6 +2106,89 @@ canvas.jlfx {
 	z-index: 3;
 }
 
+/* PB celebration (js/pbfx.js): full-window overlay above the panels, below dialogs (#gray is 50) */
+canvas.jlpb {
+	position: fixed;
+	left: 0;
+	top: 0;
+	display: none;
+	pointer-events: none;
+	z-index: 45;
+}
+
+.jlpb-label {
+	position: fixed;
+	display: none;
+	pointer-events: none;
+	z-index: 46;
+	opacity: 0;
+	transform: translate(-50%, 10px);
+	white-space: nowrap;
+	text-align: center;
+	font-size: 32px;
+	line-height: 1.15;
+	will-change: opacity, transform;
+}
+
+.jlpb-k {
+	font-size: 0.5em;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 1.2em;
+	margin-bottom: 0.3em;
+}
+
+.jlpb-k::before, .jlpb-k::after {
+	content: '';
+	display: inline-block;
+	vertical-align: middle;
+	width: 3em;
+	height: 1px;
+	margin: 0 1em;
+	background: linear-gradient(90deg, transparent, currentColor);
+	opacity: 0.7;
+}
+
+.jlpb-k::after {
+	background: linear-gradient(90deg, currentColor, transparent);
+}
+
+.jlpb-t {
+	font-weight: 600;
+	letter-spacing: 0.3em;
+}
+
+.jlpb-v {
+	margin-left: 0.45em;
+	font-weight: 400;
+	font-variant-numeric: tabular-nums;
+}
+
+/* the reveal right after the cut (--jlpb-d), letter-spacing closing in; then a gentle fade */
+.jlpb-label.jlpb-in {
+	opacity: 1;
+	transform: translate(-50%, 0);
+	transition: opacity 380ms ease var(--jlpb-d, 0ms), transform 750ms cubic-bezier(.16, .8, .2, 1) var(--jlpb-d, 0ms);
+}
+
+.jlpb-in .jlpb-k, .jlpb-out .jlpb-k {
+	letter-spacing: 0.38em;
+}
+
+.jlpb-in .jlpb-t, .jlpb-out .jlpb-t {
+	letter-spacing: 0.03em;
+}
+
+.jlpb-in .jlpb-k, .jlpb-in .jlpb-t {
+	transition: letter-spacing 850ms cubic-bezier(.16, .8, .2, 1) var(--jlpb-d, 0ms);
+}
+
+.jlpb-label.jlpb-out {
+	opacity: 0;
+	transform: translate(-50%, -6px);
+	transition: opacity 450ms ease, transform 450ms ease;
+}
+
 /* PLL stats (js/stats/algstat.js): tools panel view and full table dialog */
 .dialogalgstats {
 	left: 12%;
