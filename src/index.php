@@ -90,6 +90,7 @@
   <script type="text/javascript" src="js/themes.js"></script>
   <script type="text/javascript" src="js/mybg.js"></script>
   <script type="text/javascript" src="js/fx.js"></script>
+  <script type="text/javascript" src="js/pbfx.js"></script>
 <?php foreach (glob(__DIR__ . '/js/fx/*.js') as $f) { echo '  <script type="text/javascript" src="js/fx/' . basename($f) . "\" async></script>\n"; } ?>
 <?php foreach (glob(__DIR__ . '/js/themes/*.js') as $f) { echo '  <script type="text/javascript" src="js/themes/' . basename($f) . "\" async></script>\n"; } ?>
   <script type="text/javascript" src="js/twisty/twistyreplay.js"></script>

@@ -87,6 +87,7 @@ cloud.js \
 themes.js \
 mybg.js \
 fx.js \
+pbfx.js \
 twisty/twistyreplay.js \
 shortcut.js \
 help.js \

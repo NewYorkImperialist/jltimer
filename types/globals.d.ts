@@ -210,6 +210,8 @@ interface JQueryStatic {
 	/** alert() that falls back to logohint when the browser blocks dialogs */
 	alert(msg: string): void;
 	confirm(msg: string): boolean;
+	/** a URL query parameter (src/js/lib/utillib.js), null when absent */
+	urlParam(name: string): string | null;
 	/** debounce: runs func after timeout ms, replacing a pending call with the same key */
 	delayExec(key: string, func: () => void, timeout: number): void;
 	/** '#rgb' / '#rrggbb' nudged toward ref; longFormat for '#rrggbb' output */

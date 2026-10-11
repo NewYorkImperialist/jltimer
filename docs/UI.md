@@ -9,6 +9,7 @@ All jlTimer UI options live in the normal **Options** dialog (the first button i
 | select timer's font (ui) | random, normal, digital1–5, Roboto, **jlTimer sans** | digital1 (csTimer's LCD font) | `font: 'lcd'` / `'jl'` |
 | Layout (ui) | **Familiar**, **Minimal** | Familiar | `jlLayout: 'c' / 'm'` |
 | Virtual cube size (virtual cube) | percentage | 100 | `vrcSize` |
+| PB celebration (ui) | Off, Single only, **Single + averages** | Single + averages | `jlPbFx: 'n' / 's' / 'a'` |
 
 The defaults reproduce the csTimer+ design with csTimer's first color scheme and LCD digits. Colors and fonts use csTimer's own defaults, so an imported csTimer setup looks the same as on cstimer.net. A value you already saved, or imported from csTimer, is kept.
 
@@ -137,6 +138,16 @@ All styles are in one list, **Move effect** (Column Glow first, then the layer h
 **Effect duration** (1x, 1.5x default, 2x, 3x) slows every v1 and v2 effect evenly so they stay visible at fast turn speeds; effects read time through `jlFx.now()` and the `t`/`dt` passed to `api.add`.
 
 The framework is `src/js/fx.js` (API documented at the top of that file). Each effect is one file in `src/js/fx/`, concatenated into the separate async bundle `js/jlfx.js`.
+
+## PB celebration
+
+When a new solve sets a new **session best** (the same bests csTimer marks in the time list: single, and the two averages of the time list, ao5 and ao12 by default), a short celebration animation plays over the page and a small "New best ao5 · 12.47" label appears next to the time for about two seconds. If one solve sets several bests, the label names the biggest one (the longest average). Option **PB celebration** (ui section): *Off*, *Single only*, *Single + averages* (default). The UI deliberately doesn't describe or preview the animation, so the first one is a surprise.
+
+- **When it plays.** Only for a new solve from any timer (keyboard, touch, virtual cube, bluetooth, typed in), via stats.js's `timestd` signal. Editing a penalty, deleting, importing or switching sessions never plays it. DNFs never count. Not for the first solves of a session: a single needs at least 5 solves in the session and an improvement over an earlier best; an average of n needs at least 2n solves and an improvement over an earlier average.
+- **Timing safety.** It never delays the next solve. Any key press (auto-repeat ignored), touch or pointer press, or the timer leaving idle (ready, inspection, running) stops drawing at once. The overlay then fades out in 0.12 s with a CSS transition, with no more script work. The overlay is a fixed full-window canvas with `pointer-events: none` (z-index 45: above the panels, below dialogs) and never takes keys. It is hidden (`display: none`) when idle. The detection runs after the time is saved, and the animation starts in the next task, so the timer finishes handling the stop first.
+- **Reduced motion** (`prefers-reduced-motion`): only the label fades in, with a few petals falling gently.
+- **Testing.** `jlPbFx.preview()` plays it from the console. With `?debug=1`, a *preview* link appears next to the option. `jlPbFx.newBests()` returns the bests the newest solve just set.
+- Code: `src/js/pbfx.js` (detection, drawing; sprites are pre-rendered once per size), `.jlpb*` styles in `src/css/style.css`. Detection reads csTimer's own `TimeStat` for the time list (`stats.getTimesStatsList()._bestAvg`), so it always agrees with the PB highlighting.
 
 ## Keyboard access
 

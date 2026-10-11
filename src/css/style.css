@@ -2088,6 +2088,59 @@ canvas.jlfx {
 	z-index: 3;
 }
 
+/* PB celebration (js/pbfx.js): full-window overlay above the panels, below dialogs (#gray is 50) */
+canvas.jlpb {
+	position: fixed;
+	left: 0;
+	top: 0;
+	display: none;
+	pointer-events: none;
+	z-index: 45;
+}
+
+.jlpb-label {
+	position: fixed;
+	display: none;
+	pointer-events: none;
+	z-index: 46;
+	opacity: 0;
+	white-space: nowrap;
+	font-size: 17px;
+	letter-spacing: 0.1em;
+	line-height: 1.5;
+	will-change: opacity, transform;
+}
+
+.jlpb-label::before, .jlpb-label::after {
+	content: '';
+	display: inline-block;
+	vertical-align: middle;
+	width: 2.4em;
+	height: 1px;
+	margin: 0 0.8em;
+	background: linear-gradient(90deg, transparent, currentColor);
+	opacity: 0.6;
+}
+
+.jlpb-label::after {
+	background: linear-gradient(90deg, currentColor, transparent);
+}
+
+.jlpb-k {
+	font-variant: small-caps;
+	letter-spacing: 0.14em;
+}
+
+.jlpb-n {
+	font-weight: 600;
+}
+
+.jlpb-v {
+	margin-left: 0.7em;
+	font-variant-numeric: tabular-nums;
+	opacity: 0.9;
+}
+
 /* PLL stats (js/stats/algstat.js): tools panel view and full table dialog */
 .dialogalgstats {
 	left: 12%;
