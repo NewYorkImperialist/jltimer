@@ -2388,6 +2388,9 @@ THREE.CanvasRenderer = function(parameters) {
 		_pi2 = Math.PI * 2,
 		_vector3 = new THREE.Vector3,
 		_pixelMap, _pixelMapContext, _pixelMapImage, _pixelMapData, _gradientMap, _gradientMapContext, _gradientMapQuality = 16;
+	// jlTimer cube skins: scratch corners and the light (world space, upper left front), sheen alpha per light level
+	var _jlQx = [0, 0, 0, 0], _jlQy = [0, 0, 0, 0], _jlLx = -0.36, _jlLy = 0.84, _jlLz = 0.4, _jlSheens = [];
+	for (var _jlI = 0; _jlI < 16; _jlI++) _jlSheens.push("rgba(255,255,255," + (0.05 + 0.15 * _jlI / 15).toFixed(3) + ")");
 	_pixelMap = document.createElement("canvas");
 	_pixelMap.width = _pixelMap.height = 2;
 	_pixelMapContext = _pixelMap.getContext("2d");
@@ -2799,6 +2802,10 @@ THREE.CanvasRenderer = function(parameters) {
 			_v6x = v6.positionScreen.x;
 			_v6y = v6.positionScreen.y;
 			if (material instanceof THREE.MeshBasicMaterial) {
+				if (material.jlRound || material.jlShade || material.jlSheen) {
+					jlSkinQuad(element, material);
+					return
+				}
 				drawQuad(_v1x, _v1y, _v2x, _v2y, _v3x, _v3y, _v4x, _v4y, material.wireframe ? element.innerLineMask : undefined);
 				material.wireframe ? strokePath(material.color, material.wireframeLinewidth, material.wireframeLinecap,
 					material.wireframeLinejoin) : fillPath(material.color)
@@ -2854,6 +2861,73 @@ THREE.CanvasRenderer = function(parameters) {
 				texturePath(_v1x, _v1y, _v2x, _v2y, _v4x, _v4y, _bitmap, 0, 0, 1, 0, 0, 1);
 				drawTriangle(_v5x, _v5y, _v3x, _v3y, _v6x, _v6y);
 				texturePath(_v5x, _v5y, _v3x, _v3y, _v6x, _v6y, _bitmap, 1, 0, 1, 1, 0, 1)
+			}
+		}
+
+		// jlTimer cube skins (js/cubeskin.js): optional MeshBasicMaterial fields, read by the quad faces only
+		//   jlRound  0..0.5  corner rounding, as a fraction of the edge length
+		//   jlShade  0..1    darken faces turned away from a fixed light (fill colours precomputed per material)
+		//   jlSheen  bool    a soft highlight in the sticker corner nearest the top-left of the screen
+		// Everything is drawn with the quad's own path: no allocations per frame, at most one extra fill (sheen).
+		function jlSkinQuad(element, material) {
+			var r = material.jlRound || 0;
+			_jlQx[0] = _v1x; _jlQy[0] = _v1y;
+			_jlQx[1] = _v2x; _jlQy[1] = _v2y;
+			_jlQx[2] = _v3x; _jlQy[2] = _v3y;
+			_jlQx[3] = _v4x; _jlQy[3] = _v4y;
+			if (r > 0) {
+				_context.beginPath();
+				for (var i = 0; i < 4; i++) {
+					var px = _jlQx[i], py = _jlQy[i], pv = (i + 3) & 3, nx = (i + 1) & 3;
+					var ax = px + (_jlQx[pv] - px) * r, ay = py + (_jlQy[pv] - py) * r;
+					var bx = px + (_jlQx[nx] - px) * r, by = py + (_jlQy[nx] - py) * r;
+					i == 0 ? _context.moveTo(ax, ay) : _context.lineTo(ax, ay);
+					_context.bezierCurveTo(ax + (px - ax) * 0.55, ay + (py - ay) * 0.55, bx + (px - bx) * 0.55, by + (py - by) * 0.55, bx, by)
+				}
+				_context.closePath()
+			} else drawQuad(_v1x, _v1y, _v2x, _v2y, _v3x, _v3y, _v4x, _v4y);
+			if (material.wireframe) {
+				strokePath(material.color, material.wireframeLinewidth, material.wireframeLinecap, material.wireframeLinejoin);
+				return
+			}
+			var lvl = 15;
+			if (material.jlShade || material.jlSheen) {
+				// light level 0..15 from the face normal, flipped to point towards the camera
+				var n = element.normalWorld, c = element.centroidWorld, cp = camera.position;
+				var nl = Math.sqrt(n.x * n.x + n.y * n.y + n.z * n.z) || 1;
+				var d = (n.x * _jlLx + n.y * _jlLy + n.z * _jlLz) / nl;
+				if (n.x * (cp.x - c.x) + n.y * (cp.y - c.y) + n.z * (cp.z - c.z) < 0) d = -d;
+				lvl = Math.round((d + 1) * 7.5)
+			}
+			if (material.jlShade) {
+				if (material.jlShadeKey !== material.color.hex + material.jlShade) {
+					material.jlShadeKey = material.color.hex + material.jlShade;
+					material.jlShades = [];
+					for (var k = 0; k < 16; k++) {
+						var f = 1 - material.jlShade * (1 - k / 15);
+						material.jlShades.push("rgb(" + Math.round(material.color.r * f * 255) + "," + Math.round(material.color.g * f * 255) + "," + Math.round(material.color.b * f * 255) + ")")
+					}
+				}
+				_context.fillStyle = material.jlShades[lvl];
+				_contextFillStyle = null;
+				_context.fill()
+			} else fillPath(material.color);
+			if (material.jlSheen) {
+				// corner nearest the screen's top-left (y points up here), then a curved wedge from it
+				var best = 0;
+				for (var j = 1; j < 4; j++)
+					if (_jlQx[j] - _jlQy[j] < _jlQx[best] - _jlQy[best]) best = j;
+				var ox = _jlQx[best], oy = _jlQy[best];
+				var ux = _jlQx[(best + 1) & 3] - ox, uy = _jlQy[(best + 1) & 3] - oy;
+				var vx = _jlQx[(best + 3) & 3] - ox, vy = _jlQy[(best + 3) & 3] - oy;
+				_context.beginPath();
+				_context.moveTo(ox + ux * 0.13 + vx * 0.13, oy + uy * 0.13 + vy * 0.13);
+				_context.lineTo(ox + ux * 0.7 + vx * 0.13, oy + uy * 0.7 + vy * 0.13);
+				_context.quadraticCurveTo(ox + (ux + vx) * 0.3, oy + (uy + vy) * 0.3, ox + ux * 0.13 + vx * 0.7, oy + uy * 0.13 + vy * 0.7);
+				_context.closePath();
+				_context.fillStyle = _jlSheens[lvl];
+				_contextFillStyle = null;
+				_context.fill()
 			}
 		}
 

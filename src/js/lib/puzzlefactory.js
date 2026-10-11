@@ -148,7 +148,26 @@ var puzzleFactory = execMain(function() {
 		callback(child[2], isInit);
 	}
 
+	// push a cube skin or colour change (js/cubeskin.js) to every NxN cube on screen, keeping its state;
+	// the 2D qCube just redraws (it reads colcube itself), other puzzles pick it up when they are next built
+	function restyle() {
+		for (var i = 0; i < prevParents.length; i++) {
+			var puzzle = prevParents[i][2];
+			if (!puzzle || !puzzle.twisty) {
+				continue;
+			}
+			var scene = puzzle.twistyScene;
+			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^cube/.exec(puzzle.twisty.type['puzzle'] || '')) {
+				puzzle.twisty.applySkin(puzzle.twisty, null, $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]));
+				scene.redraw && scene.redraw();
+			} else if (prevParents[i][1] == 'q') {
+				scene.resize();
+			}
+		}
+	}
+
 	return {
+		restyle: restyle,
 		twistyre: new RegExp("^(" + $.TWISTY_RE + ")$"),
 		init: init
 	}
