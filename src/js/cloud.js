@@ -197,6 +197,36 @@ var cloud = execMain(function() {
 		});
 	}
 
+	// sign this device in with a one-time recovery code, without the virtual cube (phones);
+	// the move sequence and the other devices are left as they are
+	function signInWithCode() {
+		var code = $.trim(prompt('Recovery code (XXXXX-XXXXX). It can be used once.') || '');
+		if (!code || busy) {
+			return;
+		}
+		busy = true;
+		logohint.push('Signing in...');
+		api('POST', '/login/code', { code: code, device: deviceName() }).then(function(res) {
+			busy = false;
+			if (res.status == 200) {
+				setState({ token: res.data['token'] });
+				render();
+				var left = res.data['codesLeft'];
+				logohint.push('Signed in to jlTimer cloud');
+				$.alert('Signed in. ' + left + ' recovery code' + (left == 1 ? '' : 's') + ' left' +
+					(left <= 2 ? ': get new ones with "Change algorithm..." on a computer.' : '.'));
+				setTimeout(syncFromCloud, 300);
+			} else if (res.status == 429) {
+				$.alert('Too many attempts, try again later.');
+			} else {
+				$.alert('That recovery code is not valid (or was already used).');
+			}
+		}, function() {
+			busy = false;
+			$.alert('jlTimer cloud unreachable.');
+		});
+	}
+
 	function deviceName() {
 		var ua = navigator.userAgent;
 		var os = /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iOS' : 'device';
@@ -638,7 +668,8 @@ var cloud = execMain(function() {
 				}
 			}));
 		} else {
-			row.append(button('Use recovery code...', function() {
+			row.append(button('Sign in with recovery code...', signInWithCode));
+			row.append(button('Reset algorithm with recovery code...', function() {
 				var code = prompt('Recovery code (XXXXX-XXXXX)');
 				code = $.trim(code || '');
 				if (code) {

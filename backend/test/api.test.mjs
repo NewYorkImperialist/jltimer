@@ -172,6 +172,21 @@ test('recovery code: one use, resets the login, signs everything out', async () 
 	assert.equal((await call('POST', '/login', { body: { key: await deriveKey(ALG2, SALT2) } })).status, 200);
 });
 
+test('recovery code sign-in: one use, keeps the login and the other devices', async () => {
+	const { call } = setup();
+	const { token, recoveryCodes } = await setUp(call);
+	assert.equal((await call('POST', '/login/code', { body: { code: 'AAAAA-AAAAA', device: 'phone' } })).status, 401);
+	const ok = await call('POST', '/login/code', { body: { code: recoveryCodes[2].toLowerCase(), device: 'phone' } });
+	assert.equal(ok.status, 200);
+	assert.equal(ok.body.codesLeft, LIMITS.recoveryCodes - 1);
+	assert.equal((await call('GET', '/devices', { token: ok.body.token })).status, 200, 'phone signed in');
+	assert.equal((await call('GET', '/devices', { token })).status, 200, 'other devices stay signed in');
+	assert.equal((await call('POST', '/login', { body: { key: await deriveKey(ALG, SALT) } })).status, 200, 'move sequence unchanged');
+	assert.equal((await call('POST', '/login/code', { body: { code: recoveryCodes[2] } })).status, 401, 'code is single-use');
+	const next = await credential(ALG2, SALT2);
+	assert.equal((await call('POST', '/recover', { body: { code: recoveryCodes[2], ...next } })).status, 401, 'a used code cannot reset the login either');
+});
+
 test('snapshots: upload, list, download, limits', async () => {
 	const { call, clock } = setup();
 	const { token } = await setUp(call);

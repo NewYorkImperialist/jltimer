@@ -262,7 +262,7 @@ export function createApp({ db, env, now = () => Date.now() }) {
 			return send(200, { salt: cred.salt, iterations: Number(cred.iterations), fp: { salt: cred.fp_salt, len: Number(cred.fp_len), tag: Number(cred.fp_tag) } });
 		}
 
-		if (method == 'POST' && (path == '/setup' || path == '/login' || path == '/recover')) {
+		if (method == 'POST' && (path == '/setup' || path == '/login' || path == '/login/code' || path == '/recover')) {
 			if (await isBlocked(ip)) {
 				return send(429, { error: 'too many attempts, try again later' });
 			}
@@ -289,6 +289,22 @@ export function createApp({ db, env, now = () => Date.now() }) {
 				}
 				await clearFailures(ip);
 				return send(200, { token: await newDevice(body.device) });
+			}
+
+			if (path == '/login/code') {
+				// sign this device in with a one-time recovery code (e.g. a phone without a keyboard);
+				// the move sequence and the other devices are left as they are
+				if (!(await getCredential())) return send(404, { error: 'not set up' });
+				const hash = await sha256hex(normCode(body.code));
+				const c = await q('SELECT code_hash FROM recovery WHERE code_hash = ? AND used_at IS NULL', [hash]);
+				if (!c.rows[0]) {
+					await recordFailure(ip);
+					return send(401, { error: 'invalid' });
+				}
+				await q('UPDATE recovery SET used_at = ? WHERE code_hash = ?', [now(), hash]);
+				await clearFailures(ip);
+				const left = await q('SELECT COUNT(*) AS n FROM recovery WHERE used_at IS NULL');
+				return send(200, { token: await newDevice(body.device), codesLeft: Number(left.rows[0].n) });
 			}
 
 			// /recover: one-time code, then a new move sequence; signs out every device
