@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Comet Orbit: a glowing comet swoops around the outside of the cube silhouette on the side of the turning face,
@@ -146,7 +147,7 @@
 		while (el && el.nodeType == 1) {
 			var m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(getComputedStyle(el).backgroundColor || '');
 			if (m && (m[4] === undefined || +m[4] > 0.5)) {
-				v = (0.299 * m[1] + 0.587 * m[2] + 0.114 * m[3]) / 255 > 0.6;
+				v = (0.299 * +m[1] + 0.587 * +m[2] + 0.114 * +m[3]) / 255 > 0.6;
 				break;
 			}
 			el = el.parentNode;
@@ -192,6 +193,7 @@
 		var end = pts[segs];
 		var rgb = cm.rgb;
 		// tapered tail body: one filled polygon per layer, fading along a gradient from head to tail tip
+		/** @type {Array<[number, string, number]>} */
 		var layers = cm.light ? [[1.0 + 2.2 / cm.size, 'ink', 0.45], [1, 'col', 0.95], [0.38, 'core', 0.95]] :
 			[[1.6, 'col', 0.25], [1, 'col', 0.85], [0.38, 'core', 1]];
 		for (var l = 0; l < layers.length; l++) {

@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 /**
@@ -255,8 +256,8 @@ var collStat = execMain(function() {
 			}
 		}
 		var usual = {};
-		for (var c in mvs) {
-			usual[c] = mvs[c].length >= USUAL_MIN ? median(mvs[c]) : -1;
+		for (var ck in mvs) {
+			usual[ck] = mvs[ck].length >= USUAL_MIN ? median(mvs[ck]) : -1;
 		}
 		for (var i = 0; i < recs.length; i++) {
 			var r = recs[i];

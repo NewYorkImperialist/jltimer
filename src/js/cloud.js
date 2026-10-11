@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // jlTimer cloud backup: talks to the personal backup API in backend/.
@@ -16,10 +17,12 @@ var cloud = execMain(function() {
 		}
 	}
 
+	/** @return {CloudState} */
 	function getState() {
 		return readDev()['jlcloud'] || {};
 	}
 
+	/** @param {CloudState} update merged into the saved state */
 	function setState(update) {
 		var dev = readDev();
 		dev['jlcloud'] = $.extend(dev['jlcloud'] || {}, update);

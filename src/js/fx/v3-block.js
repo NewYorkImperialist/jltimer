@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer laser (v3): Column Glow. The whole visible part of the turning layer glows see-through blue while the

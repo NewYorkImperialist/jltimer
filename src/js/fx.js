@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // jlTimer move effects: visual flourishes on the virtual cube when a layer turns.
@@ -32,7 +33,8 @@ var jlFx = execMain(function() {
 	var effects = [];
 	var isReady = false;
 	var overlay = $('<canvas class="jlfx">');
-	var ctx = overlay[0].getContext('2d');
+	var overlayEl = /** @type {HTMLCanvasElement} */ (overlay[0]);
+	var ctx = overlayEl.getContext('2d');
 	var host = null; // the virtual cube's container div
 	var puzzle = null;
 	var anims = [];
@@ -187,7 +189,7 @@ var jlFx = execMain(function() {
 			return [n[0] * s + e1[0] * u + e2[0] * v, n[1] * s + e1[1] * u + e2[1] * v, n[2] * s + e1[2] * u + e2[2] * v];
 		}
 		var strips = [];
-		[[e1, 1], [e2, 1], [e1, -1], [e2, -1]].forEach(function(side) {
+		[[e1, 1], [e2, 1], [e1, -1], [e2, -1]].forEach(/** @param {Array<*>} side */ function(side) {
 			var nv = [side[0][0] * side[1], side[0][1] * side[1], side[0][2] * side[1]];
 			var other = side[0] === e1 ? e2 : e1;
 			var fc = FACE_OF_AXIS[nv.join(',')];
@@ -283,7 +285,7 @@ var jlFx = execMain(function() {
 				return project(world(q[0], q[1], q[2]));
 			}), visible: vis, side: side, outer: outer };
 		}
-		var faces = [];
+		var faces = /** @type {*} */ ([]); // an array with .moving and .angle
 		var h = 0.5;
 		// four side faces
 		[[1, 0], [0, 1], [-1, 0], [0, -1]].forEach(function(d) {
@@ -330,9 +332,9 @@ var jlFx = execMain(function() {
 		H = Math.round(r.height + 2 * my);
 		cubeOffset = { x: mx, y: my };
 		var dpr = window.devicePixelRatio || 1;
-		if (overlay[0].width != Math.round(W * dpr) || overlay[0].height != Math.round(H * dpr)) {
-			overlay[0].width = Math.round(W * dpr);
-			overlay[0].height = Math.round(H * dpr);
+		if (overlayEl.width != Math.round(W * dpr) || overlayEl.height != Math.round(H * dpr)) {
+			overlayEl.width = Math.round(W * dpr);
+			overlayEl.height = Math.round(H * dpr);
 		}
 		overlay.css({ left: (r.left - hr.left - mx) + 'px', top: (r.top - hr.top - my) + 'px', width: W + 'px', height: H + 'px' });
 		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

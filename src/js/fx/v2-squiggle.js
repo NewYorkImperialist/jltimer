@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer highlight (v2): Squiggle Trail. Closest to chess.com's move animation: the zone the stickers left and the
@@ -95,6 +96,7 @@
 	function neon(ctx, pts, from, to, a, scale) {
 		ctx.lineCap = 'round';
 		ctx.lineJoin = 'round';
+		/** @type {Array<[number, string, number]>} */
 		var layers = [[15, 'rgba(0, 100, 230, ', 0.2], [9, 'rgba(0, 190, 255, ', 0.45], [5, 'rgba(90, 230, 255, ', 0.85],
 			[2.2, 'rgba(255, 255, 255, ', 1]];
 		for (var i = 0; i < layers.length; i++) {

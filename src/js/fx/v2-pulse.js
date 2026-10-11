@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer highlight (v2): Neon Pulse. The visible outline of the turning slab (strip rims plus the cap outline) lights

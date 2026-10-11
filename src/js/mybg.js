@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // jlTimer "Your images": the user's own pictures as enhanced themes, at full strength, with matching colors.
@@ -21,6 +22,7 @@ var jlBgImages = execMain(function() {
 
 	var supported = !!((window.indexedDB || window.webkitIndexedDB) && window.Blob && window.URL && URL.createObjectURL &&
 		document.createElement('canvas').getContext);
+	/** @type {Array<BgEntry>} */
 	var list = null; // entries once loaded from IndexedDB
 	var loading = null;
 	var urls = {}; // id -> object URL of the picture
@@ -243,10 +245,11 @@ var jlBgImages = execMain(function() {
 	}
 
 	// lowest panel opacity that keeps font and link color at 4.5:1 over every big area of the (dimmed) picture
+	/** @param {BgEntry} e @param {Array<Array<number>>} cols @return {{alpha: number, contrast: number}} */
 	function panelInfo(e, cols) {
 		var font = cols[0], board = cols[2], link = cols[4];
-		var sh = shadeOf(e.dim);
-		var areas = (e.clusters || []).filter(function(c) {
+		var sh = shadeOf(e['dim']);
+		var areas = (e['clusters'] || []).filter(function(c) {
 			return c[3] >= 0.02;
 		}).map(function(c) {
 			return mix(sh[0], c, sh[1]);
@@ -266,6 +269,7 @@ var jlBgImages = execMain(function() {
 		return { alpha: a, contrast: Math.round(worstAt(a) * 100) / 100 };
 	}
 
+	/** @param {BgEntry} e @return {string} */
 	function genCss(e) {
 		var c = currentColors();
 		var font = c[0], back = c[1], board = c[2], button = c[3], link = c[4];
@@ -291,6 +295,7 @@ var jlBgImages = execMain(function() {
 	}
 
 	// ---------- storage ----------
+	/** @return {Promise<Array<BgEntry>>} */
 	function load() {
 		if (!loading) {
 			loading = supported ? storage.getKey(META_KEY).then(function(meta) {
@@ -317,6 +322,7 @@ var jlBgImages = execMain(function() {
 		saveTimer = setTimeout(saveMeta, 400);
 	}
 
+	/** @param {string} id @return {BgEntry} */
 	function find(id) {
 		for (var i = 0; list && i < list.length; i++) {
 			if (list[i]['id'] == id) {
@@ -349,6 +355,7 @@ var jlBgImages = execMain(function() {
 	}
 
 	// fit, focal point, blur and dim on a background box; scale shrinks blur and tile size for the small preview
+	/** @param {JQuery} box @param {BgEntry} e @param {number} scale */
 	function layout(box, e, scale) {
 		var blur = e['blur'] * scale;
 		var pad = blur ? -Math.ceil(blur * 2) + 'px' : '0';
@@ -373,6 +380,7 @@ var jlBgImages = execMain(function() {
 		}
 	}
 
+	/** @param {BgEntry} e */
 	function show(e) {
 		var html = $('html');
 		html.addClass('jlt-on jlt-img');
@@ -643,6 +651,7 @@ var jlBgImages = execMain(function() {
 		return div;
 	}
 
+	/** @param {BgEntry} e */
 	function tileFor(e) {
 		var cols = e['palette'].match(/#[0-9a-fA-F]{3}/g);
 		var tile = $('<div class="jltheme-tile jlbg-tile click" role="button" tabindex="0">').attr({
@@ -788,6 +797,7 @@ var jlBgImages = execMain(function() {
 	}
 
 	// an adjustment changed: preview, page background (if this is the theme on now), save soon
+	/** @param {BgEntry} e */
 	function adjusted(e) {
 		syncEditor();
 		if (activeId == e['id']) {
@@ -882,7 +892,7 @@ var jlBgImages = execMain(function() {
 		});
 		doc.on('drop', '.jlbg-mine', function(ev) {
 			ev.preventDefault();
-			var dt = (ev.originalEvent || ev).dataTransfer;
+			var dt = /** @type {DragEvent} */ (ev.originalEvent || ev).dataTransfer;
 			addFiles(dt ? Array.prototype.slice.call(dt.files || []) : [], $(this));
 		});
 		doc.on('paste', function(ev) {

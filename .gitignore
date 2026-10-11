@@ -2,3 +2,4 @@
 /.idea
 cstimer.iml
 /npm_export/cstimer_module.js
+/node_modules

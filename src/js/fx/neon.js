@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Neon Trail: a synthwave light-cycle streak races around the outline of the turning face in the turn
@@ -15,7 +16,7 @@
 			for (var i = 0; i < els.length; i++) {
 				var m = /(\d+)\D+(\d+)\D+(\d+)(?:\D+([\d.]+))?/.exec(getComputedStyle(els[i]).backgroundColor);
 				if (m && m[4] !== '0') {
-					light = 0.3 * m[1] + 0.59 * m[2] + 0.11 * m[3] > 140;
+					light = 0.3 * +m[1] + 0.59 * +m[2] + 0.11 * +m[3] > 140;
 					return;
 				}
 			}

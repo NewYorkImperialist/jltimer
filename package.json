@@ -1,0 +1,12 @@
+{
+  "name": "jltimer",
+  "private": true,
+  "description": "jlTimer dev tooling (type checking only; the build is the Makefile)",
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/jquery": "^1.10.45",
+    "typescript": "^7.0.2"
+  }
+}

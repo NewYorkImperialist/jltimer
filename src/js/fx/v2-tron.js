@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer highlight (v2): retro Tron. Two neon light-blue lightcycles race along both rims of the turning layer

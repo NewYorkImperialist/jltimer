@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2020"
+    ],
+    "types": [
+      "jquery"
+    ],
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true
+  },
+  "files": [
+    "types/globals.d.ts",
+    "types/jltimer.d.ts",
+    "src/js/stats/algstat.js",
+    "src/js/stats/collstat.js",
+    "src/js/stats/dashboard.js",
+    "src/js/tools/algtrainer.js",
+    "src/js/cloud.js",
+    "src/js/mybg.js",
+    "src/js/themes.js",
+    "src/js/fx.js"
+  ],
+  "include": [
+    "src/js/fx/*.js"
+  ]
+}

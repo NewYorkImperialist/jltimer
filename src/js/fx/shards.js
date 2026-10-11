@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Crystal Shards: glassy triangular shards in the sticker color burst off the turning face's silhouette edge,

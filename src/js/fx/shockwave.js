@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Shockwave: when a layer lands, a crisp outline of the face's quad (in perspective) pulses outward
