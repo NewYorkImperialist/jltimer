@@ -1750,6 +1750,12 @@ html.jlt-on {
 	background-repeat: no-repeat;
 }
 
+/* About and Options: the right column takes the room that is left instead of growing with its content
+   (on phones a long line made the table wider than the dialog and cut off its right side) */
+td.tabValue {
+	max-width: 0;
+}
+
 /* About: room after the last section, so every tab (Enhanced themes too) can scroll to the top */
 td.tabValue > div.helptable::after {
 	content: "";
@@ -1808,6 +1814,263 @@ html.jlt-on .popup {
 	padding: 0.1em 0.5em;
 	border-radius: 0.3em;
 	font-size: 0.9em;
+}
+
+/* jlTimer "Your images" (js/mybg.js): the user's picture on a fixed layer behind the page, so blur stays on that layer */
+#jlbg {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: -1;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+#jlbg > div,
+.jlbg-prev > div {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.jltheme-sub {
+	font-weight: bold;
+	margin: 0.6em 0 0.1em;
+}
+
+.jlbg-label {
+	margin-bottom: 0.2em;
+}
+
+.jlbg-mine {
+	border-radius: 0.6em;
+	outline: 0.15em dashed transparent;
+	outline-offset: 0.2em;
+}
+
+.jlbg-mine.jlbg-drop {
+	outline-color: currentColor;
+}
+
+.jlbg-mine[data-where="opt"] {
+	margin: 0.3em 0;
+}
+
+.jlbg-mine[data-where="opt"] .jltheme-gallery {
+	gap: 0.5em;
+}
+
+.jlbg-mine[data-where="opt"] .jltheme-tile {
+	width: 8em;
+	height: 5em;
+}
+
+.jlbg-mine[data-where="opt"] .jltheme-name {
+	font-size: 0.8em;
+	max-width: 70%;
+}
+
+.jlbg-tile .jltheme-name {
+	max-width: calc(100% - 4.5em);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.jlbg-tile.editing {
+	outline-style: dashed;
+	outline-color: currentColor;
+}
+
+.jlbg-tile.active.editing {
+	outline-style: solid;
+}
+
+.jltheme-tile .jlbg-edit {
+	position: absolute;
+	right: 0.4em;
+	bottom: 0.5em;
+	padding: 0.1em 0.5em;
+	border-radius: 0.3em;
+	font-size: 0.85em;
+	color: #fff;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+html:not(.m) .jltheme-tile .jlbg-edit.click:hover {
+	background-color: rgba(0, 0, 0, 0.7);
+}
+
+.jlbg-add {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	border: 0.15em dashed;
+	opacity: 0.75;
+	box-shadow: none;
+	background-color: rgba(128, 128, 128, 0.08);
+}
+
+.jlbg-add.jlbg-full {
+	opacity: 0.4;
+}
+
+/* visually hidden but still a real file input inside the label, so mobile Safari opens its picker */
+.jlbg-add input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.jlbg-note {
+	font-size: 0.85em;
+	opacity: 0.75;
+	margin-top: 0.2em;
+}
+
+.jlbg-msg {
+	font-weight: bold;
+}
+
+.jlbg-msg:empty {
+	display: none;
+}
+
+.jlbg-ed {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6em 1em;
+	margin: 0.5em 0;
+	padding: 0.6em;
+	border-radius: 0.6em;
+	background-color: rgba(128, 128, 128, 0.1);
+	text-align: left;
+}
+
+.jlbg-prev {
+	position: relative;
+	flex: 0 0 auto;
+	width: 16em;
+	max-width: 100%;
+	align-self: flex-start;
+	aspect-ratio: 16 / 10;
+	overflow: hidden;
+	border-radius: 0.4em;
+	box-shadow: 0 0.1em 0.5em rgba(0, 0, 0, 0.3);
+	cursor: crosshair;
+	touch-action: none;
+}
+
+.jlbg-prev > .jlbg-dot {
+	right: auto;
+	bottom: auto;
+	width: 0.9em;
+	height: 0.9em;
+	margin: -0.6em 0 0 -0.6em;
+	border: 0.15em solid #fff;
+	border-radius: 50%;
+	box-shadow: 0 0 0 0.1em rgba(0, 0, 0, 0.6);
+	pointer-events: none;
+}
+
+.jlbg-ctl {
+	flex: 1 1 15em;
+	min-width: 0;
+}
+
+.jlbg-row,
+.jlbg-range {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.3em 0.5em;
+	margin: 0.25em 0;
+}
+
+.jlbg-rl {
+	min-width: 6.5em;
+}
+
+/* phones: labels on their own line above each control */
+html.m .jlbg-rl {
+	width: 100%;
+	min-width: 0;
+}
+
+html.m .jlbg-rv {
+	min-width: 4.5em;
+}
+
+.jlbg-row input[type="text"] {
+	flex: 1 1 8em;
+	min-width: 0;
+}
+
+.jlbg-range input {
+	flex: 1 1 6em;
+	min-width: 0;
+	margin: 0;
+}
+
+.jlbg-rv {
+	min-width: 5.5em;
+	font-size: 0.9em;
+}
+
+.jlbg-grid {
+	display: inline-grid;
+	grid-template-columns: repeat(3, 1.5em);
+	gap: 0.15em;
+}
+
+.jlbg-grid input[type="button"] {
+	width: 1.5em;
+	height: 1.1em;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+}
+
+/* the chosen fit and focus: a ring in the text color, works with every palette */
+.jlbg-ed input[type="button"].jlbg-on {
+	box-shadow: inset 0 0 0 0.15em currentColor;
+	font-weight: bold;
+}
+
+.jlbg-grid input[type="button"].jlbg-on {
+	background-image: radial-gradient(circle, currentColor 0.18em, transparent 0.22em) !important;
+}
+
+.jlbg-hint {
+	font-size: 0.85em;
+	opacity: 0.75;
+}
+
+.jlbg-sw i {
+	display: inline-block;
+	width: 1.1em;
+	height: 1.1em;
+	margin-right: 0.15em;
+	vertical-align: middle;
+	border-radius: 0.2em;
+	box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.6);
+}
+
+.jlbg-btns {
+	justify-content: flex-end;
+}
+
+.jlbg-btns .jlbg-del {
+	margin-right: auto;
 }
 
 /* move effects overlay (js/fx.js): drawn above the virtual cube, never catches input */

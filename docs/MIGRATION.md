@@ -14,7 +14,7 @@ The supported path is csTimer's own **file export/import**. jlTimer kept that fo
 
 Before anything changes, jlTimer downloads your current data as `jltimer_backup_before_import_YYYYMMDD_HHMMSS.txt`, in the normal export format (skipped when you have no solves yet). It also keeps a copy for **Undo import** until you reload the page.
 
-- **Replace all** is csTimer's import. `loadData` (`src/js/export.js`) clears `localStorage`, keeping the login and account keys (`wcaData`, `gglData`, `locData`, `devData`), and writes the file's `properties`. Then `storage.importAll` (`src/js/lib/storage.js`) clears the IndexedDB `sessions` store and writes the file's sessions. jlTimer keeps an uploaded background image across the import; csTimer drops it.
+- **Replace all** is csTimer's import. `loadData` (`src/js/export.js`) clears `localStorage`, keeping the login and account keys (`wcaData`, `gglData`, `locData`, `devData`), and writes the file's `properties`. Then `storage.importAll` (`src/js/lib/storage.js`) deletes the solve keys (`session_…`) in the IndexedDB `sessions` store and writes the file's sessions. csTimer clears the whole store; jlTimer keeps its other keys, so an uploaded background image and your pictures (Your images) survive the import.
 - **Merge** keeps everything you have and adds the file's solves. File session N goes into your session N when both exist and have the **same name**. Otherwise it is added as a new session after your last one, with its own name and options. In a matched session, a file solve is skipped when a solve with the same timestamp, raw time and scramble already exists, so a solve whose penalty or comment you changed is not duplicated, and your copy wins. Added solves are sorted into the session by timestamp. Your settings and session options stay; only fields your session entry lacks are taken from the file. csTimer has no fixed session limit (`sessionN` just grows), so merge adds one new session per unmatched non-empty file session and no more.
 - After the reload, an **integrity check** recounts the solves per session in storage and compares them with what the import meant to write. It shows a one-line result, and if anything differs it offers Undo import.
 
@@ -68,6 +68,24 @@ jlTimer adds a few settings to the same `properties` object: `jlLayout`, `vrcSiz
 Minimal layout hides the time list and tools through their normal button states. On csTimer, click those buttons to show the panels again.
 
 Colors from csTimer: jlTimer's default colors are csTimer's own defaults (style1), so whatever scheme you used imports unchanged.
+
+## Your images
+
+The pictures added under **Your images** (About → Enhanced themes, Options → color) live only in this browser's IndexedDB, in the same `sessions` object store as the solves but under their own keys:
+
+| Key | Value |
+|---|---|
+| `jlBgMeta` | `{v: 1, list: [...]}`: per picture, in gallery order: `id`, `name`, `w`/`h`, `bytes`, `palette` (8 colors, csTimer's `#rgb` format), `clusters` (the picture's main colors and their shares), `fit`, `pos` (focus, % x/y), `blur`, `dim`, `added` |
+| `jlBg:<id>` | the picture (Blob) |
+| `jlBg:<id>:t` | its thumbnail (Blob) |
+
+The chosen picture is the ordinary `jlTheme` setting with the value `img-<id>`, and its colors are ordinary `col-*` values.
+
+**Export**: pictures are **not** in the export file. They are large (up to a few MB each, more as base64), csTimer would load them into `localStorage` with the settings and could run out of space there, and the file stays csTimer's format. The file carries `jlTheme: "img-<id>"` and the picture's colors: csTimer ignores `jlTheme` and keeps the colors; jlTimer on a browser without that picture falls back to Sakura (with Sakura's colors) when it loads.
+
+**Import**: Replace all, Merge, undo and cloud restore all keep your pictures, because `importAll` replaces only the `session_…` keys. Replace all takes the file's `jlTheme`: the same picture stays on when the file came from this browser; a csTimer file (no `jlTheme`) switches to the default Sakura theme, and the pictures stay in the gallery.
+
+To move pictures to another browser, add the image files there again.
 
 ## Notes
 

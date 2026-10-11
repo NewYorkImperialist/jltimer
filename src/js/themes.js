@@ -10,12 +10,15 @@
 //   css        optional extra CSS; scope every rule with html.jlt-<id>
 //   timer      optional timer colors '#f00#0d0#dd0#080#f00' (col-timer)
 // Choosing a theme saves its palette as ordinary manual colors, so exports stay csTimer-compatible.
+// The user's own pictures ("Your images", js/mybg.js) plug in through setImages(): their ids are 'img-<id>'.
 var jlThemes = execMain(function() {
 	var themes = [];
 	var isReady = false;
 	var styleTag = $('<style id="jltheme-style">');
 	var gallery = $('<div class="jltheme-gallery">');
 	var COLOR_PROPS = ['col-font', 'col-back', 'col-board', 'col-button', 'col-link', 'col-logo', 'col-logoback', 'col-pbs'];
+	var images = null; // js/mybg.js: {options(), apply(id, signalType), section()}
+	var pendingModify = null; // a built-in theme chosen (e.g. as fallback) before its file registered
 
 	function find(id) {
 		for (var i = 0; i < themes.length; i++) {
@@ -44,16 +47,24 @@ var jlThemes = execMain(function() {
 			regThemeProp();
 			addTile(t);
 			if (kernel.getProp('jlTheme') == t.id) {
-				apply(t.id, 'set');
+				apply(t.id, pendingModify == t.id ? 'modify' : 'set');
 			}
 		}
 		return true;
 	}
 
 	function regThemeProp() {
+		var extra = images ? images.options() : [[], []];
 		kernel.regProp('color', 'jlTheme', 1, 'Enhanced theme', ['sakura',
-			['none'].concat(themes.map(function(t) { return t.id; })),
-			['None'].concat(themes.map(function(t) { return t.name; }))]);
+			['none'].concat(themes.map(function(t) { return t.id; }), extra[0]),
+			['None'].concat(themes.map(function(t) { return t.name; }), extra[1])]);
+	}
+
+	function setColors(palette) {
+		var cols = palette.match(/#[0-9a-fA-F]{3}/g);
+		for (var i = 0; i < cols.length; i++) {
+			kernel.setProp(COLOR_PROPS[i], $.nearColor(cols[i], 0, true));
+		}
 	}
 
 	function apply(id, signalType) {
@@ -61,10 +72,14 @@ var jlThemes = execMain(function() {
 		themes.forEach(function(t) {
 			html.removeClass('jlt-' + t.id);
 		});
-		html.removeClass('jlt-on');
+		html.removeClass('jlt-on jlt-img');
 		var t = find(id);
 		styleTag.text('');
 		gallery.children().removeClass('active');
+		pendingModify = !t && signalType == 'modify' ? id : null;
+		if (images) {
+			images.apply(id, signalType); // shows the picture for 'img-<id>', hides it otherwise
+		}
 		if (!t) {
 			return;
 		}
@@ -72,10 +87,7 @@ var jlThemes = execMain(function() {
 		styleTag.text('html.jlt-on.jlt-' + t.id + '{background-image:' + backgroundCss(t) + ' !important}' + (t.css || ''));
 		gallery.children('[data-id="' + t.id + '"]').addClass('active');
 		if (signalType == 'modify') { // chosen by the user: take over the theme's colors
-			var cols = t.palette.match(/#[0-9a-fA-F]{3}/g);
-			for (var i = 0; i < cols.length; i++) {
-				kernel.setProp(COLOR_PROPS[i], $.nearColor(cols[i], 0, true));
-			}
+			setColors(t.palette);
 			if (t.timer) {
 				kernel.setProp('col-timer', t.timer);
 			}
@@ -107,7 +119,8 @@ var jlThemes = execMain(function() {
 			return $(this).find('a.click[href^="#"]').length > 5;
 		}).first();
 		var section = [$('<h2>').text('Enhanced themes'),
-			$('<div>').append('<p>Artwork backgrounds with matching colors. Click one to use it; Options → color → Enhanced theme → None turns it off.</p>', gallery)];
+			$('<div>').append('<p>Artwork backgrounds with matching colors. Click one to use it; Options → color → Enhanced theme → None turns it off.</p>',
+				images ? images.section('about') : '', images ? $('<div class="jltheme-sub">').text('Built-in themes') : '', gallery)];
 		if (schemes.length) {
 			schemes.after(section);
 		} else {
@@ -121,6 +134,18 @@ var jlThemes = execMain(function() {
 		list: function() {
 			return themes.slice();
 		},
-		apply: apply
+		apply: apply,
+		setColors: setColors,
+		refresh: function() { // the list of the user's images changed
+			if (isReady) {
+				regThemeProp();
+			}
+		},
+		setImages: function(api) {
+			images = api;
+		},
+		styleTag: function() {
+			return styleTag;
+		}
 	};
 });
