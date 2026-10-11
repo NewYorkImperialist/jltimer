@@ -68,14 +68,43 @@ var jlPbFx = execMain(function() {
 	}
 
 	function onTimeStd(signal, solve) {
-		if (!solve || !solve[0] || solve[0][0] == -1 || document.hidden) {
-			return;
-		}
-		var hits = newBests();
+		var hits = !solve || !solve[0] || solve[0][0] == -1 || document.hidden ? [] : newBests();
+		releaseHints(hits.length == 0);
 		if (hits.length) { // after the timer has finished handling the stop (next scramble...)
 			setTimeout(function() {
 				play(hits[0]);
 			}, 0);
+		}
+	}
+
+	// csTimer scrolls "Session best single!" through the logo for the same solve: hold that hint back until the
+	// solve is checked, and drop it when the celebration plays (with the celebration off it shows as usual)
+	var hintPush = null;
+	var heldHints = [];
+
+	function hookHints() {
+		if (!window.logohint || typeof logohint.push != 'function' || typeof LGHINT_SSBEST != 'string') {
+			return;
+		}
+		var re = new RegExp('^' + LGHINT_SSBEST.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace('%s', '.*') + '$');
+		hintPush = logohint.push;
+		logohint.push = function(msg) {
+			if (setting() != 'n' && re.test(msg)) {
+				heldHints.push(msg);
+				setTimeout(function() { // in case no new solve follows (the checks run right after, in this task)
+					releaseHints(true);
+				}, 0);
+				return;
+			}
+			hintPush.apply(logohint, arguments);
+		};
+	}
+
+	function releaseHints(show) {
+		var list = heldHints;
+		heldHints = [];
+		for (var i = 0; show && i < list.length; i++) {
+			hintPush.call(logohint, list[i]);
 		}
 	}
 
@@ -177,12 +206,17 @@ var jlPbFx = execMain(function() {
 			g.closePath();
 		}
 		// soft drop shadow so the white blade reads on the pale sakura background
+		// (and a tight plum rim), so the silver separates from pink backgrounds and busy artwork
 		g.save();
-		g.shadowColor = 'rgba(90, 30, 55, 0.28)';
-		g.shadowBlur = 0.018 * L;
-		g.shadowOffsetY = 0.006 * L;
+		g.shadowColor = 'rgba(70, 20, 45, 0.42)';
+		g.shadowBlur = 0.016 * L;
+		g.shadowOffsetY = 0.005 * L;
 		bladePath();
 		g.fillStyle = '#ffffff';
+		g.fill();
+		g.shadowColor = 'rgba(60, 18, 40, 0.55)';
+		g.shadowBlur = 0.004 * L;
+		g.shadowOffsetY = 0;
 		g.fill();
 		g.restore();
 		// spine side (shinogi-ji) in cool silver, bounded by a soft wavy hamon
@@ -229,8 +263,8 @@ var jlPbFx = execMain(function() {
 		g.stroke();
 		g.restore();
 		bladePath();
-		g.lineWidth = 0.0018;
-		g.strokeStyle = 'rgba(120, 96, 120, 0.55)';
+		g.lineWidth = 0.0024;
+		g.strokeStyle = 'rgba(85, 34, 51, 0.72)';
 		g.stroke();
 		// habaki (gold collar)
 		var gold = g.createLinearGradient(0.13, -0.03, 0.13, 0.03);
@@ -324,8 +358,8 @@ var jlPbFx = execMain(function() {
 			P: P,
 			katana: reduced ? null : katanaSprite(L * DPR),
 			petals: [petalSprite(ps, false, 0), petalSprite(ps, true, 0), petalSprite(Math.round(ps * 0.8), false, 0)],
-			bokeh: bokehSprite(Math.round(ps * 2.2)),
-			halves: [petalSprite(Math.round(ps * 1.25), true, 1), petalSprite(Math.round(ps * 1.25), true, 2)]
+			bokeh: bokehSprite(Math.round(ps * 2.6)),
+			halves: [petalSprite(Math.round(ps * 2.2), true, 1), petalSprite(Math.round(ps * 2.2), true, 2)]
 		};
 		return sprites;
 	}
@@ -391,40 +425,33 @@ var jlPbFx = execMain(function() {
 		return a + Math.random() * (b - a);
 	}
 
-	// timeline (ms): appear + wind-up with a glint running up the blade, a beat of stillness, the swing (its tip
-	// crosses the timer at Tpass, leaving a faint tracer), then the cut "ignites" a moment later at Tig: bright
-	// slash line, flash, petals cut and thrown apart. The katana settles and fades; the petals drift down.
-	var T = { appear: 120, wind: 200, swing0: 230, swing1: 390, ignite: 450, kOut0: 640, kOut1: 940 };
+	// timeline (ms): the katana sweeps in from off screen with a glint running up the blade, swings hard through
+	// the timer (its blade leaves a faint tracer), and a beat later the cut ignites: a crisp full-width slash line,
+	// a quick flash and a short dim of the page around it, petals burst out of the cut. Then the katana dissolves
+	// into petals, the line thins away and the petals drift down while the title holds.
+	var T = { appear: 140, swing0: 190, swing1: 335, ignite: 375, kOut0: 600, kOut1: 860 };
+
+	// katana and petal sizes for this window: a hero katana (blade about 60 % of the window width)
+	function sizes() {
+		var L = clamp(Math.min(W * (W < 600 ? 0.98 : 0.86), H * 1.2, 1150), 300, 1150);
+		return { L: L, P: clamp(L * 0.022, 12, 26) };
+	}
 
 	function build(hit, preview) {
 		resize();
 		var box = preview ? { x: W / 2, y: H * 0.42, top: H * 0.42 - 40, bottom: H * 0.42 + 40, h: 80 } : timerBox();
-		var L = clamp(Math.min(W * 0.66, H * 0.6, 580), 210, 580);
-		var P = clamp(L * 0.05, 11, 22); // petal size
-		var tilt = -11 * Math.PI / 180;
+		var sz = sizes();
+		var L = sz.L, P = sz.P;
 		var R = 0.87 * L;
-		// the slash line runs through the timer digits (cx, cy)
+		var tilt = -11 * Math.PI / 180;
+		// the slash line runs through the timer digits (cx, cy); the blade crosses it near the middle of the window
 		var cx = box.x, cy = box.y;
-		// the blade crosses the line with its upper third (monouchi, CROSS of the way to the tip), so the whole
-		// katana stays close to the digits. The crossing point (qx, qy) is the point of the line nearest the digits
-		// that keeps the swing on screen (the side timer next to the virtual cube sits at the window's edge).
-		var CROSS = 0.64;
-		var place = function() {
-			R = 0.87 * L;
-			qx = clamp(cx, Math.min(W / 2, 0.9 * R), Math.max(W / 2, W - 0.85 * R));
-			qy = cy + Math.tan(tilt) * (qx - cx);
-		};
-		var qx = 0, qy = 0;
-		place();
-		var fit = (H - qy) / (CROSS * 0.87 + 0.16); // keep the hands on screen when the timer sits low
-		if (fit < L) {
-			L = Math.max(160, fit);
-			P = clamp(L * 0.05, 11, 22);
-			place();
-		}
+		var qx = W / 2 + (cx - W / 2) * 0.35;
+		var qy = cy + Math.tan(tilt) * (qx - cx);
+		var CROSS = 0.42; // the blade crosses the line halfway up (the hands stay low, often just off screen)
 		var dir = tilt - Math.PI / 2; // grip -> tip at the moment it crosses the line
 		var px = qx - Math.cos(dir) * R * CROSS, py = qy - Math.sin(dir) * R * CROSS;
-		var A0 = 80, A1 = 68; // degrees before / after the crossing
+		var A0 = 95, A1 = 28; // degrees before / after the crossing: from held low and back to upright (zanshin)
 		var a = {
 			hit: hit,
 			preview: preview,
@@ -434,25 +461,27 @@ var jlPbFx = execMain(function() {
 			a0: dir - A0 * Math.PI / 180,
 			a1: dir + A1 * Math.PI / 180,
 			tilt: tilt,
+			// the hands travel with the swing (from low left to a little higher right)
+			hand0: { x: -0.18 * R, y: 0.03 * R }, hand1: { x: 0.08 * R, y: Math.min(-0.1 * R, H - 0.14 * L - py) },
 			Tpass: 0, Tig: T.ignite,
+			k: clamp(L / 600, 0.7, 1.7),
 			petals: [],
 			box: box
 		};
-		// when the tip crosses the timer: solve swingEase(u) = A0 / (A0 + A1)
 		var target = A0 / (A0 + A1), lo = 0, hi = 1;
-		for (var k = 0; k < 24; k++) {
+		for (var it = 0; it < 24; it++) {
 			var mid = (lo + hi) / 2;
 			swingEase(mid) < target ? lo = mid : hi = mid;
 		}
 		a.Tpass = T.swing0 + (T.swing1 - T.swing0) * lo;
 		makeSprites(L, P);
 		var dx = Math.cos(tilt), dy = Math.sin(tilt), nx = -dy, ny = dx;
-		// the slash spans the window: s from sMin to sMax along the line through the timer
 		a.sMin = -(cx + 40) / Math.max(0.3, dx);
 		a.sMax = (W - cx + 40) / Math.max(0.3, dx);
-		var count = reduced ? 16 : W < 600 ? 30 : 46;
-		var sc = (qx - cx) / dx * 0.5; // the petals gather between the digits and the swing
-		var k2 = L / 400;
+		var k2 = clamp(L / 700, 0.55, 1.5);
+		var phone = W < 600;
+		var count = reduced ? 18 : phone ? 48 : 84;
+		var sc = (qx - cx) / dx * 0.5; // the burst gathers between the digits and the middle
 		for (var p = 0; p < count; p++) {
 			var pt = {};
 			var u0 = Math.random();
@@ -463,78 +492,70 @@ var jlPbFx = execMain(function() {
 				pt.vy = rnd(18, 34);
 				pt.born = rnd(0, 800);
 			} else {
-				// mostly near the timer, some all along the cut
-				var s = u0 < 0.62 ? sc + rnd(-0.5, 0.5) * L : rnd(a.sMin * 0.9, a.sMax * 0.9);
+				// dense around the timer, the rest all along the cut
+				var s = u0 < 0.55 ? sc + rnd(-0.5, 0.5) * Math.min(W * 0.8, L) : rnd(a.sMin * 0.95, a.sMax * 0.95);
 				pt.x = cx + dx * s;
 				pt.y = cy + dy * s;
 				var side = Math.random() < 0.5 ? -1 : 1;
 				// thrown out of the cut: across it on either side, and along it in the swing's direction
-				var sp = rnd(40, 250) * k2 * (u0 < 0.62 ? 1 : 0.6);
-				var along = rnd(40, 340) * k2;
+				var sp = rnd(90, 520) * k2;
+				var along = rnd(-40, 420) * k2;
 				pt.vx = nx * side * sp + dx * along;
-				pt.vy = ny * side * sp + dy * along - rnd(0, 50) * k2;
+				pt.vy = ny * side * sp + dy * along - rnd(0, 60) * k2;
 				var f = (s - a.sMin) / (a.sMax - a.sMin);
-				pt.born = T.ignite - 15 + f * 70 + rnd(0, 30);
+				pt.born = T.ignite + f * 24 + rnd(0, 30);
 			}
 			pt.rot = rnd(0, Math.PI * 2);
-			pt.spin = rnd(-3.2, 3.2);
+			pt.spin = rnd(-4, 4);
 			pt.flip = rnd(0, Math.PI * 2);
-			pt.flipW = rnd(2.5, 6.5);
+			pt.flipW = rnd(2.5, 7);
 			pt.sway = rnd(0, Math.PI * 2);
 			pt.swayW = rnd(1.4, 3);
-			pt.swayA = rnd(8, 24) * k2;
-			// one in eight is "close to the camera": bigger, softly blurred
-			pt.near = !reduced && p % 8 == 7;
+			pt.swayA = rnd(10, 28) * k2;
+			// one in seven is "close to the camera": bigger, softly blurred
+			pt.near = !reduced && p % 7 == 6;
 			pt.spr = pt.near ? sprites.bokeh : sprites.petals[p % 3];
 			pt.life = reduced ? rnd(1700, 2200) : rnd(1500, 2050);
 			a.petals.push(pt);
 		}
-		if (!reduced) { // a few petals cut clean in two right on the line, halves drifting apart
-			for (var hc = 0; hc < (W < 600 ? 3 : 5); hc++) {
-				var hs = sc + (hc / ((W < 600 ? 3 : 5) - 1) - 0.5) * 0.9 * L + rnd(-0.06, 0.06) * L;
+		if (!reduced) {
+			// large petals cut clean in two right on the line, the halves pushed apart and turning away
+			var nh = phone ? 4 : 6;
+			for (var hc = 0; hc < nh; hc++) {
+				var hs = sc + (hc / (nh - 1) - 0.5) * Math.min(W * 0.75, 0.9 * L) + rnd(-0.04, 0.04) * L;
 				var hx = cx + dx * hs, hy = cy + dy * hs;
 				var hf = (hs - a.sMin) / (a.sMax - a.sMin);
-				var hrot = tilt + Math.PI / 2 + rnd(-0.15, 0.15); // petal axis along the cut
-				var hsp = rnd(26, 46) * k2;
+				var hrot = tilt + Math.PI / 2 + rnd(-0.12, 0.12); // petal axis along the cut
+				var hsp = rnd(70, 120) * k2;
 				for (var side2 = 1; side2 <= 2; side2++) {
 					var sg = side2 == 1 ? -1 : 1;
 					a.petals.push({
 						x: hx, y: hy,
-						vx: nx * sg * hsp + dx * 30 * k2, vy: ny * sg * hsp + dy * 30 * k2,
-						born: T.ignite - 15 + hf * 70,
-						rot: hrot, spin: sg * rnd(0.5, 1.3),
-						flip: 0, flipW: 0, sway: rnd(0, 6), swayW: 2, swayA: 5 * k2,
+						vx: nx * sg * hsp + dx * 50 * k2, vy: ny * sg * hsp + dy * 50 * k2,
+						born: T.ignite + hf * 24,
+						rot: hrot, spin: sg * rnd(1, 2),
+						flip: 0, flipW: 0, sway: rnd(0, 6), swayW: 2, swayA: 6 * k2,
 						spr: sprites.halves[side2 - 1], half: true,
 						life: rnd(1700, 2100)
 					});
 				}
 			}
-		}
-		if (!reduced) { // the katana dissolves into a few petals as it fades
-			var ka1 = a.a1 + 0.05;
-			for (var dp = 0; dp < 9; dp++) {
+			// the katana dissolves into a few petals as it fades
+			for (var dp = 0; dp < (phone ? 8 : 12); dp++) {
 				var dd = R * rnd(0.22, 0.98);
+				var ka1 = a.a1 + 0.05;
 				a.petals.push({
-					x: px + Math.cos(ka1) * dd, y: py + Math.sin(ka1) * dd,
-					vx: rnd(-20, 30) * k2, vy: rnd(-30, 5) * k2,
-					born: T.kOut0 + rnd(0, T.kOut1 - T.kOut0 - 80),
+					x: px + a.hand1.x + Math.cos(ka1) * dd, y: py + a.hand1.y + Math.sin(ka1) * dd,
+					vx: rnd(-20, 40) * k2, vy: rnd(-40, 5) * k2,
+					born: T.kOut0 + rnd(0, T.kOut1 - T.kOut0 - 60),
 					rot: rnd(0, 6.3), spin: rnd(-2, 2), flip: rnd(0, 6.3), flipW: rnd(2, 5),
 					sway: rnd(0, 6.3), swayW: rnd(1.5, 2.5), swayA: rnd(8, 16) * k2,
 					spr: sprites.petals[dp % 3], life: rnd(1100, 1400)
 				});
 			}
 		}
+		a.k2 = k2;
 		return a;
-	}
-
-	function drawKatana(g, a, ang, alpha) {
-		var sp = sprites.katana;
-		g.save();
-		g.globalAlpha = alpha;
-		g.translate(a.px, a.py);
-		g.rotate(ang);
-		g.drawImage(sp.c, -sp.ox / DPR, -sp.oy / DPR, sp.c.width / DPR, sp.c.height / DPR);
-		g.restore();
 	}
 
 	// the swing: accelerates hard, passes the timer at full speed, brakes quickly
@@ -543,131 +564,171 @@ var jlPbFx = execMain(function() {
 		return x < 0.55 ? 0.55 * Math.pow(x / 0.55, 3) : 1 - 0.45 * Math.pow(1 - (x - 0.55) / 0.45, 2.2);
 	}
 
+	// progress of the swing 0..1 (with a little wind-up before and follow-through after)
+	function swingU(t) {
+		return t < T.swing0 ? 0 : t < T.swing1 ? swingEase((t - T.swing0) / (T.swing1 - T.swing0)) : 1;
+	}
+
 	function swingAngle(a, t) {
-		if (t < T.swing0) { // wind-up: draw back a little while it appears, then a beat of stillness
-			return a.a0 + 0.06 - 0.2 * easeOut(t / T.wind);
+		if (t < T.swing0) { // wind-up: draws back while it slides in
+			return a.a0 + 0.08 - 0.2 * easeOut(t / T.swing0);
 		}
 		if (t < T.swing1) {
-			return a.a0 - 0.14 + (a.a1 - a.a0 + 0.14) * swingEase((t - T.swing0) / (T.swing1 - T.swing0));
+			return a.a0 - 0.12 + (a.a1 - a.a0 + 0.12) * swingU(t);
 		}
-		return a.a1 + 0.06 * easeOut((t - T.swing1) / 500); // follow-through settles
+		return a.a1 + 0.05 * easeOut((t - T.swing1) / 500); // follow-through settles
+	}
+
+	// the hands: slide in from further down-left during the wind-up, then travel with the swing
+	function grip(a, t) {
+		var u = swingU(t);
+		var inU = t < T.swing0 ? 1 - easeOut(t / T.swing0) : 0;
+		return {
+			x: a.px + a.hand0.x + (a.hand1.x - a.hand0.x) * u - inU * 0.1 * a.R,
+			y: a.py + a.hand0.y + (a.hand1.y - a.hand0.y) * u + inU * 0.05 * a.R
+		};
+	}
+
+	function drawKatana(g, a, t, alpha) {
+		var sp = sprites.katana;
+		var h = grip(a, t);
+		g.save();
+		g.globalAlpha = alpha;
+		g.translate(h.x, h.y);
+		g.rotate(swingAngle(a, t));
+		g.drawImage(sp.c, -sp.ox / DPR, -sp.oy / DPR, sp.c.width / DPR, sp.c.height / DPR);
+		g.restore();
 	}
 
 	// the crescent of air the blade sweeps, bright at the blade and fading behind it
 	function drawSmear(g, a, t) {
-		if (t < T.swing0 || t > T.swing1 + 120) {
+		if (t < T.swing0 || t > T.swing1 + 110) {
 			return;
 		}
-		var lead = swingAngle(a, Math.min(t, T.swing1)), trail = Math.max(lead - 1.0, swingAngle(a, Math.max(T.swing0, t - 70)));
+		var tl = Math.min(t, T.swing1);
+		var lead = swingAngle(a, tl), trail = Math.max(lead - 1.1, swingAngle(a, Math.max(T.swing0, t - 65)));
 		if (t > T.swing1) { // the trail catches up with the blade once it stops
-			trail = trail + (lead - trail) * easeOut((t - T.swing1) / 120);
+			trail = trail + (lead - trail) * easeOut((t - T.swing1) / 110);
 		}
 		if (lead - trail < 0.01) {
 			return;
 		}
-		var R = a.R;
-		var gr = g.createRadialGradient(a.px, a.py, R * 0.3, a.px, a.py, R * 1.05);
+		var h = grip(a, tl), R = a.R;
+		var gr = g.createRadialGradient(h.x, h.y, R * 0.25, h.x, h.y, R * 1.04);
 		gr.addColorStop(0, 'rgba(255, 200, 220, 0)');
-		gr.addColorStop(0.5, 'rgba(250, 190, 212, 0.16)');
-		gr.addColorStop(0.86, 'rgba(255, 238, 245, 0.7)');
-		gr.addColorStop(0.95, 'rgba(255, 255, 255, 0.95)');
-		gr.addColorStop(0.985, 'rgba(255, 196, 218, 0.6)');
-		gr.addColorStop(1, 'rgba(255, 190, 214, 0)');
+		gr.addColorStop(0.45, 'rgba(250, 186, 210, 0.2)');
+		gr.addColorStop(0.85, 'rgba(255, 240, 246, 0.75)');
+		gr.addColorStop(0.95, 'rgba(255, 255, 255, 1)');
+		gr.addColorStop(0.985, 'rgba(255, 190, 214, 0.6)');
+		gr.addColorStop(1, 'rgba(255, 180, 210, 0)');
 		g.fillStyle = gr;
 		var N = 12;
 		for (var k = 0; k < N; k++) {
 			var b0 = trail + (lead - trail) * k / N, b1 = trail + (lead - trail) * (k + 1) / N + 0.004;
 			g.globalAlpha = Math.pow((k + 1) / N, 1.5);
 			g.beginPath();
-			g.arc(a.px, a.py, R * 1.05, b0, b1);
-			g.arc(a.px, a.py, R * 0.3, b1, b0, true);
+			g.arc(h.x, h.y, R * 1.04, b0, b1);
+			g.arc(h.x, h.y, R * 0.25, b1, b0, true);
 			g.closePath();
 			g.fill();
 		}
 		g.globalAlpha = 1;
 	}
 
-	// the slash: a tapered lens of light along the line, traced by the tip, then igniting
-	function drawSlash(g, a, t) {
+	// a tapered lens along the slash line, from s0 to s1, half-width wMax, shifted off across the line
+	function lens(g, a, s0, s1, wMax, off) {
 		var dx = Math.cos(a.tilt), dy = Math.sin(a.tilt), nx = -dy, ny = dx;
-		var k = a.L / 400;
-		var lens = function(s0, s1, wMax, off) {
-			g.beginPath();
-			var N = 28;
-			for (var i = 0; i <= N; i++) {
-				var u = i / N, s = s0 + (s1 - s0) * u;
-				var w = wMax * Math.pow(Math.sin(Math.PI * u), 0.55);
-				var x = a.cx + dx * s + nx * (w + off), y = a.cy + dy * s + ny * (w + off);
-				i ? g.lineTo(x, y) : g.moveTo(x, y);
-			}
-			for (var j = N; j >= 0; j--) {
-				var u2 = j / N, s2 = s0 + (s1 - s0) * u2;
-				var w2 = wMax * Math.pow(Math.sin(Math.PI * u2), 0.55);
-				g.lineTo(a.cx + dx * s2 - nx * (w2 - off), a.cy + dy * s2 - ny * (w2 - off));
-			}
-			g.closePath();
-		};
-		// tracer: a hairline the tip leaves as it passes, before the cut lights up
-		var tt = t - (a.Tpass - 35);
-		if (tt > 0 && t < a.Tig + 40) {
-			var rv = easeOut(tt / 80);
-			var ta = t < a.Tig ? 0.55 : 0.55 * (1 - (t - a.Tig) / 40);
-			g.globalAlpha = ta;
+		g.beginPath();
+		var N = 32;
+		for (var i = 0; i <= N; i++) {
+			var u = i / N, s = s0 + (s1 - s0) * u;
+			var w = wMax * Math.pow(Math.sin(Math.PI * u), 0.45);
+			var x = a.cx + dx * s + nx * (w + off), y = a.cy + dy * s + ny * (w + off);
+			i ? g.lineTo(x, y) : g.moveTo(x, y);
+		}
+		for (var j = N; j >= 0; j--) {
+			var u2 = j / N, s2 = s0 + (s1 - s0) * u2;
+			var w2 = wMax * Math.pow(Math.sin(Math.PI * u2), 0.45);
+			g.lineTo(a.cx + dx * s2 - nx * (w2 - off), a.cy + dy * s2 - ny * (w2 - off));
+		}
+		g.closePath();
+	}
+
+	function drawSlash(g, a, t) {
+		var k = a.k;
+		// tracer: a hairline left by the blade as it passes, before the cut lights up
+		var tt = t - (a.Tpass - 30);
+		if (tt > 0 && t < a.Tig + 30) {
+			var rv = easeOut(tt / 60);
+			g.globalAlpha = t < a.Tig ? 0.6 : 0.6 * (1 - (t - a.Tig) / 30);
 			g.fillStyle = '#ffffff';
-			lens(a.sMin * 0.75, a.sMin * 0.75 + (a.sMax * 0.75 - a.sMin * 0.75) * rv, 0.8 * k, 0);
+			lens(g, a, a.sMin * 0.8, a.sMin * 0.8 + (a.sMax - a.sMin) * 0.8 * rv, 0.9 * k, 0);
 			g.fill();
 		}
 		var ti = t - a.Tig;
 		if (ti < 0) {
 			return;
 		}
-		var reveal = easeOut(ti / 70);
-		var hold = a.Tig + 300, end = hold + 560;
+		var hold = a.Tig + 420, end = hold + 520;
 		var life = t < hold ? 1 : 1 - clamp((t - hold) / (end - hold), 0, 1);
 		if (life <= 0) {
 			return;
 		}
-		var s0 = a.sMin, s1 = a.sMin + (a.sMax - a.sMin) * reveal;
-		var punch = 1 + 0.9 * Math.max(0, 1 - ti / 160); // brighter and wider the instant it ignites
-		var thin = (0.3 + 0.7 * life) * punch;
-		g.globalAlpha = 0.22 * life;
-		g.fillStyle = '#ff8fb6';
-		lens(s0, s1, 12 * k * thin, 0);
+		// full width at once (two frames)
+		var s0 = a.sMin, s1 = a.sMin + (a.sMax - a.sMin) * easeOut(ti / 30);
+		var punch = 1 + 1.1 * Math.max(0, 1 - ti / 140); // brighter and wider the instant it ignites
+		var thin = (0.25 + 0.75 * life) * punch;
+		g.globalAlpha = 0.3 * life;
+		g.fillStyle = '#ff7eae';
+		lens(g, a, s0, s1, 15 * k * thin, 0);
 		g.fill();
-		g.globalAlpha = 0.5 * life;
-		g.fillStyle = '#ffe0ea';
-		lens(s0, s1, 4.4 * k * thin, 0);
+		g.globalAlpha = 0.6 * life;
+		g.fillStyle = '#ffd3e2';
+		lens(g, a, s0, s1, 6 * k * thin, 0);
 		g.fill();
-		g.globalAlpha = Math.min(1, 1.5 * life);
+		g.globalAlpha = Math.min(1, 1.6 * life);
 		g.fillStyle = '#ffffff';
-		lens(s0, s1, 1.6 * k * thin + 0.4, 0);
+		lens(g, a, s0, s1, 2.3 * k * thin + 0.5, 0);
 		g.fill();
 		// the air parting: two hairlines easing away from the cut
-		var part = clamp(ti / 760, 0, 1);
-		if (part > 0) {
-			var off = easeOut(part) * 18 * k;
-			g.globalAlpha = 0.5 * (1 - part) * life;
-			lens(s0, s1, 0.7 * k, off);
-			g.fill();
-			lens(s0, s1, 0.7 * k, -off);
-			g.fill();
-		}
+		var part = clamp(ti / 800, 0, 1);
+		var off = easeOut(part) * 22 * k;
+		g.globalAlpha = 0.55 * (1 - part) * life;
+		lens(g, a, s0, s1, 0.8 * k, off);
+		g.fill();
+		lens(g, a, s0, s1, 0.8 * k, -off);
+		g.fill();
 		g.globalAlpha = 1;
 	}
 
-	// the flash when the cut ignites: a soft bloom on the timer and a faint lift of the whole window
+	// the moment of the cut: the page dims around the timer for a moment (vignette), a quick screen-wide flash,
+	// and a soft bloom on the digits
 	function drawFlash(g, a, t) {
-		var f = (t - a.Tig) / 320;
-		if (f < 0 || f > 1) {
+		var ti = t - a.Tig;
+		if (ti < 0 || ti > 300) {
 			return;
 		}
+		var big = Math.max(W, H);
+		var dim = ti < 40 ? ti / 40 : 1 - easeOut((ti - 40) / 260);
+		if (dim > 0.01) {
+			var vg = g.createRadialGradient(a.cx, a.cy, big * 0.12, a.cx, a.cy, big * 0.8);
+			vg.addColorStop(0, 'rgba(36, 10, 24, 0)');
+			vg.addColorStop(0.5, 'rgba(36, 10, 24, ' + (0.22 * dim) + ')');
+			vg.addColorStop(1, 'rgba(36, 10, 24, ' + (0.42 * dim) + ')');
+			g.fillStyle = vg;
+			g.fillRect(0, 0, W, H);
+		}
+		if (ti < 90) {
+			var fl = 1 - ti / 90;
+			g.fillStyle = 'rgba(255, 248, 251, ' + (0.38 * fl * fl) + ')';
+			g.fillRect(0, 0, W, H);
+		}
+		var f = ti / 300;
+		var r = a.L * (0.25 + 0.3 * easeOut(f));
 		var e = 1 - easeOut(f);
-		g.fillStyle = 'rgba(255, 246, 250, ' + (0.16 * e * e) + ')';
-		g.fillRect(0, 0, W, H);
-		var r = a.L * (0.3 + 0.35 * easeOut(f));
 		var gr = g.createRadialGradient(a.cx, a.cy, 0, a.cx, a.cy, r);
-		gr.addColorStop(0, 'rgba(255, 255, 255, ' + (0.6 * e) + ')');
-		gr.addColorStop(0.4, 'rgba(255, 228, 238, ' + (0.25 * e) + ')');
+		gr.addColorStop(0, 'rgba(255, 255, 255, ' + (0.55 * e) + ')');
+		gr.addColorStop(0.4, 'rgba(255, 226, 238, ' + (0.22 * e) + ')');
 		gr.addColorStop(1, 'rgba(255, 220, 234, 0)');
 		g.fillStyle = gr;
 		g.fillRect(a.cx - r, a.cy - r, 2 * r, 2 * r);
@@ -697,46 +758,46 @@ var jlPbFx = execMain(function() {
 	}
 
 	function drawGlints(g, a, t) {
-		// running up the blade during the wind-up
-		var f = (t - 40) / 190;
+		var f = (t - 30) / 170; // running up the blade as it slides in
 		if (f > 0 && f < 1) {
-			var ang = swingAngle(a, t), d = a.R * (0.2 + 0.78 * easeOut(f));
+			var h = grip(a, t), ang = swingAngle(a, t), d = a.R * (0.2 + 0.78 * easeOut(f));
 			g.globalAlpha = Math.sin(Math.PI * f);
-			star(g, a.px + Math.cos(ang) * d, a.py + Math.sin(ang) * d, a.L * 0.045 * Math.sin(Math.PI * f), f);
+			star(g, h.x + Math.cos(ang) * d, h.y + Math.sin(ang) * d, a.L * 0.035 * Math.sin(Math.PI * f), f);
 		}
-		// at the tip once it stops
-		var f2 = (t - T.swing1 - 40) / 360;
+		var f2 = (t - T.swing1 - 30) / 380; // at the tip once it stops
 		if (f2 > 0 && f2 < 1) {
-			var ang2 = swingAngle(a, t);
+			var h2 = grip(a, t), ang2 = swingAngle(a, t);
 			g.globalAlpha = 1;
-			star(g, a.px + Math.cos(ang2) * a.R * 0.98, a.py + Math.sin(ang2) * a.R * 0.98, a.L * 0.06 * Math.sin(Math.PI * f2), 0.4 + f2 * 0.6);
+			star(g, h2.x + Math.cos(ang2) * a.R * 0.98, h2.y + Math.sin(ang2) * a.R * 0.98, a.L * 0.045 * Math.sin(Math.PI * f2), 0.4 + f2 * 0.6);
 		}
 		g.globalAlpha = 1;
 	}
 
 	function drawPetals(g, a, t, dt) {
-		var drag = Math.exp(-2.3 * dt);
-		var grav = (reduced ? 6 : 85) * a.L / 400;
+		var drag = Math.exp(-3.1 * dt);
+		var grav = (reduced ? 6 : 95) * a.k2;
 		for (var i = 0; i < a.petals.length; i++) {
 			var p = a.petals[i];
 			var age = t - p.born;
 			if (age < 0 || age > p.life) {
 				continue;
 			}
-			if (!reduced) { // air drag, gravity: fast out of the cut, then floating down
+			// a kick out of the cut (the speed builds over the first 60 ms), air drag, then floating down
+			var kick = reduced ? 1 : Math.min(1, 0.35 + age / 60);
+			if (!reduced) {
 				p.vx *= drag;
 				p.vy = p.vy * drag + grav * dt * (p.half ? 0.6 : 1);
 			}
-			var flutter = Math.min(1, age / 500); // sway grows as the petal slows
-			p.x += (p.vx + Math.cos(p.sway + age / 1000 * p.swayW) * p.swayA * flutter) * dt;
-			p.y += p.vy * dt;
+			var flutter = Math.min(1, age / 450); // sway grows as the petal slows
+			p.x += (p.vx * kick + Math.cos(p.sway + age / 1000 * p.swayW) * p.swayA * flutter) * dt;
+			p.y += p.vy * kick * dt;
 			p.rot += p.spin * dt;
-			var alpha = Math.min(1, age / 70) * (1 - clamp((age - p.life + 650) / 650, 0, 1));
+			var alpha = Math.min(1, age / 50) * (1 - clamp((age - p.life + 650) / 650, 0, 1));
 			var fl = p.half ? 1 : Math.cos(p.flip + age / 1000 * p.flipW);
 			var spr = p.spr;
 			var w = spr.width / DPR, h = spr.height / DPR;
 			g.save();
-			g.globalAlpha = alpha * (p.near ? 0.75 : 1);
+			g.globalAlpha = alpha * (p.near ? 0.8 : 1);
 			g.translate(p.x, p.y);
 			g.rotate(p.rot);
 			g.scale(1, 0.2 + 0.8 * Math.abs(fl));
@@ -767,12 +828,12 @@ var jlPbFx = execMain(function() {
 			drawSlash(g, a, t);
 			if (t < T.kOut1) {
 				var ka = t < T.appear ? easeOut(t / T.appear) : 1 - clamp((t - T.kOut0) / (T.kOut1 - T.kOut0), 0, 1);
-				if (t > T.swing0 && t < T.swing1 + 50) { // motion blur: fading copies just behind the blade
+				if (t > T.swing0 && t < T.swing1 + 40) { // motion blur: faint copies just behind the blade
 					for (var gh = 4; gh >= 1; gh--) {
-						drawKatana(g, a, swingAngle(a, t - gh * 3), ka * 0.22 * (1 - gh / 5));
+						drawKatana(g, a, t - gh * 3, ka * 0.22 * (1 - gh / 5));
 					}
 				}
-				drawKatana(g, a, swingAngle(a, t), ka);
+				drawKatana(g, a, t, ka);
 			}
 			drawGlints(g, a, t);
 		}
@@ -780,44 +841,47 @@ var jlPbFx = execMain(function() {
 		rafId = requestAnimationFrame(frame);
 	}
 
+	// the title: a small spaced "NEW BEST" over "ao5  12.47", revealed (letter-spacing closing in) just after the
+	// cut; above the digits when there is room, else under the digits and their averages
 	function showLabel(a) {
 		var hit = a.hit;
 		var val = hit.kind == 'single' ? kernel.pretty(hit.value) : kernel.pround(hit.value);
 		label.empty().append(
-			$('<span class="jlpb-k">').text('New best'), ' ',
-			$('<span class="jlpb-n">').text(hit.name),
-			$('<span class="jlpb-v">').text(val)
+			$('<div class="jlpb-k">').text('New best'),
+			$('<div class="jlpb-t">').append($('<span class="jlpb-n">').text(hit.name), $('<span class="jlpb-v">').text(val))
 		);
 		var col = kernel.getProp('col-pbs') || '#dd1166';
 		var rgb = (/^#([0-9a-f]{6})$/i.exec($.nearColor(col, 0, true)) || [0, 'dd1166'])[1];
 		var luma = (0.3 * parseInt(rgb.slice(0, 2), 16) + 0.59 * parseInt(rgb.slice(2, 4), 16) + 0.11 * parseInt(rgb.slice(4), 16)) / 255;
 		// a soft halo in the opposite tone keeps it readable on any theme
-		var halo = luma > 0.55 ? '0 0 8px rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.6)' : '0 0 8px rgba(255, 255, 255, 0.95), 0 0 2px rgba(255, 255, 255, 0.9)';
-		label.css({ color: col, textShadow: halo, transition: 'none', opacity: 0, transform: 'translate(-50%, 6px)' });
-		label.css({ left: a.box.x + 'px', top: '0px', display: 'block', zIndex: a.preview ? 131 : '', fontSize: Math.round(clamp(a.box.h * 0.17, 15, 22)) + 'px' });
-		var lr = label[0].getBoundingClientRect(); // (also starts the transition from the reset state)
-		// above the digits (under them are the averages), or below when there is no room
-		var top = a.box.top - lr.height - Math.max(4, a.box.h * 0.08);
+		var halo = luma > 0.55 ? '0 0 14px rgba(0, 0, 0, 0.75), 0 0 3px rgba(0, 0, 0, 0.6)' :
+			'0 0 14px rgba(255, 255, 255, 0.95), 0 0 3px rgba(255, 255, 255, 0.95), 0 0 1px rgba(255, 255, 255, 1)';
+		var fs = Math.round(clamp(Math.min(W * 0.028, H * 0.05), 24, 40));
+		label.removeClass('jlpb-in jlpb-out').css({ color: col, textShadow: halo, transition: 'none', opacity: '', fontSize: fs + 'px',
+			left: a.box.x + 'px', top: '0px', display: 'block', zIndex: a.preview ? 131 : '' });
+		var lr = label[0].getBoundingClientRect(); // (also starts the transitions from the reset state)
+		var gap = Math.max(6, a.box.h * 0.08);
+		var top = a.box.top - lr.height - gap;
 		var scr = $('#scrambleDiv:visible')[0];
 		var sr = scr && scr.getBoundingClientRect();
 		if (top < 4 || sr && sr.height > 0 && top < sr.bottom && top + lr.height > sr.top) {
-			// no room above (the scramble): under the digits and the averages shown below them
 			var below = a.box.bottom;
 			var avg = $('#avgstr:visible')[0];
 			var ar = avg && avg.getBoundingClientRect();
 			if (ar && ar.height > 0 && ar.top < a.box.bottom + 80 && ar.right > a.box.x - 100 && ar.left < a.box.x + 100) {
 				below = Math.max(below, ar.bottom);
 			}
-			top = below + 8;
+			top = Math.min(below + gap, H - lr.height - 8);
 		}
-		label.css({ left: clamp(a.box.x, lr.width / 2 + 8, Math.max(lr.width / 2 + 8, W - lr.width / 2 - 8)) + 'px', top: top + 'px' });
-		var delay = reduced ? 0 : Math.round(a.Tig + 60);
-		label.css({ transition: 'opacity 420ms ease ' + delay + 'ms, transform 600ms cubic-bezier(.2,.7,.2,1) ' + delay + 'ms',
-			opacity: 1, transform: 'translate(-50%, 0)' });
+		var w = lr.width + fs; // room for the wider letter-spacing at the start of the reveal
+		label.css({ left: clamp(a.box.x, w / 2 + 8, Math.max(w / 2 + 8, W - w / 2 - 8)) + 'px', top: top + 'px' });
+		var delay = reduced ? 0 : Math.round(a.Tig + 40);
+		label[0].style.setProperty('--jlpb-d', delay + 'ms');
+		label.css('transition', '').addClass('jlpb-in');
 		clearTimeout(a.labelTimer);
 		a.labelTimer = setTimeout(function() {
-			label.css({ transition: 'opacity 480ms ease, transform 480ms ease', opacity: 0, transform: 'translate(-50%, -4px)' });
-		}, delay + 1900);
+			label.removeClass('jlpb-in').addClass('jlpb-out');
+		}, delay + 1500);
 	}
 
 	function play(hit, preview) {
@@ -829,6 +893,7 @@ var jlPbFx = execMain(function() {
 		canvas.style.opacity = '1';
 		canvas.style.display = 'block';
 		canvas.style.zIndex = preview ? '130' : '';
+		label.removeClass('jlpb-out');
 		showLabel(anim);
 		window.addEventListener('keydown', onPress, true);
 		window.addEventListener('pointerdown', onPress, true);
@@ -855,13 +920,13 @@ var jlPbFx = execMain(function() {
 		canvas.style.opacity = '0';
 		if (cut) {
 			label.css({ transition: 'opacity 120ms linear', opacity: 0 });
-		} else if (label.css('opacity') != '0') { // the natural end: let the label finish its own fade
-			label.css({ transition: 'opacity 400ms ease', opacity: 0 });
+		} else { // the natural end: let the title finish its own fade
+			label.removeClass('jlpb-in').addClass('jlpb-out');
 		}
 		hideTimer = setTimeout(function() {
 			if (!anim) {
 				canvas.style.display = 'none';
-				label.css('display', 'none');
+				label.css({ display: 'none', opacity: '', transition: '' }).removeClass('jlpb-in jlpb-out');
 			}
 		}, cut ? 140 : 420);
 	}
@@ -887,6 +952,7 @@ var jlPbFx = execMain(function() {
 		kernel.regProp('ui', 'jlPbFx', 1, 'PB celebration' + ($.urlParam('debug') ? ' (<span class="click jlpb-prev">preview</span>)' : ''),
 			['a', ['n', 's', 'a'], ['Off', 'Single only', 'Single + averages']]);
 		kernel.regListener('jlpb', 'timestd', onTimeStd);
+		hookHints();
 		kernel.regListener('jlpb', 'timerStatus', function(signal, status) {
 			if (anim && !anim.preview && status != -1 && status != 0) {
 				stop(true);

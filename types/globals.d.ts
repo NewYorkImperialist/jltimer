@@ -203,6 +203,7 @@ declare var DEBUG: boolean;
 
 // language strings (src/lang/*.js): add the ones a checked module uses
 declare var TOOLS_RECONS: string;
+declare var LGHINT_SSBEST: string;
 
 // ---------- jQuery 1.8 plus csTimer's additions (src/js/lib/utillib.js) ----------
 
