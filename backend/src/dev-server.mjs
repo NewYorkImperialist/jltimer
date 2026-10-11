@@ -1,8 +1,9 @@
 // Local development server: the same app as the Worker, with a local SQLite file instead of Turso.
 // Usage: node src/dev-server.mjs   (env: PORT, DB_FILE, ALLOWED_ORIGINS, SESSION_SECRET, SETUP_TOKEN)
+// Imports app.ts directly: Node 22.18+ strips the types, no build step.
 import http from 'node:http';
 import { createClient } from '@libsql/client';
-import { createApp } from './app.js';
+import { createApp } from './app.ts';
 
 const PORT = +(process.env.PORT || 8787);
 const env = {

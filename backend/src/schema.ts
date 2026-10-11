@@ -1,4 +1,4 @@
-// Database schema, applied idempotently on first request.
+// Database schema, applied idempotently on first request. Row types for these tables: app.ts.
 export default `
 -- jlTimer personal backup database (Turso / libSQL / SQLite)
 

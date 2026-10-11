@@ -7,7 +7,7 @@ import { gzipSync } from 'node:zlib';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createApp, LIMITS, PBKDF2_ITERATIONS } from '../src/app.js';
+import { createApp, LIMITS, PBKDF2_ITERATIONS } from '../src/app.ts';
 
 const ORIGIN = 'https://jl.example';
 const enc = new TextEncoder();

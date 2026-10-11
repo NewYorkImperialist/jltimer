@@ -1,6 +1,6 @@
 # Cloud backup plan: Turso + Cloudflare Worker + cube-move login
 
-Status: **built and tested locally, not deployed.** Code: [backend/](../backend/) (API) and `src/js/cloud.js` (jlTimer client). Tests: `backend/test/api.test.mjs` (12 API and attack tests) plus a browser end-to-end run (setup, recovery codes, auto backup, gesture sign-out/sign-in, ordinary cancels stay local, restore with before-restore copy, second device).
+Status: **built and tested locally, not deployed.** Code: [backend/](../backend/) (API, TypeScript: `src/app.ts`, `src/worker.ts`, `src/schema.ts`) and `src/js/cloud.js` (jlTimer client). Tests: `backend/test/api.test.mjs` (12 API and attack tests) plus a browser end-to-end run (setup, recovery codes, auto backup, gesture sign-out/sign-in, ordinary cancels stay local, restore with before-restore copy, second device).
 
 Changes from the original plan, found while building:
 - The browser **gzips snapshots** and the API only checks, hashes and stores the bytes. The Workers free plan's 10 ms CPU limit rules out parsing or compressing multi-megabyte JSON on the server.

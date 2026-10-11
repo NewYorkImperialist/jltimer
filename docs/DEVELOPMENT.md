@@ -79,6 +79,21 @@ Pages is enabled with **Source: GitHub Actions** and the custom domain **https:/
 
 Things that don't work on GitHub Pages (static hosting): the PHP endpoints (`oauthwca.php`, `userdata*.php`), so WCA login can't complete. See [BACKEND.md](BACKEND.md).
 
+## Cloud backup API (backend/)
+
+`backend/` is the personal backup API: a Cloudflare Worker in TypeScript with a Turso database ([backend/README.md](../backend/README.md), design in [BACKUP_PLAN.md](BACKUP_PLAN.md)). It has its own `package.json` and `tsconfig.json` and needs Node 22.18+. There is no build step: Wrangler bundles `src/worker.ts`, and Node runs the `.ts` files directly by stripping the types.
+
+```sh
+cd backend
+npm ci
+npm run typecheck   # tsc --noEmit, strict
+npm test            # node --test: API and attack tests
+PORT=8787 DB_FILE=dev.db ALLOWED_ORIGINS=http://localhost:8081 node src/dev-server.mjs   # local API on a SQLite file
+npx wrangler deploy --dry-run --outdir /tmp/jltimer-api   # bundle check, uploads nothing
+```
+
+Keep the TypeScript erasable (no `enum`, `namespace` or parameter properties), use `.ts` in relative imports and `import type` for type-only imports, or Node can't run it.
+
 ## Battle TUI (terminal race client)
 
 `tools/battle-tui.mjs` is a minimal terminal client for csTimer's battle rooms (`wss://cstimer.net/ws20230409`), the same rooms jlTimer's and csTimer's Battle tool join. It needs Node 22+ and the scrambler module:

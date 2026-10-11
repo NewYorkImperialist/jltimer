@@ -1,5 +1,5 @@
 name = "jltimer-api"
-main = "src/worker.js"
+main = "src/worker.ts"
 compatibility_date = "2026-09-01"
 workers_dev = true
 preview_urls = false
