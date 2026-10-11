@@ -77,6 +77,39 @@ interface JlTheme {
 	css?: string;
 	/** col-timer value '#f00#0d0#dd0#080#f00' */
 	timer?: string;
+	/** living background: called when the theme's canvas starts; return null to skip */
+	animate?: (env: JlThemeEnv) => JlThemeAnimation;
+}
+
+/** what js/themes.js hands a theme's animate(): the canvas and where the artwork sits on screen */
+interface JlThemeEnv {
+	canvas: HTMLCanvasElement;
+	ctx: CanvasRenderingContext2D;
+	/** viewport size in CSS px; the canvas has w*dpr x h*dpr pixels */
+	w: number;
+	h: number;
+	/** devicePixelRatio, at most 2 */
+	dpr: number;
+	/** touch device or small screen: draw less (frames are capped at 30 fps there) */
+	phone: boolean;
+	/** CSS px per artwork unit (background-size: cover) */
+	artScale: number;
+	/** [width, height] of the artwork's viewBox */
+	artBox: Array<number>;
+	/** screen position of the artwork's (0, 0) */
+	artX: number;
+	artY: number;
+	/** artwork coordinates to screen [x, y] in CSS px */
+	art(x: number, y: number): Array<number>;
+}
+
+interface JlThemeAnimation {
+	/** dt in seconds since the last frame (at most 0.1) */
+	frame(dt: number, env: JlThemeEnv): void;
+	/** the viewport (env.w, env.h, env.art...) changed; the canvas was resized and cleared */
+	resize?(env: JlThemeEnv): void;
+	/** the canvas is being removed */
+	stop?(): void;
 }
 
 /** js/themes.js setImages(): how "Your images" (js/mybg.js) plugs into the theme gallery */

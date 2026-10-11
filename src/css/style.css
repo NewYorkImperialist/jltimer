@@ -1784,6 +1784,24 @@ html.jlt-on .popup {
 	backdrop-filter: blur(12px) saturate(1.2);
 }
 
+/* living theme backgrounds (theme.animate in js/themes.js): above the artwork, behind everything else */
+#jltheme-anim {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: -1;
+	pointer-events: none;
+	opacity: 1;
+	transition: opacity 1.2s ease;
+}
+
+#jltheme-anim.jlta-off {
+	opacity: 0;
+	transition-duration: 0.4s;
+}
+
 .jltheme-gallery {
 	display: flex;
 	flex-wrap: wrap;
