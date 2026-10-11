@@ -37,8 +37,15 @@ window.twistyjs.qcube = (function() {
 		this.getTwisty = function() {
 			return twisty;
 		};
+		var keyTs = 0; // time of the key being handled (e.ts, from js/timer/virtual.js)
 		this.keydown = function(e) {
-			var ret = twisty.keydown(e);
+			keyTs = e.ts || 0;
+			var ret;
+			try {
+				ret = twisty.keydown(e);
+			} finally {
+				keyTs = 0;
+			}
 			ret && render();
 		};
 
@@ -74,11 +81,11 @@ window.twistyjs.qcube = (function() {
 		}
 
 		this.addMoves = function(moves, ts) {
-			var timestamp = ts || $.now();
+			var timestamp = ts || keyTs || $.now();
 			for (var i = 0; i < moves.length; i++) {
 				fireMoveAdded([moves[i], timestamp]);
 			}
-			return this.applyMoves(moves, ts);
+			return this.applyMoves(moves, timestamp);
 		};
 
 		this.applyMoves = function(moves, ts) {

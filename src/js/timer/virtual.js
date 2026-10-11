@@ -210,11 +210,22 @@ execMain(function(timer) {
 		attemptMoves = [];
 	}
 
-	function onkeydown(keyCode) {
+	// when the key was pressed: the event's own timestamp (performance clock, like $.now()), so a busy main thread
+	// delaying the handler does not shift the logged move times or the solve time; falls back to the current time
+	function eventTime(e) {
+		var now = $.now();
+		var ts = e && (e.originalEvent || e).timeStamp;
+		if (!(ts > 0) || ts > now + 1 || now - ts > 1000) {
+			return now;
+		}
+		return Math.floor(ts);
+	}
+
+	function onkeydown(keyCode, e) {
 		if (puzzleObj == undefined) {
 			return;
 		}
-		var now = $.now();
+		var now = eventTime(e);
 		if (timer.status() == -1) { // idle
 			if (keyCode == 32) {
 				if (relayScrs) {
@@ -259,7 +270,8 @@ execMain(function(timer) {
 			} else {
 				var mappedCode = help.getMappedCode(keyCode);
 				var a = {
-					"keyCode": mappedCode
+					"keyCode": mappedCode,
+					"ts": now
 				};
 				puzzleObj.keydown(a);
 			}

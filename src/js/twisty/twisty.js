@@ -216,9 +216,16 @@ window.twistyjs = (function() {
 			render();
 		};
 
+		var keyTs = 0; // time of the key being handled (e.ts, from js/timer/virtual.js): moves it adds are logged at it
 		this.keydown = function(e) {
 			var keyCode = e.keyCode;
-			var ret = twisty.keydownCallback(twisty, e);
+			keyTs = e.ts || 0;
+			var ret;
+			try {
+				ret = twisty.keydownCallback(twisty, e);
+			} finally {
+				keyTs = 0;
+			}
 
 			switch (keyCode) {
 				case 37:
@@ -487,14 +494,14 @@ window.twistyjs = (function() {
 		}
 
 		this.addMoves = function(moves, ts) {
-			var timestamp = ts || $.now();
+			var timestamp = ts || keyTs || $.now();
 			var movets = [];
 			for (var i = 0; i < moves.length; i++) {
 				movets.push([moves[i], timestamp]);
 			}
 			$.map(movets, fireMoveAdded);
 			if (~~kernel.getProp('vrcSpeed', 100) == 0) {
-				return this.applyMoves(moves, ts);
+				return this.applyMoves(moves, timestamp);
 			}
 			moveQueue = moveQueue.concat(movets);
 			if (moveQueue.length > 0) {
@@ -582,11 +589,41 @@ window.twistyjs = (function() {
 
 		var lastTimeStamp = 0;
 
+		// Catch-up when keys come faster than the turns animate (jlTimer): while moves are waiting, the turns speed
+		// up so the cube shows the latest key's move finished about one turn duration after that key was pressed,
+		// and a turn that finishes passes its leftover frame time on to the next one. Only the animation is
+		// shortened; every move is still applied in order. With nothing waiting the configured speed is unchanged.
+		function animationStepFor(now, dt, speed) {
+			var step = dt / speed * (moveQueue.length + 2) / 2;
+			if (moveQueue.length > 0 && moveProgress.length > 0) {
+				var remaining = 1 - moveProgress[moveProgress.length - 1] + moveQueue.length;
+				var deadline = moveQueue[moveQueue.length - 1][1] + speed; // latest key + one turn
+				step = Math.max(step, remaining * Math.min(1, dt / Math.max(deadline - now + dt, 1)));
+			}
+			return Math.max(step, 0.0001);
+		}
+
 		function animateLoop(timeStamp) {
 			timeStamp = $.now();
-			var timeProgress = (timeStamp - lastTimeStamp) / (kernel.getProp('vrcSpeed', 100) || 1e-3) * (moveQueue.length + 2) / 2;
+			var speed = kernel.getProp('vrcSpeed', 100) || 1e-3;
+			var step = animationStepFor(timeStamp, timeStamp - lastTimeStamp, speed);
 			lastTimeStamp = timeStamp;
-			stepAnimation(Math.max(Math.min(timeProgress, 1), 0.0001) /*animationStep*/ );
+			var backlogged = moveQueue.length > 0;
+			if (!backlogged) { // nothing waiting: the configured speed, as before
+				stepAnimation(Math.min(step, 1) /*animationStep*/ );
+			}
+			for (var guard = 0; backlogged && guard < 16 && pendingAnimationLoop !== null && currentMove.length > 0; guard++) {
+				var need = 1 - moveProgress[0];
+				if (step < need) {
+					stepAnimation(step);
+					break;
+				}
+				stepAnimation(need + 1e-9); // finishes the current turn
+				step -= need;
+				if (step <= 0 || !(moveProgress.length > 0 && moveProgress[0] === 0)) {
+					break; // carry on only into the next waiting turn that has just started
+				}
+			}
 			render();
 
 			// That was fun, lets do it again!
