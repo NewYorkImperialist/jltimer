@@ -168,14 +168,20 @@ export function createApp({ db, env, now = () => Date.now() }: AppOptions): App 
 	const rows = async <T>(sql: string, args: InArgs = []): Promise<T[]> => (await q(sql, args)).rows as unknown as T[];
 	let ready: Promise<void> | null = null;
 
+	// Concurrent requests share one in-flight attempt; a failed attempt is dropped so the next request retries.
 	function migrate(): Promise<void> {
-		ready = ready || (async () => {
+		if (ready) return ready;
+		const attempt = (async () => {
 			const sql = schemaSql.replace(/--[^\n]*/g, ''); // the driver rejects comment-only fragments
 			for (const stmt of sql.split(';').map(s => s.trim()).filter(Boolean)) {
 				await q(stmt);
 			}
 		})();
-		return ready;
+		ready = attempt;
+		attempt.catch(() => {
+			if (ready === attempt) ready = null;
+		});
+		return attempt;
 	}
 
 	function corsHeaders(origin: string | null): Headers_ {

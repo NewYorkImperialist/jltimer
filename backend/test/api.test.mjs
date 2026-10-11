@@ -255,3 +255,26 @@ test('attack: oversized or malformed JSON bodies', async () => {
 test('startup refuses a weak session secret', () => {
 	assert.throws(() => createApp({ db: {}, env: { SESSION_SECRET: 'short' } }));
 });
+
+test('a failed schema migration is retried on the next request', async () => {
+	const dir = mkdtempSync(join(tmpdir(), 'jltapi-'));
+	const real = createClient({ url: 'file:' + join(dir, 't.db') });
+	let calls = 0;
+	const db = { execute: stmt => (++calls == 1 ? Promise.reject(new Error('db unavailable')) : real.execute(stmt)) };
+	const app = createApp({ db, env: { ALLOWED_ORIGINS: ORIGIN, SESSION_SECRET: 'test-secret-0123456789-0123456789-abcdef' } });
+	const get = () => app.fetch(new Request('https://api.test/login/salt', { headers: { Origin: ORIGIN } }), { ip: '1.1.1.1' });
+	const origError = console.error;
+	console.error = () => {};
+	try {
+		assert.equal((await get()).status, 500, 'first migration fails');
+	} finally {
+		console.error = origError;
+	}
+	const [a, b] = await Promise.all([get(), get()]);
+	assert.equal(a.status, 200, 'retried and succeeded');
+	assert.equal(b.status, 200);
+	assert.equal((await a.json()).setup, true);
+	const afterRetry = calls;
+	assert.equal((await get()).status, 200);
+	assert.equal(calls - afterRetry, 1, 'migration not re-run once it succeeded (only the salt query)');
+});
