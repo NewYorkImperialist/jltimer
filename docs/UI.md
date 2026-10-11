@@ -9,6 +9,7 @@ All jlTimer UI options live in the normal **Options** dialog (the first button i
 | select timer's font (ui) | random, normal, digital1–5, Roboto, **jlTimer sans** | digital1 (csTimer's LCD font) | `font: 'lcd'` / `'jl'` |
 | Layout (ui) | **Familiar**, **Minimal** | Familiar | `jlLayout: 'c' / 'm'` |
 | Virtual cube size (virtual cube) | percentage | 100 | `vrcSize` |
+| Animated background (color) | Off, On, **On, pause while timing** | On, pause while timing (Off when the system asks for reduced motion) | `jlThemeAnim: 'n' / 'y' / 'p'` |
 
 The defaults reproduce the csTimer+ design with csTimer's first color scheme and LCD digits. Colors and fonts use csTimer's own defaults, so an imported csTimer setup looks the same as on cstimer.net. A value you already saved, or imported from csTimer, is kept.
 
@@ -166,6 +167,21 @@ All three change only each session's `rank` in `sessionData`, like the ↑/↓ a
 
 Replace all and Merge first download your current data as `jltimer_backup_before_import_….txt`. After the reload a dialog reports what happened and the result of the integrity check (solve counts per session in storage compared with what was written). **Undo import** in that dialog, or in the Export dialog, restores the data from before the import, settings included, until you reload the page.
 
+
+## Animated background (living themes)
+
+With the **Sakura** (cherry blossom) theme, petals let go of the blossoms in the artwork and drift down in the background: they hang on the branch for a moment, then sway, meander and tumble (a slow spin plus a flip that shows the lighter back of the petal) on a light breeze to the right that now and then picks up a little. They are meant to look like part of the painting, not like real objects: soft, pale versions of the artwork's petal colors, about 33-60% opacity (far petals the faintest), every petal slightly soft and the nearest and farthest ones more blurred. Most are small and far, a few larger and closer. They settle and fade out near the bottom; a few drift in from trees off-screen. About 15-20 are on screen on a computer (up to 28 on a large window) and about 5-10 on a phone.
+
+The petals are part of the background: they pass behind the virtual cube, the timer digits, the scramble, the panels, the button bars and dialogs, and show only faintly through the translucent panels (which blur them).
+
+- **Options → color → Animated background**: *Off*, *On*, or *On, pause while timing* (default). With the default, holding the timer, inspection and the solve itself freeze the petals and fade them out; they fade back in and carry on when the timer is idle again. *On* keeps them falling during solves.
+- If the system asks for **reduced motion**, the default is *Off* (you can still turn it on).
+- Only themes that bring an animation use it (Sakura for now). Other themes, *None* and *Your images* get no canvas at all.
+- **Where the petals start**: the artwork is the page background with `background-size: cover`, centered, so the blossom positions (artwork coordinates of the blossom clusters in the SVG) are mapped to the screen for the current window size. On a phone in portrait the sides of the artwork are cut off, so more petals come from above.
+
+**Performance**: one fixed `<canvas id="jltheme-anim">` behind the panels (`z-index: -1`, `pointer-events: none`), sized by `devicePixelRatio` (at most 2). Petals are pre-drawn sprites (the artwork's own petal path with softened gradients: 3 colors, soft and blurred), drawn with one transform and `drawImage` each. The frame loop uses `requestAnimationFrame` with delta time and runs at 30 fps on phones. Measured script time per frame: desktop p95 0.2 ms (0.4 ms with 4x CPU throttling), iPhone 13 emulation with 4x throttling p95 0.5 ms; no long tasks. Nothing runs while it is paused (timing or a hidden tab): the loop is stopped, not skipped.
+
+**For theme authors**: a theme can add `animate: function(env) { return { frame(dt, env), resize(env), stop() }; }` to its `jlThemes.register({...})` object. `js/themes.js` owns the canvas, the loop, the setting, pausing and reduced motion; `env` has the 2D context, the viewport size, `dpr`, `phone`, and `art(x, y)` to turn artwork coordinates into screen coordinates (types: `JlThemeEnv`, `JlThemeAnimation` in `types/jltimer.d.ts`). The sakura petals are in `js/themes/sakura.js`.
 
 ## Your images (custom backgrounds)
 
