@@ -15,34 +15,25 @@ jlThemes.register({
 			[1418, 754], [1359, 752], [1279, 732], [1288, 740], [1497, 724], [1484, 597], [1447, 608], [1455, 712], [1376, 681], [1377, 647]];
 		var FAR = [[360, 312], [385, 372], [362, 445], [300, 330], [232, 348], [1230, 62], [1290, 84]];
 		var PETAL = 'M0 0C-6.5-3-8-11-3.6-16.5L0-14 3.6-16.5C8-11 6.5-3 0 0Z'; // the artwork's own petal (#pt)
-		var GRADS = [ // #pg, #pw, #pd, a touch deeper so a single petal still reads against the pale sky
-			[[0.05, '#dc5c86'], [0.5, '#f3a7be'], [1, '#fbd8e3']],
-			[[0.05, '#e8839f'], [0.5, '#f8c4d3'], [1, '#fdeaf0']],
-			[[0.05, '#c3426f'], [0.55, '#e985a5'], [1, '#f6bfd0']]];
+		var GRADS = [ // soft versions of #pg, #pw, #pd, close to the hazy sky so the petals feel painted in
+			[[0.05, '#df8aa6'], [0.5, '#efb4c6'], [1, '#f8d9e3']],
+			[[0.05, '#e79fb5'], [0.5, '#f5c8d5'], [1, '#fbe6ec']],
+			[[0.05, '#d57696'], [0.55, '#eaa6bb'], [1, '#f5d0dc']]];
 		var PX = 4; // sprite pixels per artwork unit
-		var PAD = 5;
+		var PAD = 4;
 		var SW = (16 + 2 * PAD) * PX;
 		var SH = (16.5 + 2 * PAD) * PX;
-		var sprites = null; // [color][sharp, blurred]
+		var SOFT = [0.35, 0.85]; // blur in artwork units: every petal is a little soft, near / far ones more
+		var sprites = null; // [color][soft, blurred]
 
 		function sprite(grad, blur) {
 			var c = document.createElement('canvas');
 			c.width = SW;
 			c.height = SH;
 			var g = c.getContext('2d');
-			var src = c;
-			if (blur && !('filter' in CanvasRenderingContext2D.prototype)) { // Safari: blur by scaling down and up
-				src = sprite(grad, false);
-				var small = document.createElement('canvas');
-				small.width = Math.round(SW / 6);
-				small.height = Math.round(SH / 6);
-				small.getContext('2d').drawImage(src, 0, 0, small.width, small.height);
-				g.imageSmoothingQuality = 'high';
-				g.drawImage(small, 0, 0, SW, SH);
-				return c;
-			}
-			if (blur) {
-				g.filter = 'blur(' + (1.3 * PX) + 'px)';
+			var hasFilter = 'filter' in CanvasRenderingContext2D.prototype;
+			if (hasFilter) {
+				g.filter = 'blur(' + (SOFT[blur ? 1 : 0] * PX) + 'px)';
 			}
 			g.translate(SW / 2, SH / 2 + 8.25 * PX); // the petal's middle is the sprite's middle
 			g.scale(PX, PX);
@@ -50,12 +41,23 @@ jlThemes.register({
 			for (var i = 0; i < grad.length; i++) {
 				rg.addColorStop(grad[i][0], grad[i][1]);
 			}
-			var path = new Path2D(PETAL);
 			g.fillStyle = rg;
-			g.fill(path);
-			g.strokeStyle = 'rgba(190,70,110,.35)'; // a fine rim keeps the shape visible on the light sky
-			g.lineWidth = 0.45;
-			g.stroke(path);
+			g.fill(new Path2D(PETAL));
+			if (hasFilter) {
+				return c;
+			}
+			// Safari has no canvas filter: soften by scaling down and back up
+			var f = blur ? 5 : 2.2;
+			var small = document.createElement('canvas');
+			small.width = Math.round(SW / f);
+			small.height = Math.round(SH / f);
+			var sg = small.getContext('2d');
+			sg.imageSmoothingQuality = 'high';
+			sg.drawImage(c, 0, 0, small.width, small.height);
+			g.setTransform(1, 0, 0, 1, 0, 0);
+			g.clearRect(0, 0, SW, SH);
+			g.imageSmoothingQuality = 'high';
+			g.drawImage(small, 0, 0, SW, SH);
 			return c;
 		}
 
@@ -129,7 +131,7 @@ jlThemes.register({
 					src = null;
 				}
 				var color = Math.random() < 0.45 ? 1 : Math.random() < 0.75 ? 0 : 2;
-				var blur = z > 0.8 ? Math.random() < 0.65 : z < 0.2 && Math.random() < 0.5;
+				var blur = z > 0.75 || z < 0.2 && Math.random() < 0.6;
 				var p = {
 					x: x, y: y, z: z,
 					size: ss * lerp(0.6, 1.85, z) * rnd(0.85, 1.15),
@@ -145,7 +147,7 @@ jlThemes.register({
 					flip: rnd(0, 6.3),
 					flipW: rnd(0.6, 1.8),
 					age: src ? 0 : 1.5, // the edge ones are already falling
-					alpha: (z < 0.25 ? rnd(0.5, 0.7) : rnd(0.8, 0.95)) * (blur ? 0.8 : 1),
+					alpha: lerp(0.25, 0.48, z) * rnd(0.9, 1.08), // faint, like part of the painting
 					front: sprites[color][blur ? 1 : 0],
 					back: sprites[color == 2 ? 0 : 1][blur ? 1 : 0],
 					landY: env.h * (0.8 + 0.22 * z + rnd(-0.03, 0.03)),
@@ -215,7 +217,7 @@ jlThemes.register({
 				hs = Math.min(1.3, Math.max(0.75, env.h / 900));
 				ss = Math.min(1.3, Math.max(0.75, env.artScale));
 				var area = env.w * env.h;
-				target = env.phone ? Math.round(Math.min(13, Math.max(10, area / 36000))) : Math.round(Math.min(32, Math.max(10, area / 52000)));
+				target = env.phone ? Math.round(Math.min(12, Math.max(10, area / 36000))) : Math.round(Math.min(28, Math.max(9, area / 60000)));
 				life = env.h * 0.85 / (27 * hs) + 3.5;
 				for (var i = 0; i < petals.length; i++) {
 					petals[i].landY = env.h * (0.8 + 0.22 * petals[i].z);
