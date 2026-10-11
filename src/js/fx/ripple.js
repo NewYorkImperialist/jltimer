@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Zen Ripple: calm concentric water rings that spread from the turning face's side of the cube out into the

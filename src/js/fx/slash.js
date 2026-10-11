@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Blade Slash: a crisp anime crescent swoosh (white core, colored edge, tapered ends) that sweeps

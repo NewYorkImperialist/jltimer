@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // RGB Glitch: chromatic-aberration outlines (red/cyan) of the turning face jitter in stepped bursts,
@@ -29,7 +30,7 @@
 		while (el && el.nodeType == 1) {
 			var m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(getComputedStyle(el).backgroundColor || '');
 			if (m && (m[4] === undefined || +m[4] > 0.5)) {
-				lum = (0.299 * m[1] + 0.587 * m[2] + 0.114 * m[3]) / 255;
+				lum = (0.299 * +m[1] + 0.587 * +m[2] + 0.114 * +m[3]) / 255;
 				break;
 			}
 			el = el.parentNode;

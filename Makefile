@@ -204,6 +204,10 @@ local: all
 check: $(twistySrc) $(timerSrc)
 	@$(compile) --externs experiment/checkwrap.js $(src)/lang/en-us.js $(timerSrc) $(twistySrc) -O ADVANCED --checks-only --jscomp_off checkTypes
 
+# TypeScript checker over the jlTimer modules (// @ts-check files listed in tsconfig.json); needs npm install once
+typecheck:
+	@npx --no-install tsc -p .
+
 $(cstimer): $(twisty) $(timerSrc)
 	@echo $@
 	@$(compile) $(debugoff) $(timerSrc) --js_output_file $(cstimer)
@@ -247,4 +251,4 @@ $(dest)/sw.js: $(cache) version
 	@sed -i.bak '$$d' $@ && rm -f $@.bak
 	@echo 'var CACHE_NAME = "jltimer_cache_'`cat $(cache) | md5sum | awk '{print $$1}'`'";' >> $@
 
-.PHONY: all clean version check
+.PHONY: all clean version check typecheck

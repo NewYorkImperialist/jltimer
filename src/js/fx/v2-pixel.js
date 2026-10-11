@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer highlight (v2): 8-Bit Trail. A chain of chunky square pixels (cyan, stepped alpha, snapped to a pixel grid)

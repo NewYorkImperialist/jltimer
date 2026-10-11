@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Spark Burst: when a layer lands, metal-grinder sparks spray tangentially off the turning face's
@@ -30,7 +31,7 @@
 			}
 			var m = /(\d+)\D+(\d+)\D+(\d+)/.exec(c || '');
 			if (m) {
-				darkBg = (0.299 * m[1] + 0.587 * m[2] + 0.114 * m[3]) < 110;
+				darkBg = (0.299 * +m[1] + 0.587 * +m[2] + 0.114 * +m[3]) < 110;
 			}
 		} catch (e) {
 			darkBg = false;

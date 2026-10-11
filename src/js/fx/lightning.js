@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Lightning: jagged electric arcs crackle along the turning face's edges, with a few branching bolts

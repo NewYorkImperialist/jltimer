@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer highlight (v2): anime / arcade speed lines. Several thin light-blue streaks at different depths across the

@@ -8,6 +8,7 @@
 | PHP 8 CLI | dev server, and rendering `timer.php` into static HTML in `make local` |
 | GNU make | `Makefile` (macOS ships GNU make 3.81, which also works) |
 | `md5sum` | cache-busting hashes (on macOS 15+ it's in `/sbin`. Otherwise use coreutils.) |
+| Node.js + npm (optional) | `npm run typecheck` (TypeScript checker over the jlTimer modules; not needed to build) |
 
 macOS: `brew install php`.
 
@@ -55,6 +56,35 @@ Notes:
 - The service worker cache is named `jltimer_cache_<md5>`. Branding only: the worker deletes every other cache name when it activates.
 
 The service worker is **cache-first**. After a deploy, the first load serves the cached version and fetches the new worker. The new version appears on the next load.
+
+## Type checking (jlTimer modules)
+
+The jlTimer modules are checked with TypeScript's checker. Nothing is converted: they stay plain JS, the build is still the Makefile and Closure Compiler, and `tsc` only reads (`noEmit`).
+
+```sh
+npm install          # once: typescript and @types/jquery (v1) into node_modules/ (gitignored)
+npm run typecheck    # or: make typecheck   (expect no output)
+```
+
+What is checked:
+
+- The files listed in `tsconfig.json` (`files` plus `src/js/fx/*.js`). `checkJs` is off globally; each of these files starts with `// @ts-check`. Currently: `stats/algstat.js`, `stats/collstat.js`, `stats/dashboard.js`, `tools/algtrainer.js`, `cloud.js`, `mybg.js`, `themes.js`, `fx.js` and every `fx/*.js`. csTimer's own files (kernel, stats.js, export.js, twisty...) are not checked.
+- `strict` is off (no null checks, implicit `any` allowed). It still catches wrong argument counts and types against the declared csTimer APIs, typos in property names of typed objects, arithmetic on non-numbers and mismatches between modules (e.g. what `mybg.js` passes to `jlThemes.setImages`).
+
+The declarations:
+
+- `types/globals.d.ts`: the csTimer globals the modules use (`kernel`, `stats`, `storage`, `cubeutil`, `mathlib`, `recons`, `tools`, `exportFunc`, `logohint`, `$` additions such as `$.alert` / `$.delayExec`, language strings such as `TOOLS_RECONS`, `DEBUG`, `execMain`) and shared shapes (`Solve`, `ReconsStep`, `Recons`, `CubieCube`). The most-used kernel APIs (`getProp`, `setProp`, `regProp`, `regListener`, `showDialog` ...) have exact signatures; the rest is loose (`[k: string]: any`). jQuery comes from `@types/jquery` v1.
+- `types/jltimer.d.ts`: data shapes of the jlTimer modules, referenced from JSDoc by name: `BgEntry` (mybg.js pictures), `JlTheme` / `ThemeImages` (themes.js), `AlgStepCfg` / `AlgDrill` (algstat.js), `CloudState` (cloud.js).
+- The jlTimer modules' own globals (`algStat`, `jlThemes`, `jlFx`, `cloud`, `pllDrill`, ...) need no declaration: `tsc` infers them from the files.
+
+**JSDoc and Closure.** Closure Compiler reads JSDoc too (`make check` runs with type checking off). Rules that keep both happy:
+
+- Use types both understand: `{string}`, `{Array<number>}`, `{Object<string, T>}`, `{function(number): string}`, record types `{{a: number}}`, `{*}` for anything. Casts: `/** @type {HTMLCanvasElement} */ (expr)` (parentheses required).
+- Don't use TS-only syntax in a source file Closure compiles (tuples `[a, b]`, `import()`, `keyof`, unions with literal types...): put the shape in `types/jltimer.d.ts` and reference it by name. Closure accepts an unknown type name with checks off. `fx/*.js` is not compiled by Closure (concatenated into `js/jlfx.js`), so TS-only JSDoc is fine there.
+- Don't use `{?}` for "any": TypeScript 7 rejects it. Use `{*}`.
+- Afterwards run `make check` (still `0 error(s), 2 warning(s)`).
+
+**Adding a module:** put `// @ts-check` on its first line (above `"use strict"`), add the path to `files` in `tsconfig.json`, run `npm run typecheck`, and add to `types/globals.d.ts` any csTimer global or language string it reports as missing (`Cannot find name ...`). For a false positive, prefer a JSDoc type or cast; if that is not possible, use `// @ts-ignore` on the line above with the reason.
 
 ## Testing under a repository subpath
 

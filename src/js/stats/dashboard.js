@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 /**
@@ -500,6 +501,7 @@ var jlDash = execMain(function() {
 
 		// move-record metrics (complete, non-DNF solves)
 		var nMoves = 0;
+		/** @type {Array<number>} */
 		var an = [];
 		for (var i = 0; i < list.length; i++) {
 			var a = list[i].a;
@@ -631,9 +633,9 @@ var jlDash = execMain(function() {
 			bc.t.push(a.st[s][0] + a.st[s][1]);
 			bc.mv.push(a.st[s][2]);
 		}
-		for (var c in byCase) {
-			byCase[c].med = byCase[c].t.length >= CHOKE_MIN_N ? median(byCase[c].t) : -1;
-			byCase[c].mvMed = median(byCase[c].mv);
+		for (var bk in byCase) {
+			byCase[bk].med = byCase[bk].t.length >= CHOKE_MIN_N ? median(byCase[bk].t) : -1;
+			byCase[bk].mvMed = median(byCase[bk].mv);
 		}
 		var ret = {step: step, thr: thr, great: 0, rows: [], lost: 0, top: []};
 		var cnt = {};
@@ -664,8 +666,8 @@ var jlDash = execMain(function() {
 			}
 		}
 		ret.rows.reverse();
-		for (var c in cnt) {
-			ret.top.push([~~c, cnt[c]]);
+		for (var ck in cnt) {
+			ret.top.push([~~ck, cnt[ck]]);
 		}
 		ret.top.sort(function(x, y) {
 			return y[1] - x[1] || x[0] - y[0];

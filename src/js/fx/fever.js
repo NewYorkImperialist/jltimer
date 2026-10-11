@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Fever Mode: heat builds with speed. Slow turns get a tiny glint on the cube's outline; as tps/combo

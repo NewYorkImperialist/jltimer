@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 /**
@@ -23,6 +24,7 @@ var algStat = execMain(function() {
 	//   fam: cases are grouped by family (the part of the name before '-'), eo: show the edge
 	//   orientation at the start of the step, done(cubie): the step is done in the cube's own frame (for
 	//   trainer solves, which end there)
+	/** @type {Object<string, AlgStepCfg>} */
 	var STEPS = {
 		'PLL': {
 			method: 'cf4op',
@@ -100,6 +102,7 @@ var algStat = execMain(function() {
 	// return {c: case, rec, exe, tot (ms), mv (HTM), mvc (moves as executed, without the AUF turns at the start and end),
 	// pre/post: AUF before/after the alg (bool), OLL only: coll (COLL case when all LL edges are oriented, else -1)}
 	// or undefined
+	/** @param {Recons} rec @param {AlgStepCfg} cfg */
 	function analyzeRecons(rec, cfg) {
 		// a full solve has every step; a trainer solve (PLL / OLL trainer, training scrambles) starts with
 		// only the last steps left (PLL: 1, OLL: 2, the trainer stops once the LL is oriented), so the
@@ -192,6 +195,7 @@ var algStat = execMain(function() {
 	// early on a state that only looks done on a side axis: e.g. an OLL ending in f' typed as F' S' (the
 	// virtual cube has no f key) is, before the S', a B turn away from the end, which seen with B on top
 	// is "F2L + OLL done". Then the later steps belong to this one.
+	/** @param {Array<ReconsStep>} data @param {AlgStepCfg} cfg @return {ReconsStep} */
 	function trainerStep(data, cfg) {
 		var later = newCube(); // the moves after the step
 		var tmp = newCube();
@@ -207,6 +211,7 @@ var algStat = execMain(function() {
 		}
 		var trans = newCube();
 		mathlib.CubieCube.CubeMult(sdata[4], later, trans);
+		/** @type {ReconsStep} */
 		var ret = [sdata[0], sdata[1], data[0][2], sdata[3], trans, sdata[5].slice(), (sdata[6] || []).slice()];
 		for (var k = cfg.stage - 1; k >= 0; k--) {
 			ret[3] += data[k][3];
@@ -432,7 +437,7 @@ var algStat = execMain(function() {
 		if (!(c in eoCache)) {
 			var face = cubeutil.getIdentData('OLL')[1](c)[0];
 			var on = [1, 3, 5, 7].map(function(i) {
-				return face.charAt(i) == 'D';
+				return face.charAt(i) == 'D' ? 1 : 0;
 			});
 			var n = on[0] + on[1] + on[2] + on[3];
 			eoCache[c] = n == 4 ? 'all' : n == 0 ? 'dot' : (on[0] && on[3] || on[1] && on[2]) ? 'line' : 'L';
@@ -696,8 +701,9 @@ var algStat = execMain(function() {
 		var others = null;
 		var loadingTid = 0;
 
+		/** @return {AlgDrill} the trainer of this step (window[cfg.drill]) */
 		function drill() {
-			return window[cfg.drill];
+			return /** @type {*} */ (window)[cfg.drill];
 		}
 
 		// the dialog is ours and open (another dialog, or hideDialog without a close callback, moves it out)

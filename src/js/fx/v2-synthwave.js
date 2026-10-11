@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer highlight (v2): 80s synthwave / outrun. A glossy diagonal chrome shine sweeps across the turning layer's

@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Layer highlight (v2): chess.com-style. The turning layer's stickers get a soft teal highlight with a glowing

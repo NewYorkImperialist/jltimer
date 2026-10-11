@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Arcade Combo: the move notation pops out of the turning face's side in chunky pixel text,

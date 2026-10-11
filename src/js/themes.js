@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // jlTimer enhanced themes: a color palette, artwork for the background and optional CSS.
@@ -12,14 +13,17 @@
 // Choosing a theme saves its palette as ordinary manual colors, so exports stay csTimer-compatible.
 // The user's own pictures ("Your images", js/mybg.js) plug in through setImages(): their ids are 'img-<id>'.
 var jlThemes = execMain(function() {
+	/** @type {Array<JlTheme>} */
 	var themes = [];
 	var isReady = false;
 	var styleTag = $('<style id="jltheme-style">');
 	var gallery = $('<div class="jltheme-gallery">');
 	var COLOR_PROPS = ['col-font', 'col-back', 'col-board', 'col-button', 'col-link', 'col-logo', 'col-logoback', 'col-pbs'];
+	/** @type {ThemeImages} */
 	var images = null; // js/mybg.js: {options(), apply(id, signalType), section()}
 	var pendingModify = null; // a built-in theme chosen (e.g. as fallback) before its file registered
 
+	/** @param {string} id @return {JlTheme} */
 	function find(id) {
 		for (var i = 0; i < themes.length; i++) {
 			if (themes[i].id == id) {
@@ -29,6 +33,7 @@ var jlThemes = execMain(function() {
 		return null;
 	}
 
+	/** @param {JlTheme} t @return {string} */
 	function backgroundCss(t) {
 		var bg = $.trim(t.background || '');
 		if (/^<svg/i.test(bg)) {
@@ -37,6 +42,7 @@ var jlThemes = execMain(function() {
 		return bg || 'none';
 	}
 
+	/** @param {JlTheme} t @return {boolean} false if the theme is invalid or already registered */
 	function register(t) {
 		if (!t || !/^[a-z0-9-]+$/.test(t.id) || find(t.id) || !/^(#[0-9a-fA-F]{3}){7,8}$/.test(t.palette || '')) {
 			DEBUG && console.log('[themes] invalid theme', t && t.id);
@@ -60,6 +66,7 @@ var jlThemes = execMain(function() {
 			['None'].concat(themes.map(function(t) { return t.name; }), extra[1])]);
 	}
 
+	/** @param {string} palette */
 	function setColors(palette) {
 		var cols = palette.match(/#[0-9a-fA-F]{3}/g);
 		for (var i = 0; i < cols.length; i++) {
@@ -67,6 +74,7 @@ var jlThemes = execMain(function() {
 		}
 	}
 
+	/** @param {string} id @param {string} signalType */
 	function apply(id, signalType) {
 		var html = $('html');
 		themes.forEach(function(t) {
@@ -94,6 +102,7 @@ var jlThemes = execMain(function() {
 		}
 	}
 
+	/** @param {JlTheme} t */
 	function addTile(t) {
 		var cols = t.palette.match(/#[0-9a-fA-F]{3}/g);
 		var tile = $('<div class="jltheme-tile click">').attr({ 'data-id': t.id, 'title': t.name }).css('background-image', backgroundCss(t)).append(
@@ -141,6 +150,7 @@ var jlThemes = execMain(function() {
 				regThemeProp();
 			}
 		},
+		/** @param {ThemeImages} api */
 		setImages: function(api) {
 			images = api;
 		},

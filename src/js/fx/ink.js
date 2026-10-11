@@ -1,3 +1,4 @@
+// @ts-check
 "use strict";
 
 // Ink Splash: paint droplets in the turning face's color fling off the cube's silhouette edge on that
