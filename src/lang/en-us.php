@@ -74,7 +74,7 @@
 <li><strong data="opt_wndStat">Statistics panel display style</strong>. Make list times panel embedded into background.</li>
 <li><strong data="opt_wndTool">Tools panel display style</strong>. Make tool panel embedded into background.</li>
 <li><strong data="opt_bgImgO">background image opacity</strong>. Opacity of the background image.</li>
-<li><strong data="opt_bgImgS">background image</strong>. You can select your own image as the background image, however, only https urls are available due to security constraint of the browser.</li>
+<li><strong data="opt_bgImgS">background image</strong>. You can select your own image as the background image, however, only https urls are available due to security constraint of the browser. This is csTimer's faint overlay; for a full-strength background with matching colors, add your picture under <em>Your images</em> in Options → color or About → Enhanced themes.</li>
 <li><strong data="opt_timerSize">timer size</strong>. Set the size of main timer.</li>
 <li><strong data="opt_smallADP">use small font after decimal point</strong>. Use a smaller font size after the digital point in main timer.</li>
 <li><strong data="opt_color">select color theme</strong>. Select color schemes of jlTimer. "jlTimer dark" is a dark slate preset for low-glare use. Click jlTimer's logo to show more color schemes.</li>

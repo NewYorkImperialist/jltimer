@@ -166,3 +166,19 @@ All three change only each session's `rank` in `sessionData`, like the ↑/↓ a
 
 Replace all and Merge first download your current data as `jltimer_backup_before_import_….txt`. After the reload a dialog reports what happened and the result of the integrity check (solve counts per session in storage compared with what was written). **Undo import** in that dialog, or in the Export dialog, restores the data from before the import, settings included, until you reload the page.
 
+
+## Your images (custom backgrounds)
+
+Your own pictures work like the built-in enhanced themes: full-strength page background, matching colors, translucent panels. They appear as **Your images** above the built-in themes in **About → Enhanced themes**, and as a compact row under *Enhanced theme* in **Options → color**. The *Enhanced theme* select lists them too, as *Your image: name*.
+
+- **Add**: the **+ Add image** tile opens the file picker (several files at once work; on iPhone it is the normal photo picker). You can also drop image files onto the gallery or paste an image while the gallery is on screen. A new picture is chosen right away and its editor opens.
+- **Colors**: on upload jlTimer finds the main colors of the picture (k-means on a 48 px copy) and derives the eight csTimer colors from them: a dark palette for dark pictures, a light one for bright pictures. It then adjusts lightness until text reaches 7:1 against panels, background and buttons, links and PBs 4.5:1 against panels, and the logo text 4.5:1 against its background. Choosing the picture applies these colors as ordinary manual colors, the same way built-in themes do, so you can still tweak them under Options → color; the translucent panels follow your tweaked colors. **Use picture colors** in the editor puts the picture's colors back.
+- **Readable panels**: panel opacity is computed per picture, as the lowest value (from 50%) at which the text and link colors stay at 4.5:1 or more over every large color area of the picture, with the dim/brighten setting applied.
+- **Edit** on a tile opens the editor: name, **fit** (cover, contain, tile), **focus** point (tap or drag on the preview, or the 3×3 picker), **blur** 0–20 px and **dim / brighten** −60…+60%. The preview has the page's shape, and when the picture is the current theme the page changes live. Changes are saved as you go; **Done** closes the editor, **Delete** asks first and then removes the picture (if it was on, the theme goes back to Sakura).
+- **Limits**: at most 12 pictures. Pictures with a side over 2560 px are scaled down to 2560 px and stored as WebP (JPEG where the browser cannot write WebP) at quality 0.85; smaller JPEG, PNG, WebP or GIF files up to 1.5 MB are stored unchanged, and other files are re-encoded the same way. Each also gets a ~360 px JPEG thumbnail for the tiles.
+- **Performance**: the picture is the background of a fixed layer behind the page (`#jlbg`); blur is a CSS filter on that layer only and the dim/brighten overlay is a second layer. Nothing runs while timing; the styles change only when you choose or adjust a picture or change a color.
+- **Only in this browser**: pictures are not part of exports and are not synced. On another browser (or after clearing site data) a saved *Your image* theme falls back to Sakura with Sakura's colors. Imports keep your pictures (see [MIGRATION.md](MIGRATION.md#your-images)).
+
+The older csTimer option **Options → display → background image (faint overlay)** still works as before (a low-opacity picture over the page); its help text points to Your images for a full background.
+
+Code: `js/mybg.js` (gallery, editor, palette, storage), hooks in `js/themes.js`, `#jlbg` / `.jlbg-*` styles in `css/style.css`. The Options row is an internal property `jlBgUi` that only displays the tiles; it never stores a value.

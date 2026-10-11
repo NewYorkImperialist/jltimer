@@ -1274,7 +1274,7 @@ var kernel = execMain(function() {
 			img = $('#bgImage');
 			regListener('bgImage', 'property', procSignal, /^bgImg[OS]$/);
 			regProp('ui', 'bgImgO', 2, BGIMAGE_OPACITY, [25, 0, 100]);
-			regProp('ui', 'bgImgS', 1, BGIMAGE_IMAGE, ['n', ['n', 'u', 0, 1, 2, 'f'], BGIMAGE_IMAGE_STR.split('|').slice(0, -1).concat(1, 2, 3, 'upload')]);
+			regProp('ui', 'bgImgS', 1, BGIMAGE_IMAGE + ' (faint overlay)', ['n', ['n', 'u', 0, 1, 2, 'f'], BGIMAGE_IMAGE_STR.split('|').slice(0, -1).concat(1, 2, 3, 'upload')]);
 		});
 	})();
 

@@ -21,17 +21,20 @@ var storage = execMain(function() {
 		console.log('IndexedDB Error', event || 'undefined');
 	}
 
-	function getTrans(mode, obj_callback, suc_callback, curDB) {
+	function getTrans(mode, obj_callback, suc_callback, curDB, err_callback) {
 		curDB = curDB || db;
 		if (!curDB) { // wait for db ok
 			requestAnimFrame(function() {
-				getTrans(mode, obj_callback, suc_callback);
+				getTrans(mode, obj_callback, suc_callback, undefined, err_callback);
 			});
 			return;
 		}
 		var transaction = curDB.transaction(["sessions"], mode);
 		transaction.oncomplete = suc_callback || $.noop;
 		transaction.onerror = logerr;
+		if (err_callback) { // jlTimer: e.g. the storage quota is full
+			transaction.onabort = err_callback;
+		}
 		var objectStore = transaction.objectStore("sessions");
 		obj_callback(objectStore);
 	}
@@ -170,7 +173,9 @@ var storage = execMain(function() {
 		return new Promise(function(resolve, reject) {
 			if (indexedDB) {
 				getTrans("readwrite", function(objectStore) {
-					objectStore.clear();
+					// jlTimer: only the sessions are replaced; other keys (your background pictures, the import
+					// undo copy) stay. csTimer cleared the whole store here.
+					objectStore["delete"](IDBKeyRange.bound('session_', 'session_\uffff'));
 					for (var sessionIdx = 1; sessionIdx <= ~~kernel.getProp('sessionN'); sessionIdx++) {
 						var times = mathlib.str2obj(obj['session' + sessionIdx] || []);
 						for (var i = 0; i < (Math.ceil(times.length / 100) || 1); i++) {
@@ -194,7 +199,7 @@ var storage = execMain(function() {
 					objectStore.put(value, key);
 				}, function() {
 					resolve(true);
-				});
+				}, undefined, reject);
 			} else {
 				localStorage[key] = value;
 				resolve(true);

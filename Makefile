@@ -85,6 +85,7 @@ tools/bldhelper.js \
 tools/algtrainer.js \
 cloud.js \
 themes.js \
+mybg.js \
 fx.js \
 twisty/twistyreplay.js \
 shortcut.js \
