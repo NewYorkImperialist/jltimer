@@ -197,7 +197,7 @@ local: all
 	cp $(dest)/js/jlthemes.js $(dest)/local/js/jlthemes.js
 	cp $(dest)/js/jlfx.js $(dest)/local/js/jlfx.js
 	cp $(dest)/css/style.css $(dest)/local/css/style.css
-	cp $(dest)/jltimer.webmanifest $(dest)/jltimer512x512.png $(dest)/local/
+	cp $(dest)/jltimer.webmanifest $(dest)/jltimer512x512.png $(dest)/jltimer192x192.png $(dest)/jltimer180x180.png $(dest)/jltimer32x32.png $(dest)/jltimer16x16.png $(dest)/local/
 	sed "/'timer.php',/d" $(dest)/sw.js > $(dest)/local/sw.js
 
 check: $(twistySrc) $(timerSrc)

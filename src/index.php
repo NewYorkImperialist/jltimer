@@ -6,7 +6,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="format-detection" content="telephone=no">
   <meta name="viewport" content="width=500, user-scalable=no">
-  <link rel="icon" type="image/png" href="jltimer512x512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="jltimer180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="jltimer32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="jltimer16x16.png">
   <meta name="application-name" content="jlTimer">
   <link rel="manifest" href="jltimer.webmanifest">
 <?php include('lang/langDet.php');?>
