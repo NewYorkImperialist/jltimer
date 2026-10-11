@@ -99,7 +99,22 @@
 			}
 		}
 
-		// Cube Materials
+		// Cube skin (js/cubeskin.js): sticker size, rounding, border, sheen, shading and an optional body behind the
+		// stickers. Without it (or with the default Classic style) the cube looks exactly as in csTimer.
+		var skin = getSkin();
+
+		function getSkin() {
+			var sk = window['jlCubeSkin'] && window['jlCubeSkin']['style'] && window['jlCubeSkin']['style']();
+			if (!sk || sk['id'] == 'classic' && sk['body'] == null) {
+				return { stickerWidth: cubeOptions.stickerWidth, round: 0, border: true, sheen: false, shade: 0, body: null, bodyEdge: null };
+			}
+			return {
+				stickerWidth: sk['stickerWidth'], round: sk['round'], border: sk['border'], sheen: sk['sheen'],
+				shade: sk['shade'], body: sk['body'], bodyEdge: sk['bodyEdge']
+			};
+		}
+
+		// Cube Materials (created once; a skin change updates them in place)
 		var materials = {};
 		var borderMaterial = new THREE.MeshBasicMaterial({
 			color: 0x000000,
@@ -107,6 +122,16 @@
 			wireframeLinewidth: 1,
 			opacity: cubeOptions.opacity
 		});
+		var bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x111111, opacity: cubeOptions.opacity });
+		var bodyEdgeMaterial = new THREE.MeshBasicMaterial({
+			color: 0x000000,
+			wireframe: true,
+			wireframeLinewidth: 1,
+			opacity: cubeOptions.opacity
+		});
+		// one 2x2 plane per cubie face, behind the sticker; it fills the gaps when the skin has a body
+		var bodyGeometry = new THREE.Plane(2.02, 2.02);
+		var stickerGeometry = new THREE.Plane(2, 2);
 		for (var i = 0; i < numSides; i++) {
 			materials[i] = new THREE.MeshBasicMaterial({
 				color: cubeOptions.faceColors[i],
@@ -138,9 +163,14 @@
 					if (cubeOptions.stickerBorder) {
 						meshes.push(borderMaterial);
 					}
-					var stickerInterior = new THREE.Mesh(new THREE.Plane(cubeOptions.stickerWidth, cubeOptions.stickerWidth), meshes);
+					var stickerInterior = new THREE.Mesh(stickerGeometry, meshes);
 					stickerInterior.doubleSided = cubeOptions.doubleSided;
+					stickerInterior.jlMat = materials[key];
 					sticker.addChild(stickerInterior);
+					var stickerBody = new THREE.Mesh(bodyGeometry, [bodyMaterial]);
+					stickerBody.position.z = -0.02;
+					stickerBody.visible = false;
+					sticker.addChild(stickerBody);
 
 					var transformationMatrix = new THREE.Matrix4().multiply(sidesUV[i], new THREE.Matrix4().setTranslation(
 						su * 2 - cubeOptions.dimension + 1, -(sv * 2 - cubeOptions.dimension + 1),
@@ -157,6 +187,48 @@
 
 				}
 			}
+		}
+
+		// apply a skin (and optionally new face colors, colcube order mapped like faceColors) without rebuilding the cube
+		function applySkin(twisty, newSkin, faceColors) {
+			untintAll();
+			skin = newSkin || getSkin();
+			if (faceColors) {
+				cubeOptions.faceColors = faceColors;
+			}
+			for (var key in materials) {
+				var mat = materials[key];
+				if (faceColors && twisty.visible !== false) {
+					mat.color.setHex(cubeOptions.faceColors[parseInt(key)]);
+				}
+				mat.jlRound = skin.round;
+				mat.jlSheen = skin.sheen;
+				mat.jlShade = skin.shade;
+			}
+			borderMaterial.jlRound = skin.round;
+			var hasBody = skin.body != null;
+			if (hasBody) {
+				bodyMaterial.color.setHex(skin.body);
+				bodyMaterial.jlShade = skin.shade ? Math.min(0.45, skin.shade * 2.2) : 0;
+				if (skin.bodyEdge != null) {
+					bodyEdgeMaterial.color.setHex(skin.bodyEdge);
+				}
+			}
+			var bodyMats = hasBody && skin.bodyEdge != null ? [bodyMaterial, bodyEdgeMaterial] : [bodyMaterial];
+			var scale = skin.stickerWidth / 2;
+			for (var f = 0; f < numSides; f++) {
+				for (var j = 0; j < cubePieces[f].length; j++) {
+					var obj = cubePieces[f][j][1];
+					var interior = obj.children[0];
+					interior.scale.x = interior.scale.y = scale;
+					interior.materials = cubeOptions.stickerBorder && skin.border ? [interior.jlMat, borderMaterial] : [interior.jlMat];
+					// with a body in front of them, the stickers on the far side can never be seen
+					interior.doubleSided = hasBody ? false : cubeOptions.doubleSided;
+					obj.children[1].visible = hasBody;
+					obj.children[1].materials = bodyMats;
+				}
+			}
+			return true;
 		}
 
 		var handMarks = [];
@@ -193,6 +265,7 @@
 			}
 		}
 
+
 		var actualScale = cubeOptions.scale * 0.5 / cubeOptions.dimension;
 		cubeObject.scale = new THREE.Vector3(actualScale, actualScale, actualScale);
 
@@ -218,6 +291,9 @@
 					orig.color.b + (tc.b - orig.color.b) * k);
 				tintCache[key] = new THREE.MeshBasicMaterial({ color: c.hex, opacity: orig.opacity });
 			}
+			tintCache[key].jlRound = orig.jlRound;
+			tintCache[key].jlSheen = orig.jlSheen;
+			tintCache[key].jlShade = orig.jlShade;
 			mesh.jlOrig = orig;
 			mesh.jlTinted = true;
 			mesh.materials[0] = tintCache[key];
@@ -231,6 +307,8 @@
 			}
 			tintedMeshes = [];
 		}
+
+		applySkin(null, skin);
 
 		function animateMoveCallback(twisty, currentMove, moveProgress, moveStep) {
 
@@ -350,7 +428,7 @@
 					var materials = faceStickers[stickerIndex][1].children[0].materials;
 					var hit = cord1 in effLayers || (dim - 1 - cord1) in effLayers || cord2 in effLayers || (dim - 1 - cord2) in effLayers;
 					materials[0].color.setHex(hit || colorVisible ? cubeOptions.faceColors[faceIndex] : 0x7f7f7f);
-					if (hit || borderVisible) {
+					if ((hit || borderVisible) && skin.border) {
 						materials[1] = twisty.borderMaterial;
 					} else {
 						materials.length = 1;
@@ -752,6 +830,7 @@
 			getFacelet: getFacelet,
 			moveCnt: moveCnt,
 			borderMaterial: borderMaterial,
+			applySkin: applySkin,
 			move2str: move2str,
 			moveInv: moveInv
 		};

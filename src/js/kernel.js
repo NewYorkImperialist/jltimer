@@ -1005,6 +1005,8 @@ var kernel = execMain(function() {
 			regProp('color', 'col-pbs', 3, 'PBs', ['#dd1166']);
 			regProp('color', 'col-timer', 4, 'Timer', ['#f00#0d0#dd0#080#f00']);
 			regProp('color', 'colcube', 4, 'Cube', ['#ff0#fa0#00f#fff#f00#0d0']);
+			// jlTimer: cube skin rows (js/cubeskin.js) right below the cube colours
+			window['jlCubeSkin'] && window['jlCubeSkin']['regProps']();
 			regProp('color', 'colpyr', 4, 'Pyraminx', ['#0f0#f00#00f#ff0']);
 			regProp('color', 'colskb', 4, 'Skewb', ['#fff#00f#f00#ff0#0f0#f80']);
 			regProp('color', 'colmgm', 4, 'Megaminx', ['#fff#d00#060#81f#fc0#00b#ffb#8df#f83#7e0#f9f#999']);

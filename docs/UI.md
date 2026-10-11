@@ -139,6 +139,19 @@ All styles are in one list, **Move effect** (Column Glow first, then the layer h
 
 The framework is `src/js/fx.js` (API documented at the top of that file). Each effect is one file in `src/js/fx/`, concatenated into the separate async bundle `js/jlfx.js`.
 
+## Virtual cube skins
+
+Options → color, right under **Cube** (the six cube colours):
+
+- **Cube skin** (default **Standard**): Standard, Pastel, Sakura (butter, blossom pink, plum, white, deep rose, matcha), Night (jewel tones), Katana (gold, sakura pink, lacquer black, ivory, crimson, steel), High contrast (white/grey/charcoal plus yellow, red, blue), or Custom. A preset simply writes its six colours into **Cube**, so the colour pickers, the 2D qCube, the scramble image and the move effects all follow; editing any colour by hand switches the skin to Custom, and colours that equal a preset select it. Every preset keeps the six faces apart for normal vision and for protan/deutan/tritan simulations (min CIEDE2000 between two faces 11 or more under simulation; Standard itself drops to about 4 for orange/green with deuteranopia).
+- **Sticker style** (default **Classic**): Classic is the csTimer look (floating stickers, thin black outline). Stickerless: coloured pieces that fill the cubie, slightly rounded, with a hairline dark core between them. Glossy: rounded stickers on black with a soft highlight in the corner nearest the top-left of the screen. Soft: well-rounded stickers on a plum body (white body with the Sakura colours). The non-classic styles also shade faces turned away from a fixed light a little.
+- **Cube body** (default **Auto**): Auto picks the style's body (Classic: none, so nothing changes), or Black, White (warm white with faint cubie seams), Plum, or Theme (the theme's text colour). Classic + a body gives black-plastic-with-stickers.
+- **Cube preview**: a small isometric cube drawn with the same rules (white top, green front, red right, like the virtual cube's start) plus the six swatches.
+
+Changes apply immediately to every 3D NxN cube on screen (main cube, replay) without resetting it. 2x2 to 11x11 use the styles; pyraminx, skewb, megaminx etc. keep their own colours and the classic look; heli/redi/dino take the colours but not the styles.
+
+How it works: `src/js/cubeskin.js` holds the presets and props and exposes `jlCubeSkin.style()`. `twisty/twistynnn.js` gives every sticker a second, hidden 2x2 plane behind it (the body) and `applySkin()` updates the shared materials in place (sticker scale, border, body visibility), so a change costs nothing per frame. The canvas renderer (`lib/threemin.js`, `jlSkinQuad`) reads three optional material fields: `jlRound` (rounded quad path with bezier corners), `jlShade` (16 precomputed fill colours per material, picked by the face normal) and `jlSheen` (one extra translucent fill). Frame cost while turning at 40 tps: about 0.55 ms mean per animation frame for Classic and 0.7 ms for Glossy with 4x CPU throttling, 60 fps either way.
+
 ## Keyboard access
 
 The button bar buttons can be focused with Tab, and **Enter** or **Space** activates the focused button. Mouse and touch presses don't focus them, so after a click Space still starts the timer as before. To leave the button bar, press Esc or click the timer area. Tab no longer gets cancelled by the timer's blur-on-key behavior; the Tab key is still passed to the timer, so it still stops a running solve like any other key. Text inputs, selects and dialogs keep csTimer's existing rule: keys typed there never reach the timer or the virtual cube.

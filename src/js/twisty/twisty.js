@@ -419,6 +419,11 @@ window.twistyjs = (function() {
 		}
 		*/
 
+		// redraw without touching the camera (cube skin changes, js/cubeskin.js)
+		this.redraw = function() {
+			renderer && render();
+		};
+
 		this.cam = function(deltaTheta) {
 			moveCameraDelta(deltaTheta, 0);
 		}

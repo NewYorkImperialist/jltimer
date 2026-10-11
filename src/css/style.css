@@ -3070,3 +3070,35 @@ mark.optmark {
 	margin-top: 0.2em;
 	opacity: 0.8;
 }
+
+/* jlTimer cube skins: live preview row under Options > Color > Cube body (js/cubeskin.js) */
+.jlskin-prev {
+	display: flex;
+	align-items: center;
+	gap: 0.8em;
+	flex-wrap: wrap;
+}
+
+.jlskin-cube {
+	width: 92px;
+	height: 92px;
+	flex: none;
+}
+
+.jlskin-side {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35em;
+}
+
+.jlskin-sw {
+	display: flex;
+	gap: 0.3em;
+}
+
+.jlskin-sw span {
+	width: 1.1em;
+	height: 1.1em;
+	border-radius: 0.3em;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}

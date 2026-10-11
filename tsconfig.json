@@ -26,7 +26,8 @@
     "src/js/cloud.js",
     "src/js/mybg.js",
     "src/js/themes.js",
-    "src/js/fx.js"
+    "src/js/fx.js",
+    "src/js/cubeskin.js"
   ],
   "include": [
     "src/js/fx/*.js"
