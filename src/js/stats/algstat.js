@@ -271,6 +271,64 @@ var algStat = execMain(function() {
 		return solveCache[key];
 	}
 
+	// ---------- first computation, sliced ----------
+
+	var SLICE = 30; // ms of work per time slice
+
+	// the timer runs or is about to start (ready / inspection): no heavy work now
+	function timerBusy() {
+		if (!window.timer || !timer.getCurTime) {
+			return false;
+		}
+		var st = timer.status();
+		return timer.getCurTime() > 0 || st == -2 || st == -3 || st == -4;
+	}
+
+	/**
+	 * Compute the records of the current session that are not cached yet (stats caches them, and the
+	 * reconstructions under them, which the other steps, COLL stats and the dashboard share) in time slices.
+	 * done() runs synchronously when everything is cached already (or the first slice finishes it).
+	 * @param {string} step
+	 * @param {() => boolean} alive false: stop (outdated or closed)
+	 * @param {(i: number, n: number) => void} progress (done, total) between slices
+	 * @param {() => void} done
+	 */
+	function warmSession(step, alive, progress, done) {
+		var key = 'algstat_' + step;
+		var i = 0;
+		var sync = true;
+
+		function tick() {
+			if (!alive()) {
+				return;
+			}
+			if (timerBusy()) {
+				sync = false;
+				setTimeout(tick, 500);
+				return;
+			}
+			var t0 = performance.now();
+			var n = stats.getTimesStatsTable().timesLen;
+			for (; i < n; i++) {
+				if (!stats.hasExtraInfo(key, i)) {
+					if (performance.now() - t0 > SLICE) {
+						break;
+					}
+					stats.getExtraInfo(key, i);
+				}
+			}
+			if (i >= n) {
+				done();
+				return;
+			}
+			progress(i, n);
+			sync = false;
+			setTimeout(tick, 0);
+		}
+		tick();
+		return sync;
+	}
+
 	function curSessionRecs(step) {
 		var recs = [];
 		var nsolv = stats.getTimesStatsTable().timesLen;
@@ -700,6 +758,7 @@ var algStat = execMain(function() {
 		var isDialog = false;
 		var others = null;
 		var loadingTid = 0;
+		var warmTid = 0;
 
 		/** @return {AlgDrill} the trainer of this step (window[cfg.drill]) */
 		function drill() {
@@ -888,8 +947,47 @@ var algStat = execMain(function() {
 			});
 		}
 
+		function visible() {
+			return !!toolDiv || dialogOpen();
+		}
+
+		// the session's records are computed in slices first (a cold session of thousands of solves takes a while)
 		function update() {
-			if (!toolDiv && !dialogOpen()) {
+			if (!visible()) {
+				return;
+			}
+			var myTid = ++warmTid;
+			warmSession(step, function() {
+				return myTid == warmTid && visible();
+			}, function(i, n) {
+				renderProgress(i, n);
+			}, function() {
+				if (myTid == warmTid) {
+					updateNow();
+				}
+			});
+		}
+
+		function renderProgress(i, n) {
+			var txt = 'reconstructing ' + i + ' / ' + n;
+			var targets = [];
+			toolDiv && targets.push(toolDiv);
+			dialogOpen() && targets.push(dialogDiv);
+			for (var k = 0; k < targets.length; k++) {
+				var prog = targets[k].find('.jlas-prog');
+				if (!prog.length) {
+					render(targets[k], [], targets[k] === dialogDiv, true);
+					targets[k].find('.jlas-bar0 .jlas-sum').first().html('<span class="jlas-prog"><span class="jlas-progtrack">' +
+						'<span class="cntbar jlas-progfill"></span></span> <span class="jlas-progtext"></span></span>');
+					prog = targets[k].find('.jlas-prog');
+				}
+				prog.find('.jlas-progfill').css('width', (n ? i / n * 100 : 0).toFixed(1) + '%');
+				prog.find('.jlas-progtext').text(txt);
+			}
+		}
+
+		function updateNow() {
+			if (!visible()) {
 				return;
 			}
 			var recs = scopeRecs();

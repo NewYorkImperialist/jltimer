@@ -103,6 +103,18 @@ ISCSTIMER && execMain(function() {
 		};
 	}
 
+	// when an input event happened: the event's own timeStamp (performance clock, like $.now()), so a busy main thread
+	// delaying the handler does not shift recorded times. Falls back to the current time when the event has no usable
+	// timestamp (missing / 0, in the future, or more than 1 s old: synthetic events, other clocks).
+	$.eventTime = function(e) {
+		var now = $.now();
+		var ts = e && (e.originalEvent || e).timeStamp;
+		if (!(ts > 0) || ts > now + 1 || now - ts > 1000) {
+			return now;
+		}
+		return Math.floor(ts);
+	};
+
 	$.urlParam = function(name) {
 		var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
 		if (results == null) {

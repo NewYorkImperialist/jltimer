@@ -82,9 +82,8 @@ Idle, and with a 30 ms busy loop every 100 ms (a stand-in for any heavy work on 
   jitter; with the busy task CDP's own delivery jitters, so it is not measured there); `wrongSolves` = solves with a
   wrong or missing record.
 * **keyboard** timer (input "Keyboard"): hold Space 0.65 s, release = start, Space = stop. `startErrMax` vs the
-  release's timestamp, `stopErrMax` vs the stop key's. The keyboard timer still takes the time when its handler runs,
-  so with the busy task these are up to ~30 ms (the threshold documents that; tighten it if the keyboard timer moves
-  to event timestamps like the virtual cube did).
+  release's timestamp, `stopErrMax` vs the stop key's. The keyboard timer uses the events' own timestamps too, so
+  these stay at ~1 ms with the busy task (before that change: up to ~30 ms).
 
 ### 3. cube-render-cost
 Turning continuously at 40 keys/s, the time of the cube's own animation-frame callback (p95 / max) for the Classic,
@@ -107,9 +106,9 @@ meanwhile (a 5 ms interval probe; the computation runs in slices), `reopenMs` / 
 (cached), `analyzedAll` = the result covers the whole session.
 
 ### 7. stats-ui (same data)
-`pllFirstOpenMs` / `pllLongestBlock` = PLL stats first open (reconstructs every solve; currently one block),
-`pllCases` = rows shown; `jumpBottomMs` (+ `Sync` = the scroll handler alone) = drag the time list to the bottom,
-which renders every row; `deleteAtBottomMs` (+ `Sync`) = delete a solve near the bottom (the confirm is stubbed so
+`pllFirstOpenMs` / `pllLongestBlock` = PLL stats first open (reconstructs every solve, in time slices),
+`pllCases` = rows shown; `jumpBottomMs` (+ `Sync` = the scroll handler alone) = drag the time list to the bottom
+(the list is windowed: renders the rows there); `deleteAtBottomMs` (+ `Sync`) = delete a solve near the bottom (the confirm is stubbed so
 only the app's work counts); `deleted` = exactly one solve removed.
 
 ### 8. load

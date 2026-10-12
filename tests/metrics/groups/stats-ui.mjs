@@ -1,5 +1,5 @@
 // 7. stats-ui: PLL stats dialog first open (cold reconstruction of the whole session), time list jump to the
-//    bottom (renders every row), deleting a solve near the bottom.
+//    bottom (renders the rows there), deleting a solve near the bottom.
 import { openPage, sleep, lagStart, lagStop, m } from '../lib.mjs';
 
 export default {
@@ -42,7 +42,17 @@ export default {
 		);
 		// delete a solve near the bottom (dialog confirm stubbed so only the app's own work is timed)
 		const idx = Math.min(300, env.data.n - 1);
-		await page.evaluate((idx) => { const e = $('#stats .myscroll')[0]; e.scrollTop = $(`#stats tr[data="${idx}"]`)[0].offsetTop - 100; }, idx);
+		await page.evaluate(async (idx) => {
+			const e = $('#stats .myscroll')[0];
+			if (!$(`#stats tr[data="${idx}"]`).length) {
+				// windowed list (only the rows near the view exist): scroll near the row by the row height first
+				const rh = $('#stats .myscroll tr[data]')[0].getBoundingClientRect().height;
+				e.scrollTop = e.scrollHeight - (idx + 1) * rh - 100;
+				e.dispatchEvent(new Event('scroll'));
+				await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+			}
+			e.scrollTop = $(`#stats tr[data="${idx}"]`)[0].offsetTop - 100;
+		}, idx);
 		await sleep(300);
 		await page.click(`#stats tr[data="${idx}"] td.times >> nth=0`);
 		await sleep(700);

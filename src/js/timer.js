@@ -416,6 +416,18 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 		var lastDown = 0;
 		var lastStop = 0;
 		var pressreadyId = undefined;
+		var lastEvtTime = 0;
+
+		// when the key / touch happened (event.timeStamp, see $.eventTime), never earlier than the previous one: a
+		// busy main thread delaying the handler must not shift the start or stop time
+		function inputTime(e) {
+			var t = $.eventTime(e);
+			if (t < lastEvtTime && lastEvtTime - t < 1000) {
+				t = lastEvtTime;
+			}
+			lastEvtTime = t;
+			return t;
+		}
 
 		function clearPressReady() {
 			if (pressreadyId != undefined) {
@@ -424,8 +436,8 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 			}
 		}
 
-		function onkeyup(keyCode, isTrigger) {
-			var now = $.now();
+		function onkeyup(keyCode, isTrigger, e) {
+			var now = inputTime(e);
 			if (isTrigger) {
 				if (status == 0) {
 					setStatus(-1);
@@ -456,13 +468,13 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 			}
 		}
 
-		function onkeydown(keyCode, isTrigger) {
+		function onkeydown(keyCode, isTrigger, e) {
 			var stopKey = getProp('stopKey');
 			if (!isTrigger && keyCode != 27 && stopKey != 'a'
 					&& !(stopKey == 'l' && keyCode > 64 && keyCode <= 90)) {
 				return;
 			}
-			var now = $.now();
+			var now = inputTime(e);
 			if (now - lastDown < 200) {
 				return;
 			}
@@ -533,7 +545,7 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 				clearTimeout(pressreadyId);
 				pressreadyId = undefined;
 			}
-			lastDown = lastStop = 0;
+			lastDown = lastStop = lastEvtTime = 0;
 			isTrain = type == 'l';
 			if (isTrain) {
 				resetTrain();
@@ -575,10 +587,10 @@ var timer = execMain(function(regListener, regProp, getProp, pretty, ui, pushSig
 				if (keyCode == 28) {
 					return;
 				}
-				return onkeydown(keyCode, detectTrigger(keyCode, 0, e));
+				return onkeydown(keyCode, detectTrigger(keyCode, 0, e), e);
 			},
 			onkeyup: function(keyCode, e) {
-				return onkeyup(keyCode, detectTrigger(keyCode, 1, e));
+				return onkeyup(keyCode, detectTrigger(keyCode, 1, e), e);
 			},
 			detectTrigger: detectTrigger,
 			reset: reset

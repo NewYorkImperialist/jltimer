@@ -86,7 +86,8 @@ var jlDash = execMain(function() {
 
 	// returns 0 (no move record) or {ok: false} (not a complete CFOP split) or
 	// {ok, st: [[recog, exec, turns, pause, rotations] x 7 steps], pause, turn, mv, rot, oll, pll, eo}
-	function analyzeSolve(times) {
+	// ent: the list entry {s: session, i: index} of the solve, if known
+	function analyzeSolve(times, ent) {
 		if (!hasMoves(times)) {
 			return 0;
 		}
@@ -95,7 +96,13 @@ var jlDash = execMain(function() {
 		var tt = times[0][0] < 0 ? [[0].concat(times[0].slice(1))].concat(times.slice(1)) : times;
 		var rec = null;
 		try {
-			rec = recons.calcRecons(tt, 'cf4op');
+			// a solve of the current session (not a DNF, so the same input): the reconstruction stats caches,
+			// which PLL / OLL / COLL stats use too, so whichever opens first computes it for the others
+			if (tt === times && ent && ent.s == ~~kernel.getProp('session') && stats.timesAt(ent.i) === times) {
+				rec = stats.getExtraInfo('recons_cf4op', ent.i);
+			} else {
+				rec = recons.calcRecons(tt, 'cf4op');
+			}
 		} catch (e) {
 			rec = null;
 		}
@@ -296,7 +303,7 @@ var jlDash = execMain(function() {
 			runSliced(myJob, function() {
 				var end = Math.min(pos + 40, n0);
 				for (; pos < end; pos++) {
-					cache[todo[pos].k] = analyzeSolve(todo[pos].t);
+					cache[todo[pos].k] = analyzeSolve(todo[pos].t, todo[pos]);
 				}
 				if (pos >= n0) {
 					return true;

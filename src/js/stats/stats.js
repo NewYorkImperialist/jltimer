@@ -12,17 +12,21 @@ var stats = execMain(function(kpretty, round, kpround) {
 	var title = $('<tr>');
 
 	var avgRow = $('<tr>');
-	var showAllRow = $('<tr class="click" ><th class="click" colspan="15">...</th></tr>');
 
 	var sumtable = $('<table class="sumtable">').click(function(e) {
 		infoClick(times_stats_table, timesAt, e);
 	}).addClass("table");
 	var sumtableDiv = $('<div class="statc">');
 
-	var MAX_ITEMS = 50;
-	// jlTimer: an empty row as tall as the rows not shown yet, so the time list's scrollbar spans the whole
-	// session; scrolling into it shows the rows down to there
-	var spacerRow = $('<tr class="jl-spacer"><td colspan="15"></td></tr>');
+	// jlTimer: the time list is windowed. Only the rows near the view are in the DOM; two spacer rows stand in
+	// for the rows above and below them (sized by the row height), so the scrollbar spans the whole session and
+	// jumping anywhere or deleting a solve only renders about a screenful of rows.
+	var MAX_ITEMS = 50; // rows rendered while the list is hidden (no size to measure)
+	var WIN_BUF = 40; // rows rendered beyond each edge of the view
+	var WIN_EDGE = 8; // re-render when the view comes this close to an edge of the rendered rows
+	var WIN_MAX = 200; // new solves added at the top stay in the DOM up to this many rows
+	var topSpacer = $('<tr class="jl-spacer"><td colspan="15"></td></tr>');
+	var botSpacer = $('<tr class="jl-spacer"><td colspan="15"></td></tr>');
 	var rowHeight = 0;
 
 	var isInit = true;
@@ -84,9 +88,8 @@ var stats = execMain(function(kpretty, round, kpround) {
 			timesExtra.splice(index, n_del);
 		});
 		sessionManager.save(index);
-		var view = table_ctrl.getView();
-		table_ctrl.updateTable(false);
-		table_ctrl.setView(view);
+		// rebuild the list where it was scrolled to
+		table_ctrl.updateTable(false, table_ctrl.getView());
 		updateUtil(['delete', index, n_del]);
 		return true;
 	}
@@ -146,8 +149,10 @@ var stats = execMain(function(kpretty, round, kpround) {
 		var timeTh = $('<th class="click">');
 		var len1Th = $('<th class="click">');
 		var len2Th = $('<th class="click">');
-		var shownIdxs = [];
-		var hheadIdx = 0;
+		var dispIdxs = []; // the listed solves (filtered), newest first or by rank: index 0 is the logical start
+		var winA = 0; // rendered rows: DOM positions [winA, winB) of the list
+		var winB = 0;
+		var colW = []; // widest seen title cells (the columns never shrink while scrolling)
 		var nextRank = null;
 
 		function changeRank(idx) {
@@ -205,7 +210,8 @@ var stats = execMain(function(kpretty, round, kpround) {
 				pattern.exec(mathlib.time2str(time[3]));
 		}
 
-		function updateTable(allUpdate) {
+		// view: from getView(), to keep the scroll position across the rebuild (e.g. after deleting a solve)
+		function updateTable(allUpdate, view) {
 			curDim = 1;
 			for (var i = 0; i < times.length; i++) {
 				curDim = Math.max(curDim, timesAt(i)[0].length - 1);
@@ -214,27 +220,135 @@ var stats = execMain(function(kpretty, round, kpround) {
 			if (nextRank && nextRank['len'] != times.length) {
 				clearFilter();
 			}
-			shownIdxs = [];
-			hheadIdx = nextIdx(-2);
-			if (kernel.getProp('statinv')) {
-				table.empty().append(title, showAllRow, avgRow);
-			} else {
-				table.empty().append(avgRow, title, showAllRow);
+			dispIdxs = [];
+			var all = patstr == '.*' && !pattern.global;
+			for (var idx = nextIdx(-2); idx >= 0; idx = nextIdx(idx)) {
+				if (all || filter(idx)) {
+					dispIdxs.push(idx);
+				}
 			}
-			showMoreRows();
-			if (hheadIdx < 0) {
-				showAllRow.unbind('click').hide();
+			var isInv = kernel.getProp('statinv');
+			if (isInv) {
+				table.empty().append(title, topSpacer, botSpacer, avgRow);
 			} else {
-				showAllRow.unbind('click').click(table_ctrl.showAll).show();
+				table.empty().append(avgRow, title, topSpacer, botSpacer);
 			}
-			updateSpacer();
+			colW = [];
+			title.children().css('min-width', '');
 			filterTh.unbind('click').click(changePattern);
 			timeTh.unbind('click').click(changeRank.bind(null, 0));
 			len1Th.unbind('click').click(changeRank.bind(null, 1));
 			len2Th.unbind('click').click(changeRank.bind(null, 2));
 			updateAvgRow(curDim);
 			allUpdate && updateUtil(['table']);
-			scrollDiv.scrollTop(kernel.getProp('statinv') ? table[0].scrollHeight : 0);
+			// nothing rendered yet: the spacers stand for the whole list, then scroll and render the rows there
+			winA = winB = 0;
+			setSpacers();
+			var elem = scrollDiv[0];
+			if (view) {
+				elem.scrollTop = isInv ? elem.scrollHeight - view[1] : view[0];
+			} else {
+				elem.scrollTop = isInv ? elem.scrollHeight : 0;
+			}
+			renderWindow(true);
+			if (!view) {
+				elem.scrollTop = isInv ? elem.scrollHeight : 0;
+			}
+		}
+
+		function setSpacer(spacer, h) {
+			spacer.css('display', h > 0 ? '' : 'none').children().css('height', h > 0 ? h + 'px' : '');
+		}
+
+		function setSpacers() {
+			setSpacer(topSpacer, winA * rowHeight);
+			setSpacer(botSpacer, (dispIdxs.length - winB) * rowHeight);
+		}
+
+		function renderedRows() {
+			return topSpacer.nextUntil(botSpacer);
+		}
+
+		// the average height of the rendered rows (0 when there are none or the list is hidden)
+		function measureRows() {
+			var rows = renderedRows();
+			if (!rows.length) {
+				return 0;
+			}
+			var h = rows.last()[0].getBoundingClientRect().bottom - rows.first()[0].getBoundingClientRect().top;
+			return h > 0 ? h / rows.length : 0;
+		}
+
+		// the solve shown at DOM position pos
+		function idxAt(pos) {
+			return dispIdxs[kernel.getProp('statinv') ? dispIdxs.length - 1 - pos : pos];
+		}
+
+		// render the rows around the view (force: even when the rendered rows still cover it)
+		function renderWindow(force) {
+			var elem = scrollDiv[0];
+			var n = dispIdxs.length;
+			var isInv = kernel.getProp('statinv');
+			var p0, p1;
+			if (!rowHeight || !elem.clientHeight) {
+				// hidden or not measured yet: the first rows from the logical start
+				p0 = isInv ? Math.max(0, n - MAX_ITEMS) : 0;
+				p1 = isInv ? n : Math.min(n, MAX_ITEMS);
+			} else {
+				// the list starts below the title row (directly above the top spacer in both orders)
+				var rowsTop = title[0].getBoundingClientRect().bottom - elem.getBoundingClientRect().top + elem.scrollTop;
+				var y0 = elem.scrollTop - rowsTop;
+				var v0 = Math.max(0, Math.min(n, Math.floor(y0 / rowHeight)));
+				var v1 = Math.max(0, Math.min(n, Math.ceil((y0 + elem.clientHeight) / rowHeight)));
+				if (!force && (winA == 0 || v0 - WIN_EDGE >= winA) && (winB == n || v1 + WIN_EDGE <= winB) && winA <= v0 && v1 <= winB) {
+					return false;
+				}
+				p0 = Math.max(0, v0 - WIN_BUF);
+				p1 = Math.min(n, v1 + WIN_BUF);
+			}
+			if (!force && p0 == winA && p1 == winB) {
+				return false;
+			}
+			var rows = [];
+			for (var p = p0; p < p1; p++) {
+				rows.push(getTimeRow(idxAt(p), curDim));
+			}
+			renderedRows().remove();
+			topSpacer.after(rows.join(''));
+			winA = p0;
+			winB = p1;
+			// the row height is measured once (and again on a resize, updateSpacer): re-measuring on every render
+			// would move the whole list under the view by the tiny differences between rows
+			var first = !rowHeight;
+			if (first) {
+				rowHeight = measureRows();
+			}
+			setSpacers();
+			keepColumnWidths();
+			if (first && rowHeight && elem.clientHeight) {
+				// first measurement: now render the rows of the view
+				renderWindow(true);
+			}
+			return true;
+		}
+
+		// columns only grow while scrolling (rows of other widths come and go)
+		function keepColumnWidths() {
+			var ths = title.children();
+			if (!ths.length || !ths[0].offsetWidth) {
+				return;
+			}
+			var ws = [];
+			for (var i = 0; i < ths.length; i++) {
+				ws[i] = Math.ceil(ths[i].getBoundingClientRect().width);
+			}
+			for (var i = 0; i < ths.length; i++) {
+				if (ws[i] > (colW[i] || 0)) {
+					colW[i] = ws[i];
+					ths[i].style.boxSizing = 'border-box';
+					ths[i].style.minWidth = ws[i] + 'px';
+				}
+			}
 		}
 
 		function changePattern() {
@@ -276,154 +390,85 @@ var stats = execMain(function(kpretty, round, kpround) {
 
 		function updateFrom(idx) {
 			var endIdx = Math.min(idx + Math.max(len1, len2), times.length);
-			var isStatInv = kernel.getProp('statinv');
-			var rows = avgRow.parent().children();
-			for (var i = 0; i < shownIdxs.length; i++) {
-				if (shownIdxs[i] < idx || shownIdxs[i] >= endIdx) {
-					continue;
+			renderedRows().each(function() {
+				var i = ~~this.getAttribute('data');
+				if (i >= idx && i < endIdx) {
+					getTimeRow(i, curDim, $(this));
 				}
-				var ii = isStatInv ? shownIdxs.length + 1 - i : 2 + i;
-				if (shownIdxs[i] != ~~rows.eq(ii).attr('data')) {
-					console.log('[stats] update from error', shownIdxs[i], ii, rows[ii]);
-					continue;
-				}
-				getTimeRow(shownIdxs[i], curDim, rows.eq(ii));
-			}
+			});
 			updateAvgRow(curDim);
 		}
 
-		function showMoreRows(n) {
-			var targetLength = shownIdxs.length + (n || MAX_ITEMS);
-			var rows = [];
-			while (hheadIdx >= 0 && shownIdxs.length < targetLength) {
-				if (filter(hheadIdx)) {
-					rows.push(getTimeRow(hheadIdx, curDim));
-					shownIdxs.push(hheadIdx);
-				}
-				hheadIdx = nextIdx(hheadIdx);
-			}
-			if (kernel.getProp('statinv')) {
-				showAllRow.after(rows.reverse().join(""));
-			} else {
-				showAllRow.before(rows.join(""));
-			}
-		}
-
-		function showAll(e) {
-			showMoreRows();
-			if (hheadIdx < 0) {
-				showAllRow.unbind('click').hide();
-			}
-			updateSpacer();
-		}
-
+		// the list was resized or shown: measure the rows again and render the view
 		function updateSpacer() {
-			var left = kernel.getProp('statinv') ? 0 : hheadIdx + 1;
-			if (left <= 0) {
-				spacerRow.detach();
-				return;
-			}
-			var row = showAllRow.prev('tr[data]');
-			rowHeight = row.length && row[0].offsetHeight || rowHeight;
-			if (!rowHeight) {
-				spacerRow.detach();
-				return;
-			}
-			showAllRow.after(spacerRow);
-			spacerRow.children().css('height', left * rowHeight);
-		}
-
-		// scrolled into the spacer: show the rows down to the bottom of the view
-		function fillToView() {
-			if (!spacerRow[0].parentNode || !rowHeight) {
-				return false;
-			}
+			var h = measureRows();
 			var elem = scrollDiv[0];
-			var over = elem.getBoundingClientRect().bottom - spacerRow[0].getBoundingClientRect().top;
-			if (over <= 0) {
-				return false;
+			if (h && Math.abs(h - rowHeight) > 0.5 && rowHeight && elem.clientHeight) {
+				// keep the row at the top of the view where it is
+				var rowsTop = title[0].getBoundingClientRect().bottom - elem.getBoundingClientRect().top + elem.scrollTop;
+				var pos = (elem.scrollTop - rowsTop) / rowHeight;
+				rowHeight = h;
+				setSpacers();
+				elem.scrollTop = rowsTop + pos * h;
+			} else if (h && !rowHeight) {
+				rowHeight = h;
 			}
-			var top = elem.scrollTop;
-			showMoreRows(Math.ceil(over / rowHeight) + MAX_ITEMS);
-			if (hheadIdx < 0) {
-				showAllRow.unbind('click').hide();
-			}
-			updateSpacer();
-			elem.scrollTop = top;
-			return true;
+			renderWindow(true);
 		}
 
-		// keep the scroll position across a rebuild (e.g. after deleting a solve)
+		function onScroll() {
+			renderWindow(false);
+		}
+
 		function getView() {
 			var elem = scrollDiv[0];
-			return [shownIdxs.length, elem.scrollTop, elem.scrollHeight - elem.scrollTop];
+			return [elem.scrollTop, elem.scrollHeight - elem.scrollTop];
 		}
 
-		function setView(view) {
-			if (shownIdxs.length < view[0] && hheadIdx >= 0) {
-				showMoreRows(view[0] - shownIdxs.length);
-				if (hheadIdx < 0) {
-					showAllRow.unbind('click').hide();
-				}
-				updateSpacer();
-			}
-			var elem = scrollDiv[0];
-			elem.scrollTop = kernel.getProp('statinv') ? elem.scrollHeight - view[2] : view[1];
-		}
-
-		function hideAll() {
-			while (shownIdxs.length > MAX_ITEMS) {
-				(kernel.getProp('statinv') ? showAllRow.next() : showAllRow.prev()).remove();
-				hheadIdx = shownIdxs.pop();
-			}
-			if (nextIdx(hheadIdx) >= 0) {
-				showAllRow.unbind('click').click(showAll).show();
-			}
-			updateSpacer();
-		}
-
+		// a new solve (the newest, so no other row changes): at the logical start of the list
 		function appendRow(idx) {
 			if (clearFilter()) {
 				return;
 			}
-			var row = getTimeRow(idx, curDim);
-			if (kernel.getProp('statinv')) {
-				avgRow.before(row);
-				scrollDiv.scrollTop(table[0].scrollHeight);
+			var isInv = kernel.getProp('statinv');
+			var elem = scrollDiv[0];
+			var n = dispIdxs.length;
+			dispIdxs.unshift(idx);
+			if (isInv && winB == n) {
+				// positions of the older rows stay the same, the new one goes below them
+				botSpacer.before(getTimeRow(idx, curDim));
+				winB = n + 1;
+			} else if (!isInv && winA == 0) {
+				topSpacer.after(getTimeRow(idx, curDim));
+				winB++;
+				if (winB - winA > WIN_MAX) {
+					renderedRows().last().remove();
+					winB--;
+				}
 			} else {
-				title.after(row);
-				scrollDiv.scrollTop(0);
+				winA = winB = 0;
+				renderedRows().remove();
 			}
-			shownIdxs.unshift(idx);
+			setSpacers();
+			elem.scrollTop = isInv ? elem.scrollHeight : 0;
+			if (winA == winB) {
+				renderWindow(true);
+				elem.scrollTop = isInv ? elem.scrollHeight : 0;
+			}
 			updateAvgRow(curDim);
-			if (shownIdxs.length > MAX_ITEMS) {
-				table_ctrl.hideAll();
-			}
 		}
 
 		function getRowIndexOf(idx) {
-			var sidx = shownIdxs.indexOf(idx);
-			if (sidx == -1) {
-				return null;
-			}
-			var ii = kernel.getProp('statinv') ? shownIdxs.length + 1 - sidx : 2 + sidx;
-			var row = avgRow.parent().children().eq(ii);
-			if (idx != ~~row.attr('data')) {
-				console.log('[stats] table_ctrl getRowIndexOf error', sidx, idx, row);
-				return null;
-			}
-			return row;
+			var row = renderedRows().filter('[data="' + idx + '"]');
+			return row.length ? row : null;
 		}
 
 		return {
 			appendRow: appendRow,
-			showAll: showAll,
-			hideAll: hideAll,
 			getRowIndexOf: getRowIndexOf,
 			updateTable: updateTable,
 			getView: getView,
-			setView: setView,
-			fillToView: fillToView,
+			onScroll: onScroll,
 			updateSpacer: updateSpacer,
 			updateFrom: updateFrom
 		}
@@ -630,7 +675,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 
 	function procClick(e) {
 		var target = $(e.target);
-		if (!target.is('td,td>span') || target.html() == '-') {
+		if (!target.is('td,td>span') || target.html() == '-' || target.closest('tr').hasClass('jl-spacer')) {
 			return;
 		}
 		if (target.is('td>span')) {
@@ -2054,8 +2099,6 @@ var stats = execMain(function(kpretty, round, kpround) {
 			} else if (value[1] == 'cmt') {
 				floatCfm.proc(times.length - 1, 'comment');
 			}
-		} else if (signal == 'ashow' && !value) {
-			table_ctrl.hideAll();
 		} else if (signal == 'button' && value[0] == 'stats' && value[1]) {
 			setTimeout(resultsHeight, 50);
 		} else if (signal == 'giirecons') {
@@ -2121,15 +2164,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 		$(window).bind('resize', resultsHeight);
 		table.append(title, avgRow);
 		kernel.addWindow('stats', BUTTON_TIME_LIST, div, true, true, 4);
-		scrollDiv.bind('scroll', function() {
-			var elem = scrollDiv[0];
-			if (table_ctrl.fillToView()) {
-				return;
-			}
-			if (elem.scrollHeight - elem.scrollTop < elem.clientHeight + 5 && !kernel.getProp('statinv')) {
-				showAllRow.click();
-			}
-		});
+		scrollDiv.bind('scroll', table_ctrl.onScroll);
 
 		var stattl = STATS_TYPELEN.split('|');
 		kernel.regProp('stats', 'stat1t', 1, stattl[0].replace('%d', 1), [0, [0, 1], stattl.slice(2)], 1);
@@ -2175,6 +2210,11 @@ var stats = execMain(function(kpretty, round, kpround) {
 			timesExtra[idx][key] = extraFuncs[key](timesAt(idx), idx);
 		}
 		return timesExtra[idx][key];
+	}
+
+	// the value is cached already (getExtraInfo returns without computing)
+	function hasExtraInfo(key, idx) {
+		return idx >= times.length || !(key in extraFuncs) || !!timesExtra[idx] && (key in timesExtra[idx]);
 	}
 
 	function getValidMetrics() {
@@ -2286,6 +2326,7 @@ var stats = execMain(function(kpretty, round, kpround) {
 		infoClick: infoClick,
 		regUtil: regUtil,
 		regExtraInfo: regExtraInfo,
-		getExtraInfo: getExtraInfo
+		getExtraInfo: getExtraInfo,
+		hasExtraInfo: hasExtraInfo
 	}
 }, [kernel.pretty, kernel.round, kernel.pround]);

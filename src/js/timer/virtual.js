@@ -210,15 +210,10 @@ execMain(function(timer) {
 		attemptMoves = [];
 	}
 
-	// when the key was pressed: the event's own timestamp (performance clock, like $.now()), so a busy main thread
-	// delaying the handler does not shift the logged move times or the solve time; falls back to the current time
+	// when the key was pressed: the event's own timestamp ($.eventTime in utillib.js), so a busy main thread delaying
+	// the handler does not shift the logged move times or the solve time
 	function eventTime(e) {
-		var now = $.now();
-		var ts = e && (e.originalEvent || e).timeStamp;
-		if (!(ts > 0) || ts > now + 1 || now - ts > 1000) {
-			return now;
-		}
-		return Math.floor(ts);
+		return $.eventTime(e);
 	}
 
 	function onkeydown(keyCode, e) {

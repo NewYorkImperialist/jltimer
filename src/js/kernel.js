@@ -1345,7 +1345,7 @@ var kernel = execMain(function() {
 			}
 			shortcuts.onTouchStart(e);
 			refocus();
-			timer.onkeydown({which: 32});
+			timer.onkeydown({which: 32, timeStamp: (e.originalEvent || e).timeStamp});
 			e.preventDefault && e.preventDefault();
 		});
 		$('#container').bind('touchmove', function(e) {
@@ -1357,7 +1357,7 @@ var kernel = execMain(function() {
 				return;
 			}
 			refocus();
-			timer.onkeyup({which: 32});
+			timer.onkeyup({which: 32, timeStamp: (e.originalEvent || e).timeStamp});
 			e.preventDefault && e.preventDefault();
 		});
 		$('#container').bind('touch', function(e){
@@ -1381,7 +1381,7 @@ var kernel = execMain(function() {
 			if (e.which == 1 && getProp('useMouse')) { //left button only
 				isValidDown = true;
 				shortcuts.onTouchStart(e);
-				timer.onkeydown({which: 32});
+				timer.onkeydown({which: 32, timeStamp: (e.originalEvent || e).timeStamp});
 				e.preventDefault && e.preventDefault();
 			}
 		});
@@ -1393,7 +1393,7 @@ var kernel = execMain(function() {
 		$('body').mouseup(function(e) {
 			if (e.which == 1 && isValidDown && getProp('useMouse')) {
 				shortcuts.onTouchEnd(e);
-				timer.onkeyup({which: 32});
+				timer.onkeyup({which: 32, timeStamp: (e.originalEvent || e).timeStamp});
 				e.preventDefault && e.preventDefault();
 				isValidDown = false;
 			}

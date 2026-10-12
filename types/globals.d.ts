@@ -149,6 +149,8 @@ declare var stats: {
 	/** genFunc(solve, idx), cached per solve; metricInfo = [name, prettySingle, prettyAverage] */
 	regExtraInfo(key: string, genFunc: (times: Solve, idx: number) => any, metricInfo?: any[]): void;
 	getExtraInfo(key: string, idx: number): any;
+	/** getExtraInfo(key, idx) is cached (returns without computing) */
+	hasExtraInfo(key: string, idx: number): boolean;
 	[k: string]: any;
 };
 
@@ -217,6 +219,8 @@ interface JQueryStatic {
 	delayExec(key: string, func: () => void, timeout: number): void;
 	/** '#rgb' / '#rrggbb' nudged toward ref; longFormat for '#rrggbb' output */
 	nearColor(color: string, ref?: number, longFormat?: boolean): string;
+	/** an input event's own timeStamp (performance clock, floored), or $.now() when it has none / is unusable */
+	eventTime(e?: any): number;
 	waitUser: { reg(func: () => void): void; call(): void };
 	ppost(url: string, data: any, dataType?: string): Promise<any>;
 	sha256(s: string): string;

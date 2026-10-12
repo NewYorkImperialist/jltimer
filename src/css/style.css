@@ -2786,6 +2786,32 @@ mark.optmark {
 	opacity: 0.75;
 }
 
+/* PLL / OLL stats: progress while the session is reconstructed the first time (algstat.js) */
+.jlas-prog {
+	white-space: nowrap;
+}
+
+.jlas-progtrack {
+	display: inline-block;
+	width: 6em;
+	height: 0.45em;
+	vertical-align: middle;
+	border: 1px solid rgba(128, 128, 128, 0.45);
+	border-radius: 0.25em;
+	overflow: hidden;
+}
+
+.jlas-progtrack .cntbar {
+	display: block;
+	height: 100%;
+	border: none;
+}
+
+.jlas-progtext {
+	font-size: 0.9em;
+	opacity: 0.8;
+}
+
 .jld-prog {
 	margin: 1.5em auto;
 	max-width: 24em;
