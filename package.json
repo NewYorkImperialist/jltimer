@@ -1,12 +1,15 @@
 {
   "name": "jltimer",
   "private": true,
-  "description": "jlTimer dev tooling (type checking only; the build is the Makefile)",
+  "description": "jlTimer dev tooling (type checking and the metric suite; the build is the Makefile)",
   "scripts": {
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "metrics": "node tests/metrics/run.mjs",
+    "metrics:quick": "node tests/metrics/run.mjs --quick"
   },
   "devDependencies": {
     "@types/jquery": "^1.10.45",
+    "playwright-core": "^1.64.0",
     "typescript": "^7.0.2"
   }
 }

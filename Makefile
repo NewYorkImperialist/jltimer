@@ -206,6 +206,13 @@ local: all
 check: $(twistySrc) $(timerSrc)
 	@$(compile) --externs experiment/checkwrap.js $(src)/lang/en-us.js $(timerSrc) $(twistySrc) -O ADVANCED --checks-only --jscomp_off checkTypes
 
+# performance + timing-accuracy metric suite over dist/local (tests/metrics/README.md); needs npm install once
+metrics: local
+	@node tests/metrics/run.mjs
+
+metrics-quick: local
+	@node tests/metrics/run.mjs --quick
+
 # TypeScript checker over the jlTimer modules (// @ts-check files listed in tsconfig.json); needs npm install once
 typecheck:
 	@npx --no-install tsc -p .
@@ -253,4 +260,4 @@ $(dest)/sw.js: $(cache) version
 	@sed -i.bak '$$d' $@ && rm -f $@.bak
 	@echo 'var CACHE_NAME = "jltimer_cache_'`cat $(cache) | md5sum | awk '{print $$1}'`'";' >> $@
 
-.PHONY: all clean version check typecheck
+.PHONY: all clean version check typecheck metrics metrics-quick

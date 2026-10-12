@@ -86,6 +86,22 @@ The declarations:
 
 **Adding a module:** put `// @ts-check` on its first line (above `"use strict"`), add the path to `files` in `tsconfig.json`, run `npm run typecheck`, and add to `types/globals.d.ts` any csTimer global or language string it reports as missing (`Cannot find name ...`). For a false positive, prefer a JSDoc type or cast; if that is not possible, use `// @ts-ignore` on the line above with the reason.
 
+## Metric suite (performance and timing accuracy)
+
+`tests/metrics/` measures what tests of behaviour cannot: virtual cube key → draw latency at 8-20 tps and in bursts,
+recorded-time accuracy against the keys' own timestamps (idle and with a busy main thread), cube/petal/PB-celebration
+frame costs, dashboard and PLL-stats compute times on a 10k-solve session, page load and bundle sizes, plus an
+iPhone-13 + 4x-throttle subset. Every metric has a threshold; any FAIL exits 1.
+
+```sh
+make local && npm run metrics     # ~13 min, 3 runs per metric (median); or: make metrics
+npm run metrics:quick             # ~1.6 min subset
+```
+
+It needs Google Chrome (or `CHROME=/path/to/chromium`) and `npm install` (playwright-core). See
+[tests/metrics/README.md](../tests/metrics/README.md) for what each metric means, headless caveats, and how to change
+thresholds (`thresholds.json`) and the committed baseline (`baseline.json`).
+
 ## Testing under a repository subpath
 
 GitHub Pages serves project sites from `/<repo>/`. Every asset path in the build is relative, so test it the same way:
