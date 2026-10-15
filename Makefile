@@ -24,6 +24,7 @@ lib/tdconverter.js \
 lib/lzstring.js \
 lib/min2phase.js \
 lib/cubeutil.js \
+lib/puzzle112.js \
 lib/puzzlefactory.js \
 kernel.js \
 export.js \
@@ -118,6 +119,7 @@ lib/threemin.js \
 lib/pnltri.js \
 twisty/twisty.js \
 twisty/twistynnn.js \
+twisty/twisty112.js \
 twisty/twistysq1.js \
 twisty/twistyskb.js \
 twisty/twistyclk.js \
@@ -136,6 +138,7 @@ lib/poly3dlib.js \
 lib/pat3x3.js \
 lib/min2phase.js \
 lib/cubeutil.js \
+lib/puzzle112.js \
 solver/ftocta.js \
 solver/megaminx.js \
 scramble/scramble.js \

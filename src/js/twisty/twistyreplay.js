@@ -230,7 +230,7 @@ var replay = execMain(function() {
 	}
 
 	function fixMoveOri(move, isInit) {
-		if (!autoOri || !/^\d+$/.exec(puzzle)) {
+		if (!autoOri || !/^\d+$/.exec(puzzle) || puzzle == '112') { // a 1x1x2 replays in the orientation it was solved in
 			return isInit ? [] : move;
 		}
 		var targetOri = kernel.getProp('giiOri');

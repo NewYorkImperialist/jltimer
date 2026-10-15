@@ -50,6 +50,35 @@ execMain(function(timer) {
 		tpsTick();
 	}
 
+	// the timed part starts: on the first turn, or (1x1x2) right when the scramble is shown
+	function startSolve(now) {
+		if (timer.checkUseIns()) {
+			insTime = now - timer.startTime();
+		} else {
+			insTime = 0;
+		}
+		timer.startTime(now);
+		if (readyTs && activeDrill()) {
+			// PLL / OLL trainer: time from the moment the case is shown, so the recognition is part of the solve
+			insTime = 0;
+			timer.startTime(readyTs);
+		}
+		moveCnt = 0;
+		tpsInputs = [];
+		timer.curTime([insTime > 17000 ? -1 : (insTime > 15000 ? 2000 : 0)]);
+		timer.status(curScrSize == 3 && curScrType != "r3" ? cubeutil.getStepCount(kernel.getProp('vrcMP', 'n')) : 1);
+		var inspectionMoves = rawMoves[0];
+		rawMoves = [];
+		for (var i = 0; i < timer.status(); i++) {
+			rawMoves[i] = [];
+		}
+		rawMoves[timer.status()] = inspectionMoves;
+		totPhases = timer.status();
+		timer.updateMulPhase(totPhases, puzzleObj.isSolved(kernel.getProp('vrcMP', 'n')), now);
+		fixRelayCounter();
+		timer.lcd.fixDisplay(false, true);
+	}
+
 	//mstep: 0 move start, 1 move doing, 2 move finish
 	function moveListener(move, mstep, ts) {
 		if (mstep == 1) {
@@ -65,31 +94,7 @@ execMain(function(timer) {
 				}
 				return;
 			} else {
-				if (timer.checkUseIns()) {
-					insTime = now - timer.startTime();
-				} else {
-					insTime = 0;
-				}
-				timer.startTime(now);
-				if (readyTs && activeDrill()) {
-					// PLL / OLL trainer: time from the moment the case is shown, so the recognition is part of the solve
-					insTime = 0;
-					timer.startTime(readyTs);
-				}
-				moveCnt = 0;
-				tpsInputs = [];
-				timer.curTime([insTime > 17000 ? -1 : (insTime > 15000 ? 2000 : 0)]);
-				timer.status(curScrSize == 3 && curScrType != "r3" ? cubeutil.getStepCount(kernel.getProp('vrcMP', 'n')) : 1);
-				var inspectionMoves = rawMoves[0];
-				rawMoves = [];
-				for (var i = 0; i < timer.status(); i++) {
-					rawMoves[i] = [];
-				}
-				rawMoves[timer.status()] = inspectionMoves;
-				totPhases = timer.status();
-				timer.updateMulPhase(totPhases, puzzleObj.isSolved(kernel.getProp('vrcMP', 'n')), now);
-				fixRelayCounter();
-				timer.lcd.fixDisplay(false, true);
+				startSolve(now);
 			}
 		}
 		if (timer.status() >= 1) {
@@ -228,7 +233,13 @@ execMain(function(timer) {
 				}
 				scrambleIt();
 				readyTs = now;
-				if (timer.checkUseIns()) {
+				if (curPuzzle == '112') {
+					// 1x1x2: a solve is recognising the state and one turn, so the clock runs from the moment the
+					// scramble is shown (no inspection; timed from the first turn every solve would be 0.00)
+					timer.startTime(now);
+					timer.status(-2);
+					startSolve(now);
+				} else if (timer.checkUseIns()) {
 					timer.startTime(now);
 					timer.status(-3); //inspection
 				} else {
