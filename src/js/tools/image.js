@@ -667,6 +667,67 @@ var image = (function() {
 
 	// LxMxN cuboids (jlTimer, lib/puzzlecuboid.js): a cross net like the NxN's, U above F, L F R B in a row, D below
 	// F, each face as many cells as the cuboid has layers that way; colours from colcube like the NxN net
+	// Siamese Cubes (jlTimer, lib/puzzlesiamese.js): a cross net per cube (U above F, L F R B in a row, D below F), the
+	// lower-left cube on the left; cells hidden inside the other cube (the shared block) are left out. Drawn after the
+	// scramble's regrip is undone, so the puzzle is upright as in the virtual puzzle
+	var imgSiamese = (function() {
+		var width = 20;
+		var GAP = 1 / 3;
+		var SEP = 1;
+		// face (URFDLB), net position (cells), and the sticker (cubie centre + normal, relative to the cube) of cell (i, j)
+		var FACESPEC = [
+			[0, 3 + GAP, 0, function(i, j) { return [2 * i - 2, 3, 2 * j - 2]; }],
+			[1, 6 + 2 * GAP, 3 + GAP, function(i, j) { return [3, 2 - 2 * j, 2 - 2 * i]; }],
+			[2, 3 + GAP, 3 + GAP, function(i, j) { return [2 * i - 2, 2 - 2 * j, 3]; }],
+			[3, 3 + GAP, 6 + 2 * GAP, function(i, j) { return [2 * i - 2, -3, 2 - 2 * j]; }],
+			[4, 0, 3 + GAP, function(i, j) { return [-3, 2 - 2 * j, 2 * i - 2]; }],
+			[5, 9 + 3 * GAP, 3 + GAP, function(i, j) { return [2 - 2 * i, 2 - 2 * j, -3]; }]
+		];
+
+		return function(svg, type, moveseq) {
+			var st = puzzleSiamese.solved(type);
+			var moves = puzzleSiamese.scrambleMoves(type, moveseq);
+			var recons = [];
+			for (var i = 0; i < moves.length; i++) {
+				puzzleSiamese.apply(st, moves[i]);
+				recons.push(puzzleSiamese.toStr(moves[i]));
+			}
+			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
+			var netW = 12 + 3 * GAP;
+			svg.width = (2 * netW + SEP + 0.2) * width;
+			svg.height = (9 + 2 * GAP + 0.2) * width;
+			for (var k = 0; k < 2; k++) {
+				var cube = 1 - k; // the lower-left cube (B) first
+				var at = {};
+				for (var i = 0; i < st.stickers.length; i++) {
+					var s = st.stickers[i];
+					if (s.cube == cube || s.cube == puzzleSiamese.SHARED) {
+						at[[s.c[0] + s.n[0], s.c[1] + s.n[1], s.c[2] + s.n[2]].join()] = s.col;
+					}
+				}
+				var o = st.cubes[cube];
+				var x0 = k * (netW + SEP);
+				for (var f = 0; f < 6; f++) {
+					var spec = FACESPEC[f];
+					for (var i = 0; i < 3; i++) {
+						for (var j = 0; j < 3; j++) {
+							var p = spec[3](i, j);
+							var col = at[[p[0] + o[0], p[1] + o[1], p[2] + o[2]].join()];
+							if (col == null) {
+								continue; // inside the other cube
+							}
+							drawPolygon(svg, colors["DLBURF".indexOf("URFDLB".charAt(col))], [
+								[i, i, i + 1, i + 1],
+								[j, j + 1, j + 1, j]
+							], [width, x0 + spec[1] + 0.1, spec[2] + 0.1]);
+						}
+					}
+				}
+			}
+			return ["~", recons, type];
+		};
+	})();
+
 	var imgCuboid = (function() {
 		var width = 30;
 		var GAP = 1 / 3;
@@ -1316,6 +1377,8 @@ var image = (function() {
 			recons = imgFloppy(svg, scramble[1], type);
 		} else if (/^(223|233|33[4-7])$/.exec(type)) {
 			recons = imgCuboid(svg, type, scramble[1]);
+		} else if (/^sia(1[12]3|222)$/.exec(type)) {
+			recons = imgSiamese(svg, type, scramble[1]);
 		} else if (type == "mrbl") {
 			mrblImage(svg, 3, scramble[1]);
 		} else if (type == "15b" || type == "15p") {
