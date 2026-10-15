@@ -738,6 +738,9 @@ var poly3d = (function() {
 				}
 			}
 			for (var i = 0; i < norms.length; i++) {
+				if (cuts.axes && cuts.axes.indexOf(names[i]) == -1) {
+					continue; // cuts.axes: only these axes turn (the Ivy Cube's four corners)
+				}
 				var planeBase = twistyPlanes.length;
 				for (var j = 0; j < cuts.length; j++) {
 					if (typeof(cuts[j]) == 'number') { // plane
@@ -1074,6 +1077,22 @@ var poly3d = (function() {
 			}, function(layer, axis, pow) {
 				return skbShort.charAt(skbLong.indexOf(axis)) + (pow >= 0 ? "" : "'");
 			});
+		} else if (name == 'ivy') {
+			// Ivy Cube (jaapsch.net/puzzles/ivy.htm): only the corners UBR UFL DFR DBL turn; each turns everything within
+			// a cube edge (2) of it, so a face is split by two quarter circles centred on its turning corners: two corner
+			// leaves and a petal between them. Notation as csTimer's scrambler (scramble/skewb.js): R L D B are those
+			// corners, clockwise; [R] [L] [D] [B] turn the whole cube about them
+			var ivyCuts = [-5, [Math.sqrt(3), -2]];
+			ivyCuts.axes = ['URB', 'UFL', 'RFD', 'DLB'];
+			polyParam = [6, [], [], ivyCuts];
+			var ivyLong = ['URB', 'UFL', 'RFD', 'DLB'];
+			parser = makeParser(/(?:^|\s*)(?:([RLDB])|\[([RLDB])\])(')?(?:$|\s*)/g, function(m, p1, p2, p3) {
+				return [p2 ? 0 : 1, ivyLong['RLDB'.indexOf(p1 || p2)], p3 ? -1 : 1];
+			}, function(layer, axis, pow) {
+				var move = 'RLDB'.charAt(ivyLong.indexOf(axis)) + (pow >= 0 ? "" : "'");
+				return layer == 0 ? '[' + move + ']' : move;
+			});
+			pieceGap = 0.05;
 		} else if (name == 'ctico') {
 			polyParam = [20, [], [], [-5, 0]];
 		} else {
