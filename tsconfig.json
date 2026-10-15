@@ -29,7 +29,8 @@
     "src/js/fx.js",
     "src/js/cubeskin.js",
     "src/js/pbfx.js",
-    "src/js/lib/puzzle112.js"
+    "src/js/lib/puzzle112.js",
+    "src/js/lib/puzzlefloppy.js"
   ],
   "include": [
     "src/js/fx/*.js"

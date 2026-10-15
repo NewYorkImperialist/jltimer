@@ -509,6 +509,91 @@ var image = (function() {
 		};
 	})();
 
+	// Floppy (lib/puzzlefloppy.js): a cube net of the flat puzzle, U on top, the L F R B sides below it, D under F;
+	// colours from colcube like the NxN net. Each cell shows the first face seen when looking into the puzzle from
+	// that side: an empty location shows nothing, a face further in than the side's outer layer is drawn smaller,
+	// and in the U / D views a piece standing out of the plane (a Super Floppy corner) carries a small diamond.
+	// The sides are one cell tall on the Floppy and three (for the corners above and below) on the Super Floppy.
+	var imgFloppy = (function() {
+		var width = 30;
+		var GAP = 0.3;
+		// per view: face, net position (in faces), and cell (col, row) -> [ray start, ray step]; rows count from the top
+		var VIEWS = [
+			[0, 1, 0, function(c, r, h) { return [[c - 1, 1, r - 1], [0, -1, 0]]; }],
+			[4, 0, 1, function(c, r, h) { return [[-1, h, c - 1], [1, 0, 0]]; }],
+			[2, 1, 1, function(c, r, h) { return [[c - 1, h, 1], [0, 0, -1]]; }],
+			[1, 2, 1, function(c, r, h) { return [[1, h, 1 - c], [-1, 0, 0]]; }],
+			[5, 3, 1, function(c, r, h) { return [[1 - c, h, -1], [0, 0, 1]]; }],
+			[3, 1, 2, function(c, r, h) { return [[c - 1, -1, 1 - r], [0, 1, 0]]; }]
+		];
+
+		return function(svg, moveseq, kind) {
+			var half = kind == '133';
+			var rows = half ? 1 : 3;
+			var st = puzzleFloppy.run(moveseq, half);
+			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
+			var at = {};
+			for (var i = 0; i < st.p.length; i++) {
+				at[st.p[i].pos.join(',')] = i;
+			}
+			svg.width = (12 + 3 * GAP + 0.2) * width;
+			svg.height = (6 + rows + 2 * GAP + 0.2) * width;
+			for (var v = 0; v < VIEWS.length; v++) {
+				var view = VIEWS[v];
+				var n = puzzleFloppy.NORMALS[view[0]];
+				var big = view[0] % 3 == 0; // U or D: a 3x3 view
+				var offx = view[1] * (3 + GAP) + 0.1;
+				var offy = (view[2] == 0 ? 0 : view[2] == 1 ? 3 + GAP : 3 + 2 * GAP + rows) + 0.1;
+				for (var r = 0; r < (big ? 3 : rows); r++) {
+					for (var c = 0; c < 3; c++) {
+						var ray = view[3](c, r, half ? 0 : 1 - r);
+						var p = ray[0], depth = 0, hit = -1;
+						for (; depth < 3; depth++) {
+							hit = at[p.join(',')];
+							if (hit !== undefined) {
+								break;
+							}
+							p = [p[0] + ray[1][0], p[1] + ray[1][1], p[2] + ray[1][2]];
+						}
+						if (hit === undefined) {
+							continue; // nothing there
+						}
+						var pc = st.p[hit];
+						var col = '#555'; // a face without a sticker (the body)
+						var sf = puzzleFloppy.stickerFaces(hit);
+						for (var f = 0; f < 6; f++) {
+							var d = puzzleFloppy.dirOf(pc, puzzleFloppy.NORMALS[f]);
+							if (d[0] == n[0] && d[1] == n[1] && d[2] == n[2]) {
+								col = sf.indexOf(f) != -1 ? colors["DLBURF".indexOf("URFDLB".charAt(f))] : col;
+							}
+						}
+						var level = big ? depth - 1 : depth; // U / D: the flat layer is the reference
+						var ins = level > 0 ? 0.18 : 0;
+						drawPolygon(svg, col, [
+							[c + ins, c + 1 - ins, c + 1 - ins, c + ins],
+							[r + ins, r + ins, r + 1 - ins, r + 1 - ins]
+						], [width, offx, offy]);
+						if (level < 0) { // standing out towards the viewer
+							drawPolygon(svg, '#000', [
+								[c + 0.5, c + 0.7, c + 0.5, c + 0.3],
+								[r + 0.3, r + 0.5, r + 0.7, r + 0.5]
+							], [width, offx, offy]);
+						}
+					}
+				}
+			}
+			var recons = [];
+			var moves = puzzleFloppy.parse(moveseq);
+			var rs = puzzleFloppy.solved();
+			for (var i = 0; i < moves.length; i++) {
+				var mv = puzzleFloppy.resolve(rs, moves[i], half);
+				puzzleFloppy.apply(rs, mv, half);
+				recons.push(puzzleFloppy.toStr(mv));
+			}
+			return ["~", recons, kind];
+		};
+	})();
+
 	var mrblImage = (function() {
 		// image for mirror block
 		var width = 30;
@@ -1045,6 +1130,8 @@ var image = (function() {
 			gearImage(svg, scramble[1]);
 		} else if (type == "112") {
 			recons = img112(svg, scramble[1]);
+		} else if (type == "133") {
+			recons = imgFloppy(svg, scramble[1], type);
 		} else if (type == "mrbl") {
 			mrblImage(svg, 3, scramble[1]);
 		} else if (type == "15b" || type == "15p") {
