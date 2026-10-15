@@ -787,6 +787,12 @@ var scramble = ISCSTIMER && execMain(function(rn, rndEl) {
 				} else {
 					title.show();
 				}
+			} else if (value[0] == 'sflMode') {
+				// Super Floppy rules: imitation scrambles come from their own scrambler (scramble/superfloppy.js)
+				alias['sfl'] = value[1] == 'i' ? 'sfli' : 'sfl';
+				if (type == 'sfl' && value[2] == 'modify') {
+					genScramble();
+				}
 			} else if (value[0] == 'scrNeut') {
 				neutLevel = ~~value[1];
 				if (value[2] == 'modify') {
@@ -919,7 +925,7 @@ var scramble = ISCSTIMER && execMain(function(rn, rndEl) {
 
 	$(function() {
 		kernel.regListener('scramble', 'time', procSignal);
-		kernel.regListener('scramble', 'property', procSignal, /^scr(?:Size|Mono|Type|Lim|Align|Wrap|Fast|KeyM|Hide|Neut|EqPr|Clk|Flt)$/);
+		kernel.regListener('scramble', 'property', procSignal, /^(?:scr(?:Size|Mono|Type|Lim|Align|Wrap|Fast|KeyM|Hide|Neut|EqPr|Clk|Flt)|sflMode)$/);
 		kernel.regListener('scramble', 'button', procSignal, /^scramble$/);
 		kernel.regListener('scramble', 'ctrl', procSignal, /^scramble$/);
 		kernel.regListener('scramble', 'scrfix', procSignal);
@@ -940,6 +946,8 @@ var scramble = ISCSTIMER && execMain(function(rn, rndEl) {
 		kernel.regProp('scramble', 'scrNeut', 1, PROPERTY_SCRNEUT, ['n', ['n', '1', '2', '6'], PROPERTY_SCRNEUT_STR.split('|')], 1);
 		kernel.regProp('scramble', 'scrEqPr', 1, PROPERTY_SCREQPR, ['0', ['0', '1', '2'], PROPERTY_SCREQPR_STR.split('|')], 1);
 		kernel.regProp('scramble', 'scrFast', 0, PROPERTY_SCRFAST, [false]);
+		// the Super Floppy's rules, for its scrambles and the virtual puzzle (twisty/twistyfloppy.js)
+		kernel.regProp('scramble', 'sflMode', 1, 'Super Floppy rules', ['o', ['o', 'i'], ['official (a side with only its edge is locked)', 'imitation (every side turns)']]);
 		kernel.regProp('scramble', 'scrKeyM', 0, PROPERTY_SCRKEYM, [false], 1);
 		kernel.regProp('scramble', 'scrClk', 1, PROPERTY_SCRCLK, ['c', ['n', 'c', '+'], PROPERTY_SCRCLK_STR.split('|')], 1);
 		kernel.regProp('scramble', 'scrType', ~5, 'Scramble Type', ['333'], 3);

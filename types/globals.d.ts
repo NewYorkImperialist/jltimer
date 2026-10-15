@@ -123,6 +123,9 @@ declare var mathlib: {
 	[k: string]: any;
 };
 
+/** src/js/scramble/scramble.js */
+declare var scrMgr: { reg(type: string | string[], callback: (...args: any[]) => string, filter?: any): void; [k: string]: any };
+
 /** src/js/stats/timestat.js */
 declare class TimeStat {
 	constructor(avgSizes: number[], timesLen: number, timeAt: (idx: number) => number, timeSort?: (a: number, b: number) => number);

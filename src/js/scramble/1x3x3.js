@@ -16,7 +16,7 @@
 	function generateScramble() {
 		var c = 1 + mathlib.rn(191);
 		c = c * 2 + ((mathlib.getNParity(c >> 3, 4) ^ (c >> 1) ^ (c >> 2) ^ c) & 1);
-		return solv.toStr(solv.search([c], 0), "RLFB", [""]);
+		return solv.toStr(solv.search([c], 0), "RLFB", ["2"]);
 	}
 	scrMgr.reg('133', generateScramble);
 })();

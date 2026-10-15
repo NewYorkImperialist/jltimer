@@ -91,8 +91,8 @@ var puzzleFactory = execMain(function() {
 			}
 			return;
 		}
-		// the 2D view has no 1x1x2 / 1x1x1: they are always drawn in 3D
-		var style = /^q[2l]?$/.exec(options['style']) && !/^11[12]$/.exec(options['puzzle']) ? 'q' : 'v';
+		// the 2D view has no 1x1x2 / 1x1x1 or Floppies: they are always drawn in 3D
+		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl)$/.exec(options['puzzle']) ? 'q' : 'v';
 		var child = null;
 		for (var i = 0; i < prevParents.length; i++) {
 			if (prevParents[i][0] == parent) {
@@ -144,6 +144,9 @@ var puzzleFactory = execMain(function() {
 		} else if (/^ctico$/.exec(puzzle)) {
 			options["faceColors"] = $.col2std(kernel.getProp("colico"), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
 		}
+		if (/^(133|sfl)$/.exec(puzzle)) { // Floppy, Super Floppy (twisty/twistyfloppy.js): the cube colours
+			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]);
+		}
 		options['scale'] = 0.9;
 		child[2].twistyScene.initializeTwisty(options);
 		child[2].twisty = child[2].twistyScene.getTwisty();
@@ -160,7 +163,7 @@ var puzzleFactory = execMain(function() {
 				continue;
 			}
 			var scene = puzzle.twistyScene;
-			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|11[12]$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
+			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|111$|112$|133$|sfl$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
 				puzzle.twisty.applySkin(puzzle.twisty, null, $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]));
 				scene.redraw && scene.redraw();
 			} else if (prevParents[i][1] == 'q') {

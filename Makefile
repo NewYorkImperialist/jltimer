@@ -25,6 +25,7 @@ lib/lzstring.js \
 lib/min2phase.js \
 lib/cubeutil.js \
 lib/puzzle112.js \
+lib/puzzlefloppy.js \
 lib/puzzlefactory.js \
 kernel.js \
 export.js \
@@ -47,6 +48,7 @@ scramble/skewb.js \
 scramble/2x2x2.js \
 scramble/gearcube.js \
 scramble/1x3x3.js \
+scramble/superfloppy.js \
 scramble/2x2x3.js \
 scramble/clock.js \
 scramble/333lse.js \
@@ -120,6 +122,7 @@ lib/pnltri.js \
 twisty/twisty.js \
 twisty/twistynnn.js \
 twisty/twisty112.js \
+twisty/twistyfloppy.js \
 twisty/twistysq1.js \
 twisty/twistyskb.js \
 twisty/twistyclk.js \
@@ -139,6 +142,7 @@ lib/pat3x3.js \
 lib/min2phase.js \
 lib/cubeutil.js \
 lib/puzzle112.js \
+lib/puzzlefloppy.js \
 solver/ftocta.js \
 solver/megaminx.js \
 scramble/scramble.js \
@@ -151,6 +155,7 @@ scramble/skewb.js \
 scramble/2x2x2.js \
 scramble/gearcube.js \
 scramble/1x3x3.js \
+scramble/superfloppy.js \
 scramble/2x2x3.js \
 scramble/clock.js \
 scramble/333lse.js \

@@ -28,6 +28,7 @@
   <script type="text/javascript" src="js/lib/min2phase.js"></script>
   <script type="text/javascript" src="js/lib/cubeutil.js"></script>
   <script type="text/javascript" src="js/lib/puzzle112.js"></script>
+  <script type="text/javascript" src="js/lib/puzzlefloppy.js"></script>
   <script type="text/javascript" src="js/lib/puzzlefactory.js"></script>
   <script type="text/javascript" src="js/kernel.js"></script>
   <script type="text/javascript" src="js/export.js"></script>
@@ -50,6 +51,7 @@
   <script type="text/javascript" src="js/scramble/2x2x2.js"></script>
   <script type="text/javascript" src="js/scramble/gearcube.js"></script>
   <script type="text/javascript" src="js/scramble/1x3x3.js"></script>
+  <script type="text/javascript" src="js/scramble/superfloppy.js"></script>
   <script type="text/javascript" src="js/scramble/2x2x3.js"></script>
   <script type="text/javascript" src="js/scramble/clock.js"></script>
   <script type="text/javascript" src="js/scramble/333lse.js"></script>
@@ -115,6 +117,7 @@
   <script type="text/javascript" src="js/twisty/twisty.js"></script>
   <script type="text/javascript" src="js/twisty/twistynnn.js"></script>
   <script type="text/javascript" src="js/twisty/twisty112.js"></script>
+  <script type="text/javascript" src="js/twisty/twistyfloppy.js"></script>
   <script type="text/javascript" src="js/twisty/twistysq1.js"></script>
   <script type="text/javascript" src="js/twisty/twistyskb.js"></script>
   <script type="text/javascript" src="js/twisty/twistyclk.js"></script>

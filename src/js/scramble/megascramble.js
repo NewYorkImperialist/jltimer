@@ -30,7 +30,6 @@
 		"233": [[[["U","U'","U2"]],["R2","L2"],["F2","B2"]]], // Domino/2x3x3
 		"fto": [[["U","D"],["F","B"],["L","BR"],["R","BL"]],["","'"]], // FTO/Face-Turning Octa
 		"gear": [[["U"],["R"],["F"]],["","2","3","4","5","6","'","2'","3'","4'","5'"]],
-		"sfl": [[["R","L"],["U","D"]],cubesuff], // Super Floppy Cube
 		"ufo": [[["A"],["B"],["C"],[["U","U'","U2'","U2","U3"]]]], // UFO
 		// "2gen": [[["U"],["R"]],cubesuff], // 2-generator <R,U>
 		// "2genl": [[["U"],["L"]],cubesuff], // 2-generator <L,U>
