@@ -27,6 +27,7 @@ lib/cubeutil.js \
 lib/puzzle112.js \
 lib/puzzlefloppy.js \
 lib/puzzleslide.js \
+lib/puzzlecuboid.js \
 lib/puzzlefactory.js \
 kernel.js \
 export.js \
@@ -126,6 +127,7 @@ twisty/twisty112.js \
 twisty/twistyfloppy.js \
 twisty/twistymirror.js \
 twisty/twistyslide.js \
+twisty/twistycuboid.js \
 twisty/twistysq1.js \
 twisty/twistyskb.js \
 twisty/twistyclk.js \
@@ -146,6 +148,7 @@ lib/min2phase.js \
 lib/cubeutil.js \
 lib/puzzle112.js \
 lib/puzzlefloppy.js \
+lib/puzzlecuboid.js \
 solver/ftocta.js \
 solver/megaminx.js \
 scramble/scramble.js \

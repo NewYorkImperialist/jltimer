@@ -591,6 +591,11 @@
 		return puzzle112.scramble(rn);
 	});
 
+	// LxMxN cuboids (jlTimer, lib/puzzlecuboid.js): Domino random state, 3x3xN random moves that turn every layer
+	scrMgr.reg(['233', '334', '335', '336', '337'], function(type, len) {
+		return puzzleCuboid.scramble(type, len, rn);
+	});
+
 	scrMgr.reg(['15p', '15pm', '15pat', 'clkwca', 'clkwcab', 'clknf', 'clk', 'clkc', 'clke', 'giga', 'mgmo', 'mgmp', 'mgmc', 'mgms2l', 'klmp', 'heli', 'helicv', 'heli2x2', 'heli2x2g', 'redi', 'redim', 'pyrm', 'prcp', 'mpyr', 'r3', 'r3ni', 'sq1h', 'sq1t', 'sq2', 'ssq1t', 'bsq', 'ctico', 'dmdso', '-1', '333noob', 'lol'], utilscramble);
 
 })(mathlib.rn, mathlib.rndEl, scrMgr.mega);
