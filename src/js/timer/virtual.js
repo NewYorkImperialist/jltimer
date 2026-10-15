@@ -244,9 +244,9 @@ execMain(function(timer) {
 				}
 				scrambleIt();
 				readyTs = now;
-				if (curPuzzle == '112') {
-					// 1x1x2: a solve is recognising the state and one turn, so the clock runs from the moment the
-					// scramble is shown (no inspection; timed from the first turn every solve would be 0.00)
+				if (curPuzzle == '112' || curPuzzle == '111') {
+					// 1x1x2 / 1x1x1: a solve is recognising the state and a turn or two, so the clock runs from the moment
+					// the scramble is shown (no inspection; timed from the first turn every solve would be 0.00)
 					timer.startTime(now);
 					timer.status(-2);
 					startSolve(now);
