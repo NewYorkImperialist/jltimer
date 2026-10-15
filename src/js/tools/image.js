@@ -157,11 +157,13 @@ var image = (function() {
 			}
 		}
 
-		function drawPosit(svg, sc, colors, sq2sc, half) {
+		// dy: vertical offset (in pieces' units); innerCol: Super Square-1 inner layers (no top / bottom sticker)
+		function drawPosit(svg, sc, colors, sq2sc, half, dy, innerCol) {
+			dy = dy || 0;
 			for (var i = 0; i < (half ? 12 : 24); i++) {
-				var trans = i < 12 ? [width, sqb, sqb] : [width, sqb * 3, sqb];
+				var trans = i < 12 ? [width, sqb, sqb + dy] : [width, sqb * 3, sqb + dy];
 				var val = sc.pieceAt(i);
-				var colorUD = colors[udcol[val >= 8 ? 1 : 0]];
+				var colorUD = innerCol || colors[udcol[val >= 8 ? 1 : 0]];
 				var cRot = -(i < 12 ? (i - 1) : (i - 6)) * PI / 6;
 				var eRot = -(i < 12 ? (i) : (i - 5)) * PI / 6;
 				if (val % 2 == 1) { // corner
@@ -282,8 +284,52 @@ var image = (function() {
 			return ["~", recons, 'sq1'];
 		}
 
+		// Super Square-1 (jlTimer): (top, second, third, bottom)/ ...; two Square-1s sharing the slice, layers 1 and 4
+		// (top row: top seen from above, bottom from below) and the inner layers 2 and 3 (second row, grey tops)
+		var move4re = /^\s*\(\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*(-?\d+)\s*\)\s*$/;
+
+		function scrImage4(svg, moveseq) {
+			var cols = kernel.getProp('colsq1').match(colre);
+			colors = { 'U': cols[0], 'R': cols[1], 'F': cols[2], 'D': cols[3], 'L': cols[4], 'B': cols[5] };
+			var outer = new sq1.SqCubie();
+			var inner = new sq1.SqCubie();
+			var moves = moveseq.split('/');
+			var recons = [];
+			for (var i = 0; i < moves.length; i++) {
+				var m = move4re.exec(moves[i]);
+				if (m) {
+					doMove([(~~m[1] + 12) % 12, (~~m[4] + 12) % 12, 0], outer);
+					doMove([(~~m[2] + 12) % 12, (~~m[3] + 12) % 12, 0], inner);
+					recons.push('(' + m[1] + ',' + m[2] + ',' + m[3] + ',' + m[4] + ')');
+				} else if (!/^\s*$/.exec(moves[i])) {
+					continue;
+				}
+				if (i < moves.length - 1) {
+					doMove([0, 0, 1], outer);
+					doMove([0, 0, 1], inner);
+					recons.push('/');
+				}
+			}
+			svg.width = 4 * sqb * width;
+			svg.height = (4 * sqb + 1) * width;
+			drawPosit(svg, outer, colors);
+			drawPosit(svg, inner, colors, null, false, 2 * sqb, '#999');
+			// middle layer, under the second row
+			for (var i = 0; i < 2; i++) {
+				var trans = [width, sqb * (i * 2 + 1), 4 * sqb + 0.15];
+				drawPolygon(svg, colors['L'], [[-sqa, -sqa, -0.5, -0.5], [0, 0.7, 0.7, 0]], trans);
+				if (outer.ml == 0) {
+					drawPolygon(svg, colors['L'], [[sqa, sqa, -0.5, -0.5], [0, 0.7, 0.7, 0]], trans);
+				} else {
+					drawPolygon(svg, colors['R'], [[hsq3, hsq3, -0.5, -0.5], [0, 0.7, 0.7, 0]], trans);
+				}
+			}
+			return ["~", recons, 'ssq1'];
+		}
+
 		return {
 			scrImage: scrImage,
+			scrImage4: scrImage4,
 			llImage: llImage
 		}
 	})();
@@ -1189,6 +1235,8 @@ var image = (function() {
 			recons = polyhedronImage(svg, type, scramble[1], faceNameMask, type == 'klm' ? 0.1 : 0);
 		} else if (type == "sq1" || type == "sq2") {
 			recons = sq1Image.scrImage(svg, scramble[1], type == "sq2");
+		} else if (type == "ssq1") {
+			recons = sq1Image.scrImage4(svg, scramble[1]);
 		} else if (type == "clk") {
 			clkImage(svg, scramble[1]);
 		} else if (type == "gear") {
