@@ -63,7 +63,7 @@ var shortcuts = execMain(function(){
 				logohint.push('Free play needs the virtual cube');
 			} else {
 				kernel.setProp('vrcFree', !kernel.getProp('vrcFree'));
-				logohint.push(kernel.getProp('vrcFree') ? 'Free play on: Space resets the cube' : 'Free play off');
+				logohint.push(kernel.getProp('vrcFree') ? 'Free play on: Esc resets the cube' : 'Free play off');
 			}
 		} else if (key == 187 || key == 61 || key == 107) { // = or numpad +
 			logohint.push('Virtual cube ' + timer.stepVrcSize(1) + '%');

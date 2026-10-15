@@ -300,7 +300,7 @@ execMain(function(timer) {
 	}
 
 	// Free play (option vrcFree, Alt+F; docs/UI.md): while idle, cube keys and swipes turn the cube freely from
-	// solved and Space resets it to solved. No timer, nothing recorded, no cloud gesture (that needs a solve).
+	// solved and Esc resets it to solved (on phones: a tap off the cube). No timer, nothing recorded, no cloud gesture (that needs a solve).
 	var freeDiv = $('<aside class="jlfree">').hide(); // not a div: the #multiphase > div rows are the timer's own
 	var freeMoves = 0; // turns (not rotations) since the last reset
 	var freeDirty = false; // set when free play is switched on mid-attempt: reset at the next key
@@ -333,12 +333,14 @@ execMain(function(timer) {
 		if (freeDirty && !onGrid) {
 			freeReset();
 		}
-		if (keyCode == 32) {
-			if (!onGrid) {
+		if (keyCode == 27 || keyCode == 28) { // Esc resets the cube to solved
+			freeReset();
+			kernel.clrKey();
+		} else if (keyCode == 32) {
+			// the Space key does nothing in free play; a tap off the cube (a synthetic Space with no event type) resets
+			if (!e.type && !onGrid) {
 				freeReset();
 			}
-			kernel.clrKey();
-		} else if (keyCode == 27 || keyCode == 28) {
 			kernel.clrKey();
 		} else if (!e.altKey && !e.ctrlKey && !e.metaKey) { // Alt+F etc. are shortcuts, not turns
 			puzzleObj.keydown({
