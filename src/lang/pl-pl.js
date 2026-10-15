@@ -370,7 +370,6 @@ var scrdata = [
 		['stan losowy Blank', "8prmp", 0]
 	]],
 	['LxMxN', [
-		['1x1x2', "112", 0],
 		['1x3x3 (Floppy Cube)', "133", 0],
 		['2x2x3 (Tower Cube)', "223", 0],
 		['2x3x3 (Domino)', "233", 25],
@@ -488,6 +487,9 @@ var scrdata = [
 	]],
 	['-1x-1x-1', [
 		[' ', "-1", 25]
+	]],
+	['1x1x2', [
+		[' ', "112", 25]
 	]],
 	['LOL', [
 		[' ', "lol", 25]

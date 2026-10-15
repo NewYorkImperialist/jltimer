@@ -370,7 +370,6 @@ var scrdata = [
 		['Rastgele Durum Blank', "8prmp", 0]
 	]],
 	['LxMxN', [
-		['1x1x2', "112", 0],
 		['1x3x3 (Floppy küp)', "133", 0],
 		['2x2x3 (Tower küp)', "223", 0],
 		['2x2x3 (Domino)', "233", 25],
@@ -488,6 +487,9 @@ var scrdata = [
 	]],
 	['-1x-1x-1', [
 		[' ', "-1", 25]
+	]],
+	['1x1x2', [
+		[' ', "112", 25]
 	]],
 	['LOL', [
 		[' ', "lol", 25]

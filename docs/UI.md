@@ -170,7 +170,7 @@ How it works: `src/js/cubeskin.js` holds the presets and props and exposes `jlCu
 
 ## 1x1x2 (a real puzzle)
 
-csTimer's "1x1x2" was a joke under Jokes that printed strings of R. In jlTimer it is a proper event: scramble type **Other → LxMxN → 1x1x2** (first entry; it left Jokes). The id stays `112`, so old sessions and exports keep working (their old R-string scrambles are still listed and still draw; R on an upright 1x1x2 just turns the whole puzzle).
+csTimer's "1x1x2" was a joke under Jokes that printed strings of R. In jlTimer it is a proper event: scramble type **Jokes → 1x1x2** (still listed under Jokes, now a real playable puzzle). The id stays `112`, so old sessions and exports keep working (their old R-string scrambles are still listed and still draw; R on an upright 1x1x2 just turns the whole puzzle).
 
 - **Puzzle**: two 1x1x1 cubies stacked (2 tall, 1 wide, 1 deep), one cut, the cube colours (**Cube** / cube skin). The state is the turn of the top cubie against the bottom one (4 states); solved = aligned, in any whole-puzzle orientation, including lying on its side.
 - **Scramble**: random state. One of the three unsolved states, uniformly (never solved), written as its shortest sequence: `U`, `U2` or `U'`. No orientation suffix (csTimer's random-state cube scrambles don't add one). Pre-scramble rotations (Options → Pre-scramble) are used only if they leave the puzzle upright (`z2`, `x2`, `y`...); one that tips it over is ignored, as the scramble would otherwise just turn the whole puzzle.
