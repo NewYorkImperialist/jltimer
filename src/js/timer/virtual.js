@@ -445,6 +445,11 @@ execMain(function(timer) {
 		kernel.regProp('vrc', 'vrcSlideDir', 1, 'Sliding puzzle keys move', ['t', ['t', 'b'], ['the tiles', 'the blank']]);
 		kernel.regProp('vrc', 'vrcSlideCol', 1, 'Sliding puzzle colours', ['theme', ['theme', 'rows', 'fringe'], ['theme', 'by row', 'fringe (like the image)']]);
 		kernel.regListener('timer', 'scrambleX', procSignal);
+		// Mirror Blocks (twisty/twistymirror.js)
+		kernel.regProp('vrc', 'vrcMirror', 1, 'Mirror Blocks colour', ['g', ['g', 's'], ['gold', 'silver']]);
+		kernel.regListener('vrcmirror', 'property', function(signal, value) {
+			value[2] == 'modify' && puzzleFactory.restyle();
+		}, /^vrcMirror$/);
 		kernel.regListener('vrcfree', 'property', function(signal, value) { // own module name: one listener per module
 			value[2] != 'set' && freeToggle(value[1]);
 		}, /^vrcFree$/);

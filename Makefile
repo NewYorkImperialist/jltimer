@@ -124,6 +124,7 @@ twisty/twisty.js \
 twisty/twistynnn.js \
 twisty/twisty112.js \
 twisty/twistyfloppy.js \
+twisty/twistymirror.js \
 twisty/twistyslide.js \
 twisty/twistysq1.js \
 twisty/twistyskb.js \

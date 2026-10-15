@@ -1,5 +1,6 @@
 (function() {
 	twistyjs.registerTwisty("cube", createCubeTwisty);
+	twistyjs.createCubeTwisty = createCubeTwisty; // Mirror Blocks (twisty/twistymirror.js) is drawn by it
 
 	function axify(v1, v2, v3) {
 		var ax = new THREE.Matrix4();
