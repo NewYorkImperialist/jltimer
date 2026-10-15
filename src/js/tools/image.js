@@ -775,6 +775,42 @@ var image = (function() {
 		};
 	})();
 
+	// Cmetrick / Cmetrick Mini (jlTimer, lib/puzzlecmetrick.js): each ball as a tile, its front colour in the middle
+	// and the colours of its top, right, bottom and left in the four borders (five of its six colours)
+	var imgCmetrick = (function() {
+		var width = 30;
+		var GAP = 0.12;
+		var IN = 0.24; // border width
+
+		return function(svg, type, moveseq) {
+			var n = puzzleCmetrick.SIZE[type];
+			var st = puzzleCmetrick.solved(type);
+			var moves = puzzleCmetrick.parse(n, moveseq);
+			var recons = [];
+			for (var i = 0; i < moves.length; i++) {
+				puzzleCmetrick.apply(st, moves[i]);
+				recons.push(puzzleCmetrick.toStr(n, moves[i]));
+			}
+			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
+			var col = function(f) {
+				return colors["DLBURF".indexOf("URFDLB".charAt(f))];
+			};
+			svg.width = (n + GAP) * width;
+			svg.height = (n + GAP) * width;
+			for (var i = 0; i < n * n; i++) {
+				var x = i % n + GAP, y = Math.floor(i / n) + GAP, s = 1 - GAP, b = st.balls[i];
+				var x1 = x + s, y1 = y + s;
+				var a = x + IN, a1 = x1 - IN, c = y + IN, c1 = y1 - IN;
+				drawPolygon(svg, col(puzzleCmetrick.colourAt(b, [0, 1, 0])), [[x, x1, a1, a], [y, y, c, c]], [width, 0, 0]);
+				drawPolygon(svg, col(puzzleCmetrick.colourAt(b, [1, 0, 0])), [[x1, x1, a1, a1], [y, y1, c1, c]], [width, 0, 0]);
+				drawPolygon(svg, col(puzzleCmetrick.colourAt(b, [0, -1, 0])), [[x1, x, a, a1], [y1, y1, c1, c1]], [width, 0, 0]);
+				drawPolygon(svg, col(puzzleCmetrick.colourAt(b, [-1, 0, 0])), [[x, x, a, a], [y1, y, c, c1]], [width, 0, 0]);
+				drawPolygon(svg, col(puzzleCmetrick.colourAt(b, [0, 0, 1])), [[a, a1, a1, a], [c, c, c1, c1]], [width, 0, 0]);
+			}
+			return ["~", recons, type];
+		};
+	})();
+
 	var imgCuboid = (function() {
 		var width = 30;
 		var GAP = 1 / 3;
@@ -1428,6 +1464,8 @@ var image = (function() {
 			recons = imgSiamese(svg, type, scramble[1]);
 		} else if (type == "ufo") {
 			recons = imgUfo(svg, scramble[1]);
+		} else if (type == "cm3" || type == "cm2") {
+			recons = imgCmetrick(svg, type, scramble[1]);
 		} else if (type == "mrbl") {
 			mrblImage(svg, 3, scramble[1]);
 		} else if (type == "15b" || type == "15p") {

@@ -92,7 +92,7 @@ var puzzleFactory = execMain(function() {
 			return;
 		}
 		// the 2D view has no 1x1x2 / 1x1x1, Floppies, cuboids, bandaged puzzles, Mirror Blocks or Square-1 family: they are always drawn in 3D
-		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|223|233|33[4-7]|bic|bsq|mrbl|sq1|sq2|ssq1|sia1[12]3|sia222|ufo)$/.exec(options['puzzle']) ? 'q' : 'v';
+		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|223|233|33[4-7]|bic|bsq|mrbl|sq1|sq2|ssq1|sia1[12]3|sia222|ufo|cm[23])$/.exec(options['puzzle']) ? 'q' : 'v';
 		if (puzzleSlide.info(options['puzzle'])) {
 			style = 's'; // sliding puzzles: a flat grid of their own (twisty/twistyslide.js), in either view
 		}
@@ -131,7 +131,7 @@ var puzzleFactory = execMain(function() {
 			options["stickerWidth"] = 1.7;
 		} else if (puzzle == "mrbl") { // Mirror Blocks (twisty/twistymirror.js): one colour, its own
 			options["stickerWidth"] = 1.7;
-		} else if (puzzle == "112" || puzzle == "111" || /^(223|233|33[4-7]|sia1[12]3|sia222)$/.exec(puzzle)) {
+		} else if (puzzle == "112" || puzzle == "111" || /^(223|233|33[4-7]|sia1[12]3|sia222|cm[23])$/.exec(puzzle)) {
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]);
 		} else if (puzzle == "skb") {
 			options["type"] = "skewb";
