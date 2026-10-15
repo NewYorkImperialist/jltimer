@@ -3,7 +3,8 @@
 
 // jlTimer LxMxN cuboids (Other > LxMxN): 2x2x3 Tower Cube (223), 2x3x3 Domino (233), 3x3x4 .. 3x3x7 (334 .. 337).
 // The puzzle model shared by the scramblers (scramble/utilscramble.js), the scramble image (tools/image.js) and the
-// virtual puzzle (twisty/twistycuboid.js).
+// virtual puzzle (twisty/twistycuboid.js). The 3x3x5 and 3x3x7 change shape: their model is lib/puzzleshift.js (which
+// reuses the notation here), their renderer twisty/twistyshift.js.
 //
 // Coordinates: the cuboid is centred on the origin, a cubie is 2 units wide, dims = [X, Y, Z] cubies along x (L->R),
 // y (D->U) and z (B->F) in the current orientation (whole-puzzle rotations swap them). Every sticker is stored as

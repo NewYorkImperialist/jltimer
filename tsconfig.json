@@ -36,7 +36,8 @@
     "src/js/twisty/twistyslide.js",
     "src/js/lib/puzzlebandaged.js",
     "src/js/lib/puzzlecuboid.js",
-    "src/js/lib/puzzlegear.js"
+    "src/js/lib/puzzlegear.js",
+    "src/js/lib/puzzleshift.js"
   ],
   "include": [
     "src/js/fx/*.js"

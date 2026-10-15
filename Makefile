@@ -30,6 +30,7 @@ lib/puzzleslide.js \
 lib/puzzlebandaged.js \
 lib/puzzlecuboid.js \
 lib/puzzlegear.js \
+lib/puzzleshift.js \
 lib/puzzlefactory.js \
 kernel.js \
 export.js \
@@ -131,6 +132,7 @@ twisty/twistymirror.js \
 twisty/twistyslide.js \
 twisty/twistycuboid.js \
 twisty/twistygear.js \
+twisty/twistyshift.js \
 twisty/twistysq1.js \
 twisty/twistybandaged.js \
 twisty/twistyskb.js \
@@ -155,6 +157,7 @@ lib/puzzlefloppy.js \
 lib/puzzlebandaged.js \
 lib/puzzlecuboid.js \
 lib/puzzlegear.js \
+lib/puzzleshift.js \
 solver/ftocta.js \
 solver/megaminx.js \
 scramble/scramble.js \
