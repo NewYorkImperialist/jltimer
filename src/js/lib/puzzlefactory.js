@@ -91,8 +91,8 @@ var puzzleFactory = execMain(function() {
 			}
 			return;
 		}
-		// the 2D view has no 1x1x2: it is always drawn in 3D
-		var style = /^q[2l]?$/.exec(options['style']) && options['puzzle'] != '112' ? 'q' : 'v';
+		// the 2D view has no 1x1x2 / 1x1x1: they are always drawn in 3D
+		var style = /^q[2l]?$/.exec(options['style']) && !/^11[12]$/.exec(options['puzzle']) ? 'q' : 'v';
 		var child = null;
 		for (var i = 0; i < prevParents.length; i++) {
 			if (prevParents[i][0] == parent) {
@@ -124,7 +124,7 @@ var puzzleFactory = execMain(function() {
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]); // U L F D L B
 			options["dimension"] = ~~puzzle.slice(4) || 3;
 			options["stickerWidth"] = 1.7;
-		} else if (puzzle == "112") {
+		} else if (puzzle == "112" || puzzle == "111") {
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]);
 		} else if (puzzle == "skb") {
 			options["type"] = "skewb";
@@ -160,7 +160,7 @@ var puzzleFactory = execMain(function() {
 				continue;
 			}
 			var scene = puzzle.twistyScene;
-			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|112$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
+			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|11[12]$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
 				puzzle.twisty.applySkin(puzzle.twisty, null, $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]));
 				scene.redraw && scene.redraw();
 			} else if (prevParents[i][1] == 'q') {

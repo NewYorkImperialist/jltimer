@@ -1,5 +1,5 @@
 /*
- * jlTimer: the 1x1x2 virtual puzzle (event "112"), drawn like the NxN cube (twistynnn.js) so cube skins, colours,
+ * jlTimer: the 1x1x2 and 1x1x1 virtual puzzles (events "112" and "111"), drawn like the NxN cube (twistynnn.js) so cube skins, colours,
  * move effects' sticker tint, the keyboard map and the touch board all work the same way.
  *
  * The puzzle logic (which cubie a move turns, solved, notation) lives in lib/puzzle112.js; this file keeps the
@@ -7,9 +7,17 @@
  * layerEnd 1 is a face turn, layerEnd 2 the whole puzzle (x / y / z). A face turn whose "layer" would be the whole
  * puzzle (R while the puzzle stands upright, U while it lies on its side) is entered as the rotation it really is,
  * so the move log, the move count and inspection treat it as one.
+ *
+ * The 1x1x1 is the same code with height 1: one cubie, so every move is a rotation (R is x, U is y, F is z...),
+ * logged as that rotation. It is a joke: the first move after the scramble solves it, whatever the orientation.
  */
 (function() {
-	twistyjs.registerTwisty("112", create112Twisty);
+	twistyjs.registerTwisty("112", function(twistyScene, twistyParameters) {
+		return create112Twisty(twistyScene, twistyParameters, 2);
+	});
+	twistyjs.registerTwisty("111", function(twistyScene, twistyParameters) {
+		return create112Twisty(twistyScene, twistyParameters, 1);
+	});
 
 	var axify = twistyjs.axify;
 
@@ -109,7 +117,8 @@
 		return out;
 	}
 
-	function create112Twisty(twistyScene, twistyParameters) {
+	// height: 2 for the 1x1x2, 1 for the 1x1x1
+	function create112Twisty(twistyScene, twistyParameters, height) {
 		var obj3d = new THREE.Object3D();
 
 		var cubeOptions = {
@@ -123,7 +132,7 @@
 				cubeOptions[option] = twistyParameters[option];
 			}
 		}
-		cubeOptions.dimension = 2; // for move effects (js/fx.js): the puzzle is two cubies tall
+		cubeOptions.dimension = height; // for move effects (js/fx.js): the puzzle is two cubies tall (one on a 1x1x1)
 
 		var skin = getSkin();
 
@@ -151,13 +160,13 @@
 		var stickerGeometry = new THREE.Plane(2, 2);
 
 		// the model and the drawn pieces: pieces[i] = [baseMatrix, object, cubie, isCore]
-		var state = puzzle112.solved(); // what is drawn (moves applied when their animation ends)
-		var qState = puzzle112.solved(); // after every move entered so far, for reading new input
+		var state = puzzle112.solved(height); // what is drawn (moves applied when their animation ends)
+		var qState = puzzle112.solved(height); // after every move entered so far, for reading new input
 		var pending = 0; // moves entered with addMoves that have not been applied yet
 		var pieces = [];
 
 		function addPiece(f, cubie, isCore) {
-			var center = cubie == 0 ? 1 : -1;
+			var center = height == 1 ? 0 : cubie == 0 ? 1 : -1;
 			var base = new THREE.Matrix4().multiply(
 				new THREE.Matrix4().setTranslation(0, center, 0),
 				new THREE.Matrix4().multiply(sidesUV[f], new THREE.Matrix4().setTranslation(0, 0, 1))
@@ -185,14 +194,16 @@
 			obj3d.addChild(obj);
 		}
 
-		for (var c = 0; c < 2; c++) {
+		for (var c = 0; c < height; c++) {
 			for (var f = 0; f < 6; f++) {
-				var inner = f == (c == 0 ? 3 : 0);
+				var inner = height == 2 && f == (c == 0 ? 3 : 0);
 				addPiece(f, c, inner);
 			}
 		}
 
-		var actualScale = cubeOptions.scale * 0.5 / 2; // the cubies are the size of a 2x2's, so it is drawn 2x2-tall
+		// 1x1x2: the cubies are the size of a 2x2's, so it is drawn 2x2-tall; 1x1x1: as big as any NxN (which are all
+		// drawn the same overall size), i.e. a 2x2's size
+		var actualScale = cubeOptions.scale * 0.5 / (height == 1 ? 1 : 2);
 		obj3d.scale = new THREE.Vector3(actualScale, actualScale, actualScale);
 
 		function applySkin(twisty, newSkin, faceColors) {
@@ -289,7 +300,7 @@
 					var obj = pieces[i][1];
 					obj.matrix.multiply(rots, obj.matrix);
 					obj.update();
-					if (twisty.stickerTint && layer.length == 1) {
+					if (twisty.stickerTint && layer.length < height) { // a turn, not the whole puzzle
 						tintPiece(twisty, pieces[i]);
 					}
 				}
@@ -335,7 +346,7 @@
 
 		// a face turn whose layer is the whole puzzle is the rotation it really is
 		function resolve(move) {
-			if (move[1] < 2 && puzzle112.layerOf(qState, toModel(move)).length == 2) {
+			if (move[1] < 2 && puzzle112.layerOf(qState, toModel(move)).length == height) {
 				return [1, 2, move[2], move[3]];
 			}
 			return move.slice();
@@ -382,6 +393,9 @@
 			if (!twistyScene.isMoveFinished()) {
 				return 1;
 			}
+			if (height == 1) { // any move solves a 1x1x1: solved once a move has been made since the scramble
+				return counter > 0 ? 0 : 1;
+			}
 			return puzzle112.isSolved(state) ? 0 : 1;
 		}
 
@@ -394,10 +408,11 @@
 		}
 
 		// pre-scramble rotations (Options > "Pre-scramble") are kept only if they leave the puzzle upright: the
-		// scramble turns U, which on a puzzle lying on its side would just turn the whole puzzle
+		// scramble turns U, which on a puzzle lying on its side would just turn the whole puzzle. A 1x1x1 ignores
+		// them: its goal is the standard orientation, so a pre-scramble rotation would only change the scramble.
 		function parseScramble(scramble, addPreScr) {
 			var moves = puzzle112.parse(scramble);
-			if (addPreScr) {
+			if (addPreScr && height == 2) {
 				var pre = puzzle112.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
 				var st = puzzle112.solved();
 				for (var i = 0; i < pre.length; i++) {
@@ -413,12 +428,14 @@
 		var counter = 0;
 		var lastMove = -1;
 
-		// turns of the top against the bottom (the whole puzzle turning is not a move); U U counts once, like NxN
+		// turns of the top against the bottom (the whole puzzle turning is not a move); U U counts once, like NxN.
+		// On a 1x1x1 the rotations are all there is, so every rotation counts (x x once, by axis: R then L' too).
 		function cntMove(mv) {
-			if (puzzle112.isTurn(state, mv) && mv.face != lastMove) {
+			var key = height == 1 ? FACES.indexOf(mv.face) % 3 : mv.face;
+			if ((height == 1 || puzzle112.isTurn(state, mv)) && key != lastMove) {
 				counter++;
 			}
-			lastMove = mv.face;
+			lastMove = key;
 		}
 
 		function moveCnt(clr) {

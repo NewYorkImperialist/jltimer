@@ -451,8 +451,8 @@ var image = (function() {
 		}
 	})();
 
-	// 1x1x2 (jlTimer, lib/puzzle112.js): a cross net, U on top, L F R B as 1x2 strips (top cubie above the
-	// bottom one), D below F; colours from colcube like the NxN net
+	// 1x1x2 / 1x1x1 (jlTimer, lib/puzzle112.js): a cross net, U on top, L F R B as 1x2 strips (top cubie above the
+	// bottom one; single cells on the 1x1x1), D below F; colours from colcube like the NxN net
 	var img112 = (function() {
 		var width = 30;
 		var CELLS = [ // face (URFDLB), column, row (in cells; the side strips are two cells tall)
@@ -469,28 +469,33 @@ var image = (function() {
 			return null;
 		}
 
-		return function(svg, moveseq) {
-			var pre = puzzle112.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
-			var st = puzzle112.solved();
-			for (var i = 0; i < pre.length; i++) {
-				puzzle112.apply(st, pre[i]);
-			}
-			if (Math.abs(puzzle112.longAxis(st)[1]) != 1) { // a pre-scramble that tips it over is ignored (as in the virtual puzzle)
-				st = puzzle112.solved();
+		// h: height, 2 (1x1x2) or 1 (1x1x1)
+		return function(svg, moveseq, h) {
+			var st = puzzle112.solved(h);
+			if (h != 1) { // the 1x1x1 ignores pre-scramble rotations (as in the virtual puzzle)
+				var pre = puzzle112.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
+				for (var i = 0; i < pre.length; i++) {
+					puzzle112.apply(st, pre[i]);
+				}
+				if (Math.abs(puzzle112.longAxis(st)[1]) != 1) { // a pre-scramble that tips it over is ignored (as in the virtual puzzle)
+					st = puzzle112.solved();
+				}
 			}
 			var moves = puzzle112.parse(moveseq);
 			for (var i = 0; i < moves.length; i++) {
 				puzzle112.apply(st, moves[i]);
 			}
 			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
+			var dy = h == 1 ? 20 / 9 : 29 / 9; // where D sits: below the two-cell strips (one cell on a 1x1x1)
 			svg.width = (3 * 10 / 9 + 1 + 0.2) * width;
-			svg.height = (29 / 9 + 1 + 0.2) * width;
+			svg.height = (dy + 1 + 0.2) * width;
 			for (var c = 0; c < CELLS.length; c++) {
 				var f = CELLS[c][0];
 				var n = puzzle112.NORMALS[f];
 				var offx = CELLS[c][1] * 10 / 9;
-				var offy = CELLS[c][2] == 3 ? 29 / 9 : CELLS[c][2] * 10 / 9; // D sits below the two-cell strips
-				var rows = f == 0 || f == 3 ? [n[1]] : [1, -1]; // the cubie each cell belongs to: +1 top, -1 bottom
+				var offy = CELLS[c][2] == 3 ? dy : CELLS[c][2] * 10 / 9;
+				// the cubie each cell belongs to: +1 top, -1 bottom (0: the 1x1x1's only cubie)
+				var rows = h == 1 ? [0] : f == 0 || f == 3 ? [n[1]] : [1, -1];
 				for (var j = 0; j < rows.length; j++) {
 					var pos = [n[0], n[1] + rows[j], n[2]];
 					var s = stickerAt(st, pos, n);
@@ -505,7 +510,7 @@ var image = (function() {
 			for (var i = 0; i < moves.length; i++) {
 				recons.push(puzzle112.toStr(moves[i]));
 			}
-			return ["~", recons, "112"];
+			return ["~", recons, h == 1 ? "111" : "112"];
 		};
 	})();
 
@@ -1044,7 +1049,9 @@ var image = (function() {
 		} else if (type == "gear") {
 			gearImage(svg, scramble[1]);
 		} else if (type == "112") {
-			recons = img112(svg, scramble[1]);
+			recons = img112(svg, scramble[1], 2);
+		} else if (type == "111") {
+			recons = img112(svg, scramble[1], 1);
 		} else if (type == "mrbl") {
 			mrblImage(svg, 3, scramble[1]);
 		} else if (type == "15b" || type == "15p") {

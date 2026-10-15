@@ -1,8 +1,12 @@
 // @ts-check
 "use strict";
 
-// jlTimer 1x1x2: the puzzle model shared by the scrambler (scramble/utilscramble.js, event "112"), the scramble
-// image (tools/image.js) and the virtual puzzle (twisty/twisty112.js).
+// jlTimer 1x1x2 and 1x1x1: the puzzle model shared by the 1x1x2 scrambler (scramble/utilscramble.js, event "112"),
+// the scramble images (tools/image.js) and the virtual puzzles (twisty/twisty112.js, events "112" and "111").
+//
+// The model takes a height h: 2 for the 1x1x2 (the default), 1 for the 1x1x1. A 1x1x1 is one cubie centred at the
+// origin with all six stickers; every move turns all of it (it has no other layer). It is a joke puzzle: any
+// move solves it, which the virtual puzzle (twisty112.js) tracks; the model calls every 1x1x1 state solved.
 //
 // Two 1x1x1 cubies stacked along a "long axis" with one cut between them. Coordinates: a cubie is 2 units wide,
 // the puzzle starts upright (long axis = y), top cubie centred at (0, 1, 0), bottom cubie at (0, -1, 0).
@@ -37,13 +41,16 @@ var puzzle112 = (function() {
 		];
 	}
 
-	/** @returns {any} */
-	function solved() {
-		var centers = [[0, 1, 0], [0, -1, 0]]; // 0 = top cubie, 1 = bottom cubie
+	/**
+	 * @param {number=} h height: 2 (1x1x2, default) or 1 (1x1x1)
+	 * @returns {any}
+	 */
+	function solved(h) {
+		var centers = h == 1 ? [[0, 0, 0]] : [[0, 1, 0], [0, -1, 0]]; // 0 = top cubie, 1 = bottom cubie
 		var stickers = [];
-		for (var c = 0; c < 2; c++) {
+		for (var c = 0; c < centers.length; c++) {
 			for (var f = 0; f < 6; f++) {
-				if (f == (c == 0 ? 3 : 0)) {
+				if (centers.length == 2 && f == (c == 0 ? 3 : 0)) {
 					continue; // the face towards the cut
 				}
 				var n = NORMALS[f];
@@ -71,17 +78,20 @@ var puzzle112 = (function() {
 	}
 
 	/**
-	 * which cubies a move turns: [0], [1] or [0, 1] (the whole puzzle)
+	 * which cubies a move turns: [0], [1] or every cubie (the whole puzzle: [0, 1], or [0] on a 1x1x1)
 	 * @param {any} st
 	 * @param {{face: string, pow: number, whole: boolean}} mv
 	 */
 	function layerOf(st, mv) {
+		var all = st.centers.map(function(c, i) {
+			return i;
+		});
 		if (mv.whole) {
-			return [0, 1];
+			return all;
 		}
 		var n = NORMALS[FACES.indexOf(mv.face)];
 		var ret = [];
-		for (var c = 0; c < 2; c++) {
+		for (var c = 0; c < st.centers.length; c++) {
 			if (dot(st.centers[c], n) >= 0) {
 				ret.push(c);
 			}
@@ -95,7 +105,7 @@ var puzzle112 = (function() {
 	 * @param {{face: string, pow: number, whole: boolean}} mv
 	 */
 	function isTurn(st, mv) {
-		return layerOf(st, mv).length == 1 && ((mv.pow % 4) + 4) % 4 != 0;
+		return layerOf(st, mv).length < st.centers.length && ((mv.pow % 4) + 4) % 4 != 0;
 	}
 
 	/**
@@ -163,7 +173,7 @@ var puzzle112 = (function() {
 
 	/** @param {any} st */
 	function isSolved(st) {
-		return relState(st) == 0;
+		return st.centers.length == 1 ? true : relState(st) == 0;
 	}
 
 	var POW = { '': 1, "'": -1, '2': 2, "2'": -2 };
@@ -213,9 +223,10 @@ var puzzle112 = (function() {
 	/**
 	 * the state after a sequence, from solved
 	 * @param {string} str
+	 * @param {number=} h height (see solved)
 	 */
-	function run(str) {
-		var st = solved();
+	function run(str, h) {
+		var st = solved(h);
 		var mv = parse(str);
 		for (var i = 0; i < mv.length; i++) {
 			apply(st, mv[i]);
@@ -224,8 +235,9 @@ var puzzle112 = (function() {
 	}
 
 	/**
-	 * random-state scramble: one of the three unsolved states, uniformly, as its shortest sequence (WCA style: a
-	 * scramble is never solved). rn(n) returns a uniform integer in [0, n).
+	 * 1x1x2 random-state scramble: one of the three unsolved states, uniformly, as its shortest sequence (WCA style:
+	 * a scramble is never solved). rn(n) returns a uniform integer in [0, n). (The 1x1x1 keeps csTimer's random
+	 * x / y / z string, scramble/megascramble.js.)
 	 * @param {(n: number) => number} rn
 	 */
 	function scramble(rn) {

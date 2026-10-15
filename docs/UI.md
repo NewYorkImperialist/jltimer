@@ -181,6 +181,17 @@ csTimer's "1x1x2" was a joke under Jokes that printed strings of R. In jlTimer i
 
 How it works: `src/js/lib/puzzle112.js` is the model (integer sticker positions/normals; which cubies a move turns, relative state, notation, scrambler) shared by the scrambler (`scramble/utilscramble.js`), the image (`tools/image.js`) and the virtual puzzle `twisty/twisty112.js` (twisty type `112`, registered in `$.TWISTY_RE`, colours/skins via `puzzleFactory`). The start-on-Space path is in `timer/virtual.js` (`startSolve`).
 
+## 1x1x1 (a joke you can play)
+
+csTimer's "1x1x1" under **Jokes → 1x1x1** printed a string of random rotations and had no virtual puzzle. In jlTimer it is playable in the virtual timer, still under Jokes and still a joke: **any move solves it**. Press Space, the scramble is applied and the clock starts; the first key (or swipe) turns the cube and stops the clock, whatever orientation it ends in.
+
+- **Puzzle**: one cubie with the cube colours (**Cube** / cube skin), drawn like the 2x2 and the 1x1x2 and the same overall size as the 2x2: floating Classic stickers are double-sided so the back stickers peek through the gaps; skins with a body hide them.
+- **Scramble**: unchanged, csTimer's random string of `x`, `y`, `z` rotations (length 25), so old sessions (id `111`) and their scrambles are untouched. Pre-scramble rotations are ignored for it. The scramble image is a cross net of single cells (U, then L F R B, then D), drawn for old scrambles too.
+- **Moves**: every turn on a 1x1x1 is a whole-cube rotation, so every key of the 3x3 map rotates it: R/L keys are `x`/`x'`, U/D are `y`/`y'`, F/B are `z`/`z'`, wide keys and the x/y/z keys are their rotations. They are logged as those rotations (`y@751`), as on the 1x1x2. Touch/mouse swipes use the 3x3 board the same way. Slice keys do nothing.
+- **Timing**: as the 1x1x2: from the Space press (scramble shown) to the key press of the first move (key-event time); inspection is skipped. The move count is 1 (rotations are the only moves a 1x1x1 has). Replay, solve detail, export/import, turn animation, cube skins and the move-effect sticker tint (not used: every move is a rotation) work as for the 1x1x2.
+
+How it works: the 1x1x2 code is parameterised by height. `lib/puzzle112.js` `solved(1)` is one cubie at the origin with six stickers; `layerOf` then always returns the whole puzzle, so every face turn resolves to its rotation. `twisty/twisty112.js` registers twisty type `111` as `create112Twisty(..., 1)`; its `isSolved` reports solved once a move has been made since the scramble (the move counter `scrambleIt` clears). `tools/image.js` draws the net with height 1, and `timer/virtual.js` uses the 1x1x2's start-on-Space path for both.
+
 ## PB celebration
 
 When a new solve sets a new **session best** (the same bests csTimer marks in the time list: single, and the two averages of the time list, ao5 and ao12 by default), a short celebration animation (about 2.5 s) plays over the page, with a "NEW BEST / ao5 12.47" title next to the time for about 1.5 s. While the celebration is enabled, csTimer's own scrolling "Session best …!" logo hint is dropped for solves that get the celebration. It is still shown when the option is Off, or for a best the option doesn't celebrate. If one solve sets several bests, the label names the biggest one (the longest average). Option **PB celebration** (ui section): *Off*, *Single only*, *Single + averages* (default). The UI deliberately doesn't describe or preview the animation, so the first one is a surprise.
