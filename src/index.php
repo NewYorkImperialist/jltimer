@@ -51,6 +51,7 @@
   <script type="text/javascript" src="js/scramble/2x2x2.js"></script>
   <script type="text/javascript" src="js/scramble/gearcube.js"></script>
   <script type="text/javascript" src="js/scramble/1x3x3.js"></script>
+  <script type="text/javascript" src="js/scramble/superfloppy.js"></script>
   <script type="text/javascript" src="js/scramble/2x2x3.js"></script>
   <script type="text/javascript" src="js/scramble/clock.js"></script>
   <script type="text/javascript" src="js/scramble/333lse.js"></script>

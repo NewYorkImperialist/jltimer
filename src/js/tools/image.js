@@ -510,10 +510,10 @@ var image = (function() {
 	})();
 
 	// Floppy (lib/puzzlefloppy.js): a cube net of the flat puzzle, U on top, the L F R B sides below it, D under F;
-	// colours from colcube like the NxN net. Each cell shows the first face seen when looking into the puzzle from
-	// that side: an empty location shows nothing, a face further in than the side's outer layer is drawn smaller,
-	// and in the U / D views a piece standing out of the plane (a Super Floppy corner) carries a small diamond.
-	// The sides are one cell tall on the Floppy and three (for the corners above and below) on the Super Floppy.
+	// colours from colcube like the NxN net. Each side view shows that side's layer (on the Super Floppy a plus: the
+	// edge, the two flat corner locations and the locations above and below the edge; empty ones are left out), a
+	// face without a sticker is grey. The U / D views show what is seen from above / below; a corner standing out of
+	// the plane towards the viewer carries a small diamond.
 	var imgFloppy = (function() {
 		var width = 30;
 		var GAP = 0.3;
@@ -530,6 +530,9 @@ var image = (function() {
 		return function(svg, moveseq, kind) {
 			var half = kind == '133';
 			var rows = half ? 1 : 3;
+			if (kind == 'sfl') {
+				moveseq = puzzleFloppy.legacySfl(moveseq); // old csTimer scrambles: R L U D, held upright
+			}
 			var st = puzzleFloppy.run(moveseq, half);
 			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
 			var at = {};
@@ -548,7 +551,7 @@ var image = (function() {
 					for (var c = 0; c < 3; c++) {
 						var ray = view[3](c, r, half ? 0 : 1 - r);
 						var p = ray[0], depth = 0, hit = -1;
-						for (; depth < 3; depth++) {
+						for (; depth < (big ? 3 : 1); depth++) { // a side view: its outer layer only
 							hit = at[p.join(',')];
 							if (hit !== undefined) {
 								break;
@@ -567,13 +570,11 @@ var image = (function() {
 								col = sf.indexOf(f) != -1 ? colors["DLBURF".indexOf("URFDLB".charAt(f))] : col;
 							}
 						}
-						var level = big ? depth - 1 : depth; // U / D: the flat layer is the reference
-						var ins = level > 0 ? 0.18 : 0;
 						drawPolygon(svg, col, [
-							[c + ins, c + 1 - ins, c + 1 - ins, c + ins],
-							[r + ins, r + ins, r + 1 - ins, r + 1 - ins]
+							[c, c + 1, c + 1, c],
+							[r, r, r + 1, r + 1]
 						], [width, offx, offy]);
-						if (level < 0) { // standing out towards the viewer
+						if (big && depth == 0) { // standing out of the plane towards the viewer
 							drawPolygon(svg, '#000', [
 								[c + 0.5, c + 0.7, c + 0.5, c + 0.3],
 								[r + 0.3, r + 0.5, r + 0.7, r + 0.5]
@@ -1130,7 +1131,7 @@ var image = (function() {
 			gearImage(svg, scramble[1]);
 		} else if (type == "112") {
 			recons = img112(svg, scramble[1]);
-		} else if (type == "133") {
+		} else if (type == "133" || type == "sfl") {
 			recons = imgFloppy(svg, scramble[1], type);
 		} else if (type == "mrbl") {
 			mrblImage(svg, 3, scramble[1]);

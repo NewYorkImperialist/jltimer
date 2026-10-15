@@ -286,6 +286,22 @@ var puzzleFloppy = (function() {
 	}
 
 	/**
+	 * csTimer's old Super Floppy scrambles were random R L U D turns of the puzzle held upright (big faces F and B).
+	 * Laid flat by an x rotation, U is B and D is F, so "R U' L D2" is "R B' L F2". Scrambles that already use F or B
+	 * are returned as they are.
+	 * @param {string} str
+	 */
+	function legacySfl(str) {
+		str = String(str || '');
+		if (!/(^|\s)[UD](2'|2|'|)(?=\s|$)/.test(str) || /(^|\s)[FB](2'|2|'|)(?=\s|$)/.test(str)) {
+			return str;
+		}
+		return str.replace(/(^|\s)([UD])(?=(2'|2|'|)(\s|$))/g, function(m, p1, p2) {
+			return p1 + (p2 == 'U' ? 'B' : 'F');
+		});
+	}
+
+	/**
 	 * the state after a sequence, from solved. half: the Floppy (every side turn is a half turn)
 	 * @param {string} str
 	 * @param {boolean=} half
@@ -302,7 +318,7 @@ var puzzleFloppy = (function() {
 	// the virtual puzzle is a twisty type (twisty/twistyfloppy.js): register it next to $.TWISTY_RE (lib/utillib.js)
 	var jq = /** @type {any} */ (typeof $ != 'undefined' ? $ : null);
 	if (jq && jq.TWISTY_RE) {
-		jq.TWISTY_RE += '|133';
+		jq.TWISTY_RE += '|133|sfl';
 	}
 
 	return {
@@ -325,6 +341,7 @@ var puzzleFloppy = (function() {
 		isFlat: isFlat,
 		parse: parse,
 		toStr: toStr,
+		legacySfl: legacySfl,
 		run: run
 	};
 })();

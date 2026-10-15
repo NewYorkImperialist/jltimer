@@ -48,6 +48,7 @@ scramble/skewb.js \
 scramble/2x2x2.js \
 scramble/gearcube.js \
 scramble/1x3x3.js \
+scramble/superfloppy.js \
 scramble/2x2x3.js \
 scramble/clock.js \
 scramble/333lse.js \
@@ -154,6 +155,7 @@ scramble/skewb.js \
 scramble/2x2x2.js \
 scramble/gearcube.js \
 scramble/1x3x3.js \
+scramble/superfloppy.js \
 scramble/2x2x3.js \
 scramble/clock.js \
 scramble/333lse.js \

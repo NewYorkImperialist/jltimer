@@ -1,18 +1,20 @@
 /*
- * jlTimer: the Floppy Cube (3x3x1, event "133") virtual puzzle, drawn like the NxN cube (twistynnn.js) so cube
+ * jlTimer: the Floppy Cube (3x3x1, event "133") and Super Floppy (event "sfl") virtual puzzles, drawn like the NxN cube (twistynnn.js) so cube
  * skins, colours, move effects' sticker tint, the keyboard map and the touch board work the same way.
  *
  * The puzzle logic (which pieces a move turns, solved, notation) lives in lib/puzzlefloppy.js; this file keeps the
  * THREE objects in step with it. Every piece is a cubie with six faces: the faces that are outward when solved carry
- * stickers, the others are the body (drawn only with a skin that has a body). A face is drawn only while nothing sits
+ * stickers, the others are the body (in Classic, which has no body, dark sticker-sized tiles). A face is drawn only while nothing sits
  * against it, so the faces a turn uncovers appear for that turn. Moves use the NxN move format
  * [layerStart, layerEnd, face, quarterTurns]: layerEnd 1 is a face turn, layerEnd 2 the whole puzzle (x / y / z). A
  * face turn of one of the big faces (U while the puzzle lies flat) is entered as the rotation it really is, and on
  * the Floppy every side turn is a half turn (a quarter-turn key turns 180 degrees), so the move log, the move count
- * and inspection see the move as it happened.
+ * and inspection see the move as it happened. On the official Super Floppy a side holding no corner is locked: the
+ * turn is refused with a small shake and never entered, so it is neither logged nor timed.
  */
 (function() {
 	twistyjs.registerTwisty("133", createFloppyTwisty);
+	twistyjs.registerTwisty("sfl", createFloppyTwisty);
 
 	var axify = twistyjs.axify;
 
@@ -113,8 +115,13 @@
 	}
 
 	function createFloppyTwisty(twistyScene, twistyParameters) {
-		var kind = twistyParameters.type; // "133"
+		var kind = twistyParameters.type; // "133" or "sfl"
 		var half = kind == "133"; // the Floppy turns its sides 180 degrees only
+
+		// official Super Floppy rules (Options > scramble > "Super Floppy rules"): a bare edge can't turn
+		function official() {
+			return kind == "sfl" && kernel.getProp('sflMode', 'o') != 'i';
+		}
 		var obj3d = new THREE.Object3D();
 
 		var cubeOptions = {
@@ -216,7 +223,9 @@
 					fc[5].visible = open;
 					fc[6].visible = open && hasBody;
 				} else {
-					fc[5].visible = open && hasBody; // without a body the cubies are hollow, as on the NxN
+					// a face without a sticker: drawn even without a body (Classic), as black plastic, so an empty location
+					// or a corner standing out of the plane reads as the solid shape it is
+					fc[5].visible = open;
 					fc[6].visible = false;
 				}
 			}
@@ -246,6 +255,8 @@
 					bodyEdgeMaterial.color.setHex(skin.bodyEdge);
 				}
 				coreMaterial.color.setHex(skin.body);
+			} else {
+				coreMaterial.color.setHex(0x1a1a1a);
 			}
 			coreMaterial.jlShade = hasBody ? bodyMaterial.jlShade : 0;
 			var bodyMats = hasBody && skin.bodyEdge != null ? [bodyMaterial, bodyEdgeMaterial] : [bodyMaterial];
@@ -253,6 +264,8 @@
 			for (var i = 0; i < faces.length; i++) {
 				if (!faces[i][4]) {
 					faces[i][5].materials = hasBody && skin.bodyEdge != null ? [coreMaterial, bodyEdgeMaterial] : [coreMaterial];
+					// without a body (Classic) it is a dark floating tile the size of a sticker, like the stickers around it
+					faces[i][5].scale.x = faces[i][5].scale.y = hasBody ? 1 : skin.stickerWidth / 2.02;
 					continue;
 				}
 				var interior = faces[i][5];
@@ -393,12 +406,33 @@
 			}
 		}
 
+		// a locked side (official Super Floppy): a short shake of the puzzle instead of the turn (a fade with reduced
+		// motion); the canvas is moved by the compositor, so nothing is redrawn
+		function refuseMove(twisty, move) {
+			if (puzzleFloppy.isLegal(qState, toModel(move), official())) {
+				return false;
+			}
+			var el = twistyScene.getCanvas && twistyScene.getCanvas();
+			if (el && el.animate) {
+				var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+				el.animate(still ? [{ opacity: 1 }, { opacity: 0.55 }, { opacity: 1 }] : [
+					{ transform: 'translateX(0)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(4px)' },
+					{ transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }
+				], { duration: 240, easing: 'ease-out' });
+			}
+			twistyScene.jlRefused = (twistyScene.jlRefused || 0) + 1; // for tests
+			return true;
+		}
+
 		function keydownCallback(twisty, e) {
 			if (e.altKey || e.ctrlKey) {
 				return false;
 			}
 			if (e.keyCode in KEYMAP) {
-				twistyScene.addMoves([resolve(KEYMAP[e.keyCode])]);
+				var move = resolve(KEYMAP[e.keyCode]);
+				if (!refuseMove(twisty, move)) {
+					twistyScene.addMoves([move]);
+				}
 			}
 			return false;
 		}
@@ -438,7 +472,9 @@
 		// pre-scramble rotations (Options > "Pre-scramble") are kept only if the puzzle still lies flat (upside down
 		// is fine): the scramble turns R F L B, which on a puzzle standing up would partly turn the whole puzzle
 		function parseScramble(scramble, addPreScr) {
-			var moves = puzzleFloppy.parse(scramble);
+			// old csTimer Super Floppy scrambles (R L U D, held upright) are applied laid flat (U = B, D = F); scramble
+			// moves are applied without the official lock, as those old scrambles ignored it
+			var moves = puzzleFloppy.parse(kind == "sfl" ? puzzleFloppy.legacySfl(scramble) : scramble);
 			if (addPreScr) {
 				var pre = puzzleFloppy.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
 				var st = puzzleFloppy.solved();
@@ -490,6 +526,7 @@
 			advanceMoveCallback: advanceMoveCallback,
 			toggleColorVisible: toggleColorVisible,
 			keydownCallback: keydownCallback,
+			refuseMove: refuseMove,
 			getTouchMoves: getTouchMoves,
 			isSolved: isSolved,
 			isInspectionLegalMove: isInspectionLegalMove,

@@ -322,8 +322,8 @@ window.twistyjs = (function() {
 			var validMoves = twisty.getTouchMoves();
 			var key = startIdx * 10 + curIdx;
 			startIdx = null;
-			if (!(key in validMoves)) {
-				return;
+			if (!(key in validMoves) || twisty.refuseMove && twisty.refuseMove(twisty, validMoves[key][1])) {
+				return; // refuseMove: a turn the puzzle can't make (a locked Super Floppy side)
 			}
 			that.addMoves([validMoves[key][1]]);
 		}
