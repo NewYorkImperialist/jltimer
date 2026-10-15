@@ -12,18 +12,23 @@
  * the timer, the move log and solved detection never wait for a drawing; the slide is only drawn (about 70 ms) and a
  * tile that is moved again mid-slide carries on from where it is drawn, so the picture never lags behind fast input.
  *
- * Input: arrow keys, WASD and IJKL (Options > "Sliding puzzle keys move": the tiles, default, or the blank); a click
+ * Input: the 3x3 face keys (U j/f, D s/l, L d/e, R i/k: the scramble letters) and the arrow keys (Options > "Sliding puzzle keys move": the tiles, default, or the blank); a click
  * or tap on a tile in the blank's row or column slides it and every tile between (one move of n tiles); on a touch
  * screen a swipe slides the tiles that way (a long swipe keeps sliding, one move per tile length).
  */
 (function() {
 	var W = /** @type {any} */ (window);
 	var SLIDE_MS = 70;
-	/** key code -> direction of the arrow (0 up, 1 left, 2 right, 3 down) */
+	/** key code -> direction a tile moves (0 up, 1 left, 2 right, 3 down) = the scramble letter U / L / R / D.
+	 * The keys reaching the puzzle are already mapped to the 3x3 key map (help.getMappedCode in timer/virtual.js), so
+	 * each 3x3 face key does the move with its letter: U keys (j / f) U, D keys (s / l) D, L keys (d / e) L,
+	 * R keys (i / k) R. The arrow keys also work. */
 	var KEYS = {
 		38: 0, 37: 1, 39: 2, 40: 3, // arrows
-		87: 0, 65: 1, 68: 2, 83: 3, // W A D S
-		73: 0, 74: 1, 76: 2, 75: 3 // I J L K
+		74: 0, 70: 0, // j f: U
+		83: 3, 76: 3, // s l: D
+		68: 1, 69: 1, // d e: L
+		73: 2, 75: 2 // i k: R
 	};
 
 	/** @type {any[]} live scenes, redrawn when a colour changes */
