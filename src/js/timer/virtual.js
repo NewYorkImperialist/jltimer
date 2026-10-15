@@ -33,7 +33,7 @@ execMain(function(timer) {
 	}
 
 	function tpsTick() {
-		if (!kernel.getProp('vrcLiveTps') || timer.status() < 1) {
+		if (!kernel.getProp('vrcLiveTps') || timer.status() < 1 && !freeActive()) {
 			tpsDiv.hide();
 			clearInterval(tpsTid);
 			tpsTid = 0;
@@ -86,6 +86,10 @@ execMain(function(timer) {
 		}
 		!isApplyingScramble && window.jlFx && jlFx.onMove(puzzleObj.move2str(move), move, mstep == 0 ? 'start' : 'end', timer.status() >= 1);
 		var now = ts || $.now();
+		if (freeActive()) {
+			freeMove(move, mstep, now);
+			return;
+		}
 		if (timer.status() == -3 || timer.status() == -2) {
 			if (puzzleObj.isRotation(move) && !/^(333ni|444bld|555bld)$/.exec(curScrType)) {
 				if (mstep == 0) {
@@ -143,6 +147,7 @@ execMain(function(timer) {
 			return;
 		}
 		isReseted = true;
+		freeMoves = 0; // the puzzle is rebuilt solved
 		vrcType = kernel.getProp('input');
 		var size = curScrSize;
 		if (!size) {
@@ -166,7 +171,9 @@ execMain(function(timer) {
 			}
 			if (!tpsDiv.parent().is('#multiphase')) {
 				tpsDiv.prependTo('#multiphase'); // right above the "solve" text
+				freeDiv.insertAfter(tpsDiv);
 			}
+			freeShow();
 			if (isInit && !puzzleObj) {
 				div.css('height', '');
 				div.html('--:--');
@@ -226,6 +233,10 @@ execMain(function(timer) {
 			return;
 		}
 		var now = eventTime(e);
+		if (freeActive()) {
+			freeKey(keyCode, e, now);
+			return;
+		}
 		if (timer.status() == -1) { // idle
 			if (keyCode == 32) {
 				if (relayScrs) {
@@ -287,6 +298,79 @@ execMain(function(timer) {
 		}
 	}
 
+	// Free play (option vrcFree, Alt+F; docs/UI.md): while idle, cube keys and swipes turn the cube freely from
+	// solved and Space resets it to solved. No timer, nothing recorded, no cloud gesture (that needs a solve).
+	var freeDiv = $('<aside class="jlfree">').hide(); // not a div: the #multiphase > div rows are the timer's own
+	var freeMoves = 0; // turns (not rotations) since the last reset
+	var freeDirty = true; // the cube still has to be reset to solved before free play starts
+
+	function freeActive() {
+		return isEnable && !!kernel.getProp('vrcFree') && timer.status() == -1;
+	}
+
+	function freeShow() {
+		var on = freeActive();
+		freeDiv.html('<span>free play</span>' + (freeMoves ? '<span><i> \u00b7 </i>' + freeMoves + (freeMoves == 1 ? ' move' : ' moves') + '</span>' : '')).toggle(on);
+		if (on) {
+			$('#lcd').css({'visibility': 'hidden'}); // no stale time; lets the cube be dragged / swiped
+		}
+	}
+
+	function freeReset() {
+		freeMoves = 0;
+		freeDirty = false;
+		isReseted = false;
+		reset(true); // rebuild the puzzle: solved
+		tpsInputs = [];
+		freeShow();
+	}
+
+	function freeKey(keyCode, e, now) {
+		if (freeDirty) {
+			freeReset();
+		}
+		if (keyCode == 32) {
+			// a touch / mouse press (synthetic event, no type) on the cube's swipe grid is a turn, not a reset
+			if (e.type || !div.find('.touchcube.active').length) {
+				freeReset();
+			}
+			kernel.clrKey();
+		} else if (keyCode == 27 || keyCode == 28) {
+			kernel.clrKey();
+		} else if (!e.altKey && !e.ctrlKey && !e.metaKey) { // Alt+F etc. are shortcuts, not turns
+			puzzleObj.keydown({
+				"keyCode": help.getMappedCode(keyCode),
+				"ts": now
+			});
+		}
+	}
+
+	function freeMove(move, mstep, now) {
+		isReseted = false; // the next timed attempt rebuilds the cube before scrambling
+		if (mstep == 0 && !puzzleObj.isRotation(move)) {
+			freeMoves++;
+			tpsInput(now);
+			freeShow();
+		}
+	}
+
+	function freeToggle(on) {
+		freeDirty = true;
+		if (!puzzleObj || timer.status() != -1) {
+			freeShow();
+			return;
+		}
+		if (on && isEnable) {
+			freeReset();
+		} else {
+			freeDiv.hide();
+			tpsTick();
+			isReseted = false;
+			reset();
+			$('#lcd').css({'visibility': 'unset'});
+		}
+	}
+
 	var readyTs = 0; // when the cube was scrambled for the current attempt
 	var drillSetup = ''; // during a trainer drill: the scramble of the attempt with its setup rotation
 
@@ -343,6 +427,7 @@ execMain(function(timer) {
 			div.hide();
 			isReseted = false;
 		}
+		freeShow();
 	}
 
 	function setSize(value) {
@@ -353,6 +438,9 @@ execMain(function(timer) {
 	$(function() {
 		kernel.regListener('timer', 'scramble', procSignal);
 		kernel.regListener('timer', 'scrambleX', procSignal);
+		kernel.regListener('vrcfree', 'property', function(signal, value) { // own module name: one listener per module
+			value[2] != 'set' && freeToggle(value[1]);
+		}, /^vrcFree$/);
 		div.appendTo("#container");
 	});
 
@@ -360,6 +448,9 @@ execMain(function(timer) {
 		onkeydown: onkeydown,
 		setEnable: setEnable,
 		setSize: setSize,
-		reset: reset
+		reset: reset,
+		puzzle: function() { // the puzzle on screen (for checks / tests)
+			return puzzleObj;
+		}
 	};
 }, [timer]);

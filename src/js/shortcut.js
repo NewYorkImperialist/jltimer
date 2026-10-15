@@ -47,7 +47,7 @@ var shortcuts = execMain(function(){
 		76: [['input', 'l']]  //last layer
 	}
 
-	// jlTimer: Alt+L toggles the layout, Alt+=/-/0 resize the virtual cube.
+	// jlTimer: Alt+L toggles the layout, Alt+F virtual cube free play, Alt+=/-/0 resize the virtual cube.
 	// Only while idle and outside text fields and dialogs, so solving and typing are never affected.
 	function jlShortcut(e) {
 		if (!e.altKey || e.ctrlKey || e.metaKey || kernel.ui.isPop() || timer.status() != -1
@@ -58,6 +58,13 @@ var shortcuts = execMain(function(){
 		if (key == 76) { // l
 			kernel.setProp('jlLayout', kernel.getProp('jlLayout') == 'm' ? 'c' : 'm');
 			logohint.push(kernel.getProp('jlLayout') == 'm' ? 'Minimal layout' : 'Familiar layout');
+		} else if (key == 70) { // f: virtual cube free play (js/timer/virtual.js)
+			if (!/^[vq]$/.exec(kernel.getProp('input'))) {
+				logohint.push('Free play needs the virtual cube');
+			} else {
+				kernel.setProp('vrcFree', !kernel.getProp('vrcFree'));
+				logohint.push(kernel.getProp('vrcFree') ? 'Free play on: Space resets the cube' : 'Free play off');
+			}
 		} else if (key == 187 || key == 61 || key == 107) { // = or numpad +
 			logohint.push('Virtual cube ' + timer.stepVrcSize(1) + '%');
 		} else if (key == 189 || key == 173 || key == 109) { // - or numpad -

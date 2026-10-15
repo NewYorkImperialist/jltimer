@@ -253,7 +253,11 @@
 	twistyjs.registerTwisty("ctico", function(scene, param) {
 		poly3d.getFamousPuzzle("ctico", param);
 		param.pieceGap = 0.05;
-		return createCubeTwisty(scene, param);
+		var twisty = createCubeTwisty(scene, param);
+		// jlTimer: the Icosamate had no keys; its six scramble axes on the 3x3 key positions (I/K right, D/E left,
+		// J/F top, H/G front, W/O back left, S/L back right); the arrow keys turn the view
+		bindKeyMap("I:UR K:UR' D:UL E:UL' J:UrUl F:UrUl' H:FlFr G:FlFr' W:LBl O:LBl' S:RBr L:RBr'", twisty);
+		return twisty;
 	});
 
 	function createCubeTwisty(twistyScene, twistyParameters) {
