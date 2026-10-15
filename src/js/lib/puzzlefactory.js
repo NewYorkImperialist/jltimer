@@ -93,6 +93,9 @@ var puzzleFactory = execMain(function() {
 		}
 		// the 2D view has no 1x1x2: it is always drawn in 3D
 		var style = /^q[2l]?$/.exec(options['style']) && options['puzzle'] != '112' ? 'q' : 'v';
+		if (puzzleSlide.info(options['puzzle'])) {
+			style = 's'; // sliding puzzles: a flat grid of their own (twisty/twistyslide.js), in either view
+		}
 		var child = null;
 		for (var i = 0; i < prevParents.length; i++) {
 			if (prevParents[i][0] == parent) {
@@ -108,7 +111,9 @@ var puzzleFactory = execMain(function() {
 			} else {
 				child[1] = style;
 			}
-			if (style == 'q') {
+			if (style == 's') {
+				twistyScene = new twistyjs.slide.TwistyScene();
+			} else if (style == 'q') {
 				twistyScene = new twistyjs.qcube.TwistyScene();
 			} else {
 				twistyScene = new twistyjs.TwistyScene();

@@ -28,6 +28,7 @@
   <script type="text/javascript" src="js/lib/min2phase.js"></script>
   <script type="text/javascript" src="js/lib/cubeutil.js"></script>
   <script type="text/javascript" src="js/lib/puzzle112.js"></script>
+  <script type="text/javascript" src="js/lib/puzzleslide.js"></script>
   <script type="text/javascript" src="js/lib/puzzlefactory.js"></script>
   <script type="text/javascript" src="js/kernel.js"></script>
   <script type="text/javascript" src="js/export.js"></script>
@@ -115,6 +116,7 @@
   <script type="text/javascript" src="js/twisty/twisty.js"></script>
   <script type="text/javascript" src="js/twisty/twistynnn.js"></script>
   <script type="text/javascript" src="js/twisty/twisty112.js"></script>
+  <script type="text/javascript" src="js/twisty/twistyslide.js"></script>
   <script type="text/javascript" src="js/twisty/twistysq1.js"></script>
   <script type="text/javascript" src="js/twisty/twistyskb.js"></script>
   <script type="text/javascript" src="js/twisty/twistyclk.js"></script>

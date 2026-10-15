@@ -84,7 +84,7 @@ execMain(function(timer) {
 		if (mstep == 1) {
 			return;
 		}
-		!isApplyingScramble && window.jlFx && jlFx.onMove(puzzleObj.move2str(move), move, mstep == 0 ? 'start' : 'end', timer.status() >= 1);
+		!isApplyingScramble && window.jlFx && !puzzleSlide.info(curPuzzle) && jlFx.onMove(puzzleObj.move2str(move), move, mstep == 0 ? 'start' : 'end', timer.status() >= 1);
 		var now = ts || $.now();
 		if (timer.status() == -3 || timer.status() == -2) {
 			if (puzzleObj.isRotation(move) && !/^(333ni|444bld|555bld)$/.exec(curScrType)) {
@@ -352,6 +352,9 @@ execMain(function(timer) {
 
 	$(function() {
 		kernel.regListener('timer', 'scramble', procSignal);
+		// sliding puzzles (twisty/twistyslide.js)
+		kernel.regProp('vrc', 'vrcSlideDir', 1, 'Sliding puzzle keys move', ['t', ['t', 'b'], ['the tiles', 'the blank']]);
+		kernel.regProp('vrc', 'vrcSlideCol', 1, 'Sliding puzzle colours', ['theme', ['theme', 'rows', 'fringe'], ['theme', 'by row', 'fringe (like the image)']]);
 		kernel.regListener('timer', 'scrambleX', procSignal);
 		div.appendTo("#container");
 	});

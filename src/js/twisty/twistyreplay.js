@@ -613,6 +613,12 @@ var replay = execMain(function() {
 		}
 		var info = [annot.pauses.length + ' pause' + (annot.pauses.length == 1 ? '' : 's') + ' \u2265' + PAUSE_MIN / 1000 + 's (' + fmtSec(pauseTot) + 's'
 			+ (nLong ? ', ' + nLong + ' \u2265' + PAUSE_LONG / 1000 + 's' : '') + ')'];
+		if (puzzleSlide.info(puzzle)) { // sliding puzzle: both move metrics (single-tile moves, multi-tile moves)
+			var cnt = puzzleSlide.counts(playMoves.map(function(m) {
+				return { d: m[0][0], n: m[0][1] };
+			}));
+			info.unshift(cnt[0] + ' moves \u00b7 ' + cnt[1] + ' MTM');
+		}
 		info.push(annot.slips.length ? '<span class="rpl-slipmv">' + annot.slips.length + ' slip' + (annot.slips.length == 1 ? '' : 's') + '</span>' : '0 slips');
 		var segs = annot.segs;
 		if (segs) {

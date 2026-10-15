@@ -452,5 +452,5 @@ var DEBUGBL = false; // for debugging bluetooth
 	};
 
 	$.UDPOLY_RE = "skb|m?pyr|prc|heli(?:2x2|cv)?|crz3a|giga|mgm|klm|redi|dino|fto|dmd|ctico";
-	$.TWISTY_RE = "sq1|clk|udpoly|112|" + $.UDPOLY_RE; // 112: the 1x1x2 (twisty/twisty112.js)
+	$.TWISTY_RE = "sq1|clk|udpoly|112|15p|15b|8p|8b|" + $.UDPOLY_RE; // 112: the 1x1x2 (twisty/twisty112.js); 15p/15b/8p/8b: sliding puzzles (twisty/twistyslide.js)
 })();
