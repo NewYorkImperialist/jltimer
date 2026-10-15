@@ -1,5 +1,6 @@
 (function() {
 	twistyjs.registerTwisty("sq1", createCubeTwisty);
+	twistyjs.createSq1Twisty = createCubeTwisty; // the bandaged Square-1 (twisty/twistybandaged.js) builds on it
 
 	function axify(v1, v2, v3) {
 		var ax = new THREE.Matrix4();
@@ -431,7 +432,7 @@
 				return;
 			}
 			var keyCode = e.keyCode;
-			if (keyCode in cubeKeyMapping) {
+			if (keyCode in cubeKeyMapping && !(twisty.refuseMove && twisty.refuseMove(twisty, cubeKeyMapping[keyCode]))) {
 				twistyScene.addMoves([cubeKeyMapping[keyCode]]);
 			}
 		}
@@ -471,13 +472,13 @@
 			if (!scramble || /^\s*$/.exec(scramble)) {
 				return generateScramble(this);
 			}
-			var sqre = /(\/)|\((-?\d+), *(-?\d+)\)|(y'?2)/g;
+			var sqre = /(\/)|\((-?\d+), *(-?\d+)\)|([xyz]'?2)/g;
 			var ret = [];
 			scramble.replace(sqre, function(m, p1, p2, p3, p4) {
 				if (p1) {
 					ret.push([0, 6, 0, 5]);
 				} else if (p4) {
-					ret.push([1, p4[2] == "'" ? -6 : 6, -5, 5]);
+					ret.push([["x", "y", "", "z"].indexOf(p4[0]), p4[1] == "'" ? -6 : 6, -5, 5]);
 				} else {
 					var u = ~~p2;
 					var d = ~~p3;
@@ -518,8 +519,8 @@
 				return axis == 1 ? "(" + num + ",0)" : "(0," + num + ")";
 			} else if (nlayer == 5) {
 				return pow == 6 ? "/" : "/'"
-			} else if (nlayer == 10) {
-				return "y" + (pow == 6 ? "" : "'") + "2";
+			} else if (nlayer == 10) { // whole-puzzle flips: x2 about the slice axis, z2 across it (jlTimer; csTimer wrote y2 for all)
+				return "xyyz".charAt(axis) + (pow == 6 ? "" : "'") + "2";
 			}
 		}
 

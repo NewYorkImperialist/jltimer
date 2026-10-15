@@ -1,5 +1,6 @@
 (function() {
 	twistyjs.registerTwisty("cube", createCubeTwisty);
+	twistyjs.createCubeTwisty = createCubeTwisty; // bandaged puzzles (twisty/twistybandaged.js) build on it
 
 	function axify(v1, v2, v3) {
 		var ax = new THREE.Matrix4();
@@ -535,7 +536,7 @@
 				}
 				ret = true;
 			}
-			if (keyCode in cubeKeyMapping) {
+			if (keyCode in cubeKeyMapping && !(twisty.refuseMove && twisty.refuseMove(twisty, cubeKeyMapping[keyCode]))) {
 				twistyScene.addMoves([cubeKeyMapping[keyCode]]);
 			}
 			return ret;

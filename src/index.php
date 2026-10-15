@@ -30,6 +30,7 @@
   <script type="text/javascript" src="js/lib/puzzle112.js"></script>
   <script type="text/javascript" src="js/lib/puzzlefloppy.js"></script>
   <script type="text/javascript" src="js/lib/puzzleslide.js"></script>
+  <script type="text/javascript" src="js/lib/puzzlebandaged.js"></script>
   <script type="text/javascript" src="js/lib/puzzlefactory.js"></script>
   <script type="text/javascript" src="js/kernel.js"></script>
   <script type="text/javascript" src="js/export.js"></script>
@@ -121,6 +122,7 @@
   <script type="text/javascript" src="js/twisty/twistyfloppy.js"></script>
   <script type="text/javascript" src="js/twisty/twistyslide.js"></script>
   <script type="text/javascript" src="js/twisty/twistysq1.js"></script>
+  <script type="text/javascript" src="js/twisty/twistybandaged.js"></script>
   <script type="text/javascript" src="js/twisty/twistyskb.js"></script>
   <script type="text/javascript" src="js/twisty/twistyclk.js"></script>
   <script type="text/javascript" src="js/twisty/twistypoly.js"></script>

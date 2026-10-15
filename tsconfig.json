@@ -33,7 +33,8 @@
     "src/js/lib/puzzlefloppy.js",
     "src/js/scramble/superfloppy.js",
     "src/js/lib/puzzleslide.js",
-    "src/js/twisty/twistyslide.js"
+    "src/js/twisty/twistyslide.js",
+    "src/js/lib/puzzlebandaged.js"
   ],
   "include": [
     "src/js/fx/*.js"

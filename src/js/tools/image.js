@@ -210,7 +210,17 @@ var image = (function() {
 			return svg;
 		}
 
-		function scrImage(svg, moveseq, isSQ2) {
+		// a small diamond: the glued piece of the bandaged Square-1 (event bsq, lib/puzzlebandaged.js)
+		function glueMark(svg, cx, cy, trans) {
+			var r = 0.22;
+			drawPolygon(svg, '#000', [
+				[cx, cx + r, cx, cx - r],
+				[cy - r, cy, cy + r, cy]
+			], trans);
+		}
+
+		// isBandaged: the bandaged Square-1 </,(1,0)>: its DBL corner is glued to the left half of the middle layer
+		function scrImage(svg, moveseq, isSQ2, isBandaged) {
 			var cols = kernel.getProp('colsq1').match(colre);
 			colors = {
 				'U': cols[0],
@@ -258,6 +268,15 @@ var image = (function() {
 			}
 			//draw top and bottom
 			drawPosit(svg, sc, colors, sq2sc);
+			if (isBandaged) {
+				glueMark(svg, (-sqa - 0.5) / 2, 0.35, [width, sqb * 3, sqb - sqa - 0.7]);
+				for (var i = 12; i < 24; i++) {
+					if (sc.pieceAt(i) == 13 && sc.pieceAt((i - 11) % 12 + 12) == 13) { // the DBL corner, first half
+						var c = Rotate([[(cps[0][0] + cps[0][1] + cps[0][2] + cps[0][3]) / 4], [(cps[1][0] + cps[1][1] + cps[1][2] + cps[1][3]) / 4]], -(i - 6) * PI / 6);
+						glueMark(svg, c[0][0], c[1][0], [width, sqb * 3, sqb]);
+					}
+				}
+			}
 
 			var recons = [];
 			for (var i = 0; i < moves.length; i++) {
@@ -279,7 +298,7 @@ var image = (function() {
 			} else {
 				recons.push('/');
 			}
-			return ["~", recons, 'sq1'];
+			return ["~", recons, isBandaged ? 'bsq' : 'sq1'];
 		}
 
 		return {
@@ -1104,6 +1123,52 @@ var image = (function() {
 		}
 	})();
 
+	// Bicube (lib/puzzlebandaged.js): a cube net like the NxN's (U on top, L F R B, D under F), colours from colcube;
+	// the stickers of a glued block on one face are drawn as one tile
+	var imgBicube = (function() {
+		var width = 30;
+		var GAP = 1 / 3;
+		// per face (URFDLB): net position (in faces) and cell (col, row) -> cubie
+		var VIEWS = [
+			[1, 0, function(c, r) { return [c - 1, 1, r - 1]; }],
+			[2, 1, function(c, r) { return [1, 1 - r, 1 - c]; }],
+			[1, 1, function(c, r) { return [c - 1, 1 - r, 1]; }],
+			[1, 2, function(c, r) { return [c - 1, -1, 1 - r]; }],
+			[0, 1, function(c, r) { return [-1, 1 - r, c - 1]; }],
+			[3, 1, function(c, r) { return [1 - c, 1 - r, -1]; }]
+		];
+
+		return function(svg, moveseq) {
+			var st = puzzleBandaged.run(moveseq);
+			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
+			svg.width = (12 + 3 * GAP + 0.2) * width;
+			svg.height = (9 + 2 * GAP + 0.2) * width;
+			for (var f = 0; f < 6; f++) {
+				var offx = VIEWS[f][0] * (3 + GAP) + 0.1;
+				var offy = VIEWS[f][1] * (3 + GAP) + 0.1;
+				var tiles = {}; // block -> [col, minC, minR, maxC, maxR]
+				for (var r = 0; r < 3; r++) {
+					for (var c = 0; c < 3; c++) {
+						var s = puzzleBandaged.stickerAt(st, VIEWS[f][2](c, r), f);
+						var key = s.block == 12 ? 'free' : s.block; // the free corner is never joined
+						var t = tiles[key];
+						tiles[key] = t ? [t[0], Math.min(t[1], c), Math.min(t[2], r), Math.max(t[3], c), Math.max(t[4], r)] : [s.col, c, r, c, r];
+					}
+				}
+				for (var key in tiles) {
+					var t = tiles[key];
+					drawPolygon(svg, colors["DLBURF".indexOf("URFDLB".charAt(t[0]))], [
+						[t[1], t[3] + 1, t[3] + 1, t[1]],
+						[t[2], t[2], t[4] + 1, t[4] + 1]
+					], [width, offx, offy]);
+				}
+			}
+			return ["~", moveseq.split(/\s+/).filter(function(m) {
+				return m;
+			}), "bic"];
+		};
+	})();
+
 	var types_nnn = ['222', '333', '444', '555', '666', '777', '888', '999', '101010', '111111'];
 
 	function renderSVG(svg, scramble) {
@@ -1128,8 +1193,10 @@ var image = (function() {
 				faceNameMask = 0xfffff;
 			}
 			recons = polyhedronImage(svg, type, scramble[1], faceNameMask, type == 'klm' ? 0.1 : 0);
-		} else if (type == "sq1" || type == "sq2") {
-			recons = sq1Image.scrImage(svg, scramble[1], type == "sq2");
+		} else if (type == "sq1" || type == "sq2" || type == "bsq") {
+			recons = sq1Image.scrImage(svg, scramble[1], type == "sq2", type == "bsq");
+		} else if (type == "bic") {
+			recons = imgBicube(svg, scramble[1]);
 		} else if (type == "clk") {
 			clkImage(svg, scramble[1]);
 		} else if (type == "gear") {

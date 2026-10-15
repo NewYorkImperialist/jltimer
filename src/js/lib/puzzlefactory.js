@@ -92,7 +92,7 @@ var puzzleFactory = execMain(function() {
 			return;
 		}
 		// the 2D view has no 1x1x2 / 1x1x1 or Floppies: they are always drawn in 3D
-		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl)$/.exec(options['puzzle']) ? 'q' : 'v';
+		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|bic|bsq)$/.exec(options['puzzle']) ? 'q' : 'v';
 		if (puzzleSlide.info(options['puzzle'])) {
 			style = 's'; // sliding puzzles: a flat grid of their own (twisty/twistyslide.js), in either view
 		}
@@ -138,7 +138,7 @@ var puzzleFactory = execMain(function() {
 			options["faceColors"] = $.col2std(kernel.getProp("colmgm"), [0, 2, 1, 5, 4, 3, 11, 9, 8, 7, 6, 10]);
 		} else if (puzzle == "pyr" || puzzle == "mpyr") {
 			options["faceColors"] = $.col2std(kernel.getProp("colpyr"), [3, 1, 2, 0]);
-		} else if (puzzle == "sq1") {
+		} else if (puzzle == "sq1" || puzzle == "bsq") {
 			options["faceColors"] = $.col2std(kernel.getProp("colsq1"), [0, 5, 4, 2, 1, 3]);
 		} else if (puzzle == "clk") {
 			options["faceColors"] = $.col2std(kernel.getProp("colclk"), [1, 2, 0, 3, 4]);
@@ -151,6 +151,10 @@ var puzzleFactory = execMain(function() {
 		}
 		if (/^(133|sfl)$/.exec(puzzle)) { // Floppy, Super Floppy (twisty/twistyfloppy.js): the cube colours
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]);
+		}
+		if (puzzle == "bic") { // Bicube (twisty/twistybandaged.js): a 3x3x3 with the cube colours
+			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]);
+			options["stickerWidth"] = 1.7;
 		}
 		options['scale'] = 0.9;
 		child[2].twistyScene.initializeTwisty(options);
@@ -168,7 +172,7 @@ var puzzleFactory = execMain(function() {
 				continue;
 			}
 			var scene = puzzle.twistyScene;
-			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|111$|112$|133$|sfl$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
+			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|111$|112$|133$|sfl$|bic$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
 				puzzle.twisty.applySkin(puzzle.twisty, null, $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]));
 				scene.redraw && scene.redraw();
 			} else if (prevParents[i][1] == 'q') {
