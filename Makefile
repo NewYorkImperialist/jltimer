@@ -31,6 +31,9 @@ lib/puzzlebandaged.js \
 lib/puzzlecuboid.js \
 lib/puzzlegear.js \
 lib/puzzleshift.js \
+lib/puzzlesiamese.js \
+lib/puzzleufo.js \
+lib/puzzlecmetrick.js \
 lib/puzzlefactory.js \
 kernel.js \
 export.js \
@@ -133,6 +136,9 @@ twisty/twistyslide.js \
 twisty/twistycuboid.js \
 twisty/twistygear.js \
 twisty/twistyshift.js \
+twisty/twistysiamese.js \
+twisty/twistyufo.js \
+twisty/twistycmetrick.js \
 twisty/twistysq1.js \
 twisty/twistybandaged.js \
 twisty/twistyskb.js \
@@ -158,6 +164,9 @@ lib/puzzlebandaged.js \
 lib/puzzlecuboid.js \
 lib/puzzlegear.js \
 lib/puzzleshift.js \
+lib/puzzlesiamese.js \
+lib/puzzleufo.js \
+lib/puzzlecmetrick.js \
 solver/ftocta.js \
 solver/megaminx.js \
 scramble/scramble.js \

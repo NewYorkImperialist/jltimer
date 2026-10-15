@@ -600,6 +600,11 @@
 		return puzzleShift.scramble(type, len, rn, scramble_333.getRandomScramble);
 	});
 
+	// Cmetrick Mini (jlTimer, lib/puzzlecmetrick.js): random state, optimal in face turns (at most 8)
+	scrMgr.reg('cm2', function() {
+		return puzzleCmetrick.scrambleMini(rn);
+	});
+
 	scrMgr.reg(['15p', '15pm', '15pat', 'clkwca', 'clkwcab', 'clknf', 'clk', 'clkc', 'clke', 'giga', 'mgmo', 'mgmp', 'mgmc', 'mgms2l', 'klmp', 'heli', 'helicv', 'heli2x2', 'heli2x2g', 'redi', 'redim', 'pyrm', 'prcp', 'mpyr', 'r3', 'r3ni', 'sq1h', 'sq1t', 'sq2', 'ssq1t', 'bsq', 'ctico', 'dmdso', '-1', '333noob', 'lol'], utilscramble);
 
 })(mathlib.rn, mathlib.rndEl, scrMgr.mega);

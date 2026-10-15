@@ -401,7 +401,7 @@ var scrdata = [
 	]],
 	['Cmetric', [
 		['Cmetric', "cm3", 25],
-		['小型Cmetric', "cm2", 25]
+		['小型Cmetric', "cm2", 0]
 	]],
 	['直升機方塊', [
 		['Heli copter', "heli", 40],

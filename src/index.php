@@ -34,6 +34,9 @@
   <script type="text/javascript" src="js/lib/puzzlecuboid.js"></script>
   <script type="text/javascript" src="js/lib/puzzlegear.js"></script>
   <script type="text/javascript" src="js/lib/puzzleshift.js"></script>
+  <script type="text/javascript" src="js/lib/puzzlesiamese.js"></script>
+  <script type="text/javascript" src="js/lib/puzzleufo.js"></script>
+  <script type="text/javascript" src="js/lib/puzzlecmetrick.js"></script>
   <script type="text/javascript" src="js/lib/puzzlefactory.js"></script>
   <script type="text/javascript" src="js/kernel.js"></script>
   <script type="text/javascript" src="js/export.js"></script>
@@ -128,6 +131,9 @@
   <script type="text/javascript" src="js/twisty/twistycuboid.js"></script>
   <script type="text/javascript" src="js/twisty/twistygear.js"></script>
   <script type="text/javascript" src="js/twisty/twistyshift.js"></script>
+  <script type="text/javascript" src="js/twisty/twistysiamese.js"></script>
+  <script type="text/javascript" src="js/twisty/twistyufo.js"></script>
+  <script type="text/javascript" src="js/twisty/twistycmetrick.js"></script>
   <script type="text/javascript" src="js/twisty/twistysq1.js"></script>
   <script type="text/javascript" src="js/twisty/twistybandaged.js"></script>
   <script type="text/javascript" src="js/twisty/twistyskb.js"></script>

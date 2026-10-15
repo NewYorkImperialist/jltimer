@@ -401,7 +401,7 @@ var scrdata = [
 	]],
 	['Cmetrik', [
 		['Cmetrik', "cm3", 25],
-		['Mini Cmetrik', "cm2", 25]
+		['Mini Cmetrik', "cm2", 0]
 	]],
 	['Helikopter Terning', [
 		['Heli copter', "heli", 40],
