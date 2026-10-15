@@ -31,7 +31,9 @@
     "src/js/pbfx.js",
     "src/js/lib/puzzle112.js",
     "src/js/lib/puzzlefloppy.js",
-    "src/js/scramble/superfloppy.js"
+    "src/js/scramble/superfloppy.js",
+    "src/js/lib/puzzleslide.js",
+    "src/js/twisty/twistyslide.js"
   ],
   "include": [
     "src/js/fx/*.js"

@@ -84,7 +84,7 @@ execMain(function(timer) {
 		if (mstep == 1) {
 			return;
 		}
-		!isApplyingScramble && window.jlFx && jlFx.onMove(puzzleObj.move2str(move), move, mstep == 0 ? 'start' : 'end', timer.status() >= 1);
+		!isApplyingScramble && window.jlFx && !puzzleSlide.info(curPuzzle) && jlFx.onMove(puzzleObj.move2str(move), move, mstep == 0 ? 'start' : 'end', timer.status() >= 1);
 		var now = ts || $.now();
 		if (freeActive()) {
 			freeMove(move, mstep, now);
@@ -441,6 +441,9 @@ execMain(function(timer) {
 
 	$(function() {
 		kernel.regListener('timer', 'scramble', procSignal);
+		// sliding puzzles (twisty/twistyslide.js)
+		kernel.regProp('vrc', 'vrcSlideDir', 1, 'Sliding puzzle keys move', ['t', ['t', 'b'], ['the tiles', 'the blank']]);
+		kernel.regProp('vrc', 'vrcSlideCol', 1, 'Sliding puzzle colours', ['theme', ['theme', 'rows', 'fringe'], ['theme', 'by row', 'fringe (like the image)']]);
 		kernel.regListener('timer', 'scrambleX', procSignal);
 		kernel.regListener('vrcfree', 'property', function(signal, value) { // own module name: one listener per module
 			value[2] != 'set' && freeToggle(value[1]);
