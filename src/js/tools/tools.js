@@ -98,6 +98,8 @@ var tools = (function() {
 			return "redi";
 		} else if (/^dino(o|so)?$/.exec(scrambleType)) {
 			return "dino";
+		} else if (/^ivy(o|so)?$/.exec(scrambleType)) {
+			return "ivy";
 		} else if (/^gear(o|so)?$/.exec(scrambleType)) {
 			return "gear";
 		} else if (scrambleType == 'ssq1t') {

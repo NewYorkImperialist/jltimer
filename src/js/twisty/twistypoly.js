@@ -204,6 +204,19 @@
 		return twisty;
 	});
 
+	twistyjs.registerTwisty("ivy", function(scene, param) {
+		poly3d.getFamousPuzzle("ivy", param);
+		param.minArea = 0.001;
+		var twisty = createCubeTwisty(scene, param);
+		// jlTimer: the Ivy Cube's four corners on the 3x3 keys near them in the default view: I/K R (top right back),
+		// D/E L (top left front), S/L D (bottom right front), W/O B (bottom left back); whole-cube turns about those
+		// corners on the rotation keys (;/A [R], T Y/B N [L], P/Q [D]); touch board: the swipes of the matching 3x3 keys
+		bindKeyMap("I:R K:R' D:L E:L' S:D L:D' W:B O:B' ;:[R] A:[R'] T:[L] Y:[L] N:[L'] B:[L'] P:[D] Q:[D'] " +
+			"63:R 36:R' 93:R 39:R' 14:L 41:L' 17:L 71:L' 98:D 89:D' 69:D 96:D' 74:B 47:B' 24:B 42:B' " +
+			"54:[R] 56:[R'] 52:[L] 58:[L'] 19:[D] 91:[D']", twisty);
+		return twisty;
+	});
+
 	twistyjs.registerTwisty("fto", function(scene, param) {
 		poly3d.getFamousPuzzle("fto", param);
 		var twisty = createCubeTwisty(scene, param);
