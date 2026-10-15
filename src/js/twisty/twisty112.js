@@ -172,7 +172,7 @@
 				interior.jlMat = materials[f];
 				interior.jlFace = f;
 			}
-			interior.doubleSided = false; // a convex puzzle: back faces are never seen
+			interior.doubleSided = !isCore; // applySkin decides (see there)
 			obj.addChild(interior);
 			var body = new THREE.Mesh(bodyGeometry, [bodyMaterial]);
 			body.position.z = -0.02;
@@ -192,7 +192,7 @@
 			}
 		}
 
-		var actualScale = cubeOptions.scale * 0.5 / 2.15;
+		var actualScale = cubeOptions.scale * 0.5 / 2; // the cubies are the size of a 2x2's, so it is drawn 2x2-tall
 		obj3d.scale = new THREE.Vector3(actualScale, actualScale, actualScale);
 
 		function applySkin(twisty, newSkin, faceColors) {
@@ -232,6 +232,9 @@
 				}
 				interior.scale.x = interior.scale.y = scale;
 				interior.materials = cubeOptions.stickerBorder && skin.border ? [interior.jlMat, borderMaterial] : [interior.jlMat];
+				// as on the NxN: floating stickers are double-sided, so the L / R / B / D stickers peek through the gaps
+				// from behind (seen from inside); with a body in front of them they can never be seen
+				interior.doubleSided = !hasBody;
 				obj.children[1].visible = hasBody;
 				obj.children[1].materials = bodyMats;
 			}
