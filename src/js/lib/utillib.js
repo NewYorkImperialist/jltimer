@@ -452,5 +452,5 @@ var DEBUGBL = false; // for debugging bluetooth
 	};
 
 	$.UDPOLY_RE = "skb|m?pyr|prc|heli(?:2x2|cv)?|crz3a|giga|mgm|klm|redi|dino|fto|dmd|ctico";
-	$.TWISTY_RE = "sq1|clk|udpoly|112|111|15p|15b|8p|8b|mrbl|" + $.UDPOLY_RE; // 112 / 111: the 1x1x2 and 1x1x1 (twisty/twisty112.js); 15p/15b/8p/8b: sliding puzzles (twisty/twistyslide.js); mrbl: Mirror Blocks (twisty/twistymirror.js)
+	$.TWISTY_RE = "sq1|clk|udpoly|112|111|15p|15b|8p|8b|mrbl|sq2|ssq1|" + $.UDPOLY_RE; // 112 / 111: the 1x1x2 and 1x1x1 (twisty/twisty112.js); 15p/15b/8p/8b: sliding puzzles (twisty/twistyslide.js); mrbl: Mirror Blocks (twisty/twistymirror.js); sq2 / ssq1: Square-2, Super Square-1 (twisty/twistysq1.js)
 })();

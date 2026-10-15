@@ -91,8 +91,8 @@ var puzzleFactory = execMain(function() {
 			}
 			return;
 		}
-		// the 2D view has no 1x1x2 / 1x1x1, Floppies or Mirror Blocks: they are always drawn in 3D
-		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|mrbl)$/.exec(options['puzzle']) ? 'q' : 'v';
+		// the 2D view has no 1x1x2 / 1x1x1, Floppies, Mirror Blocks or Square-1 family: they are always drawn in 3D
+		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|mrbl|sq1|sq2|ssq1)$/.exec(options['puzzle']) ? 'q' : 'v';
 		if (puzzleSlide.info(options['puzzle'])) {
 			style = 's'; // sliding puzzles: a flat grid of their own (twisty/twistyslide.js), in either view
 		}
@@ -140,7 +140,7 @@ var puzzleFactory = execMain(function() {
 			options["faceColors"] = $.col2std(kernel.getProp("colmgm"), [0, 2, 1, 5, 4, 3, 11, 9, 8, 7, 6, 10]);
 		} else if (puzzle == "pyr" || puzzle == "mpyr") {
 			options["faceColors"] = $.col2std(kernel.getProp("colpyr"), [3, 1, 2, 0]);
-		} else if (puzzle == "sq1") {
+		} else if (puzzle == "sq1" || puzzle == "sq2" || puzzle == "ssq1") {
 			options["faceColors"] = $.col2std(kernel.getProp("colsq1"), [0, 5, 4, 2, 1, 3]);
 		} else if (puzzle == "clk") {
 			options["faceColors"] = $.col2std(kernel.getProp("colclk"), [1, 2, 0, 3, 4]);

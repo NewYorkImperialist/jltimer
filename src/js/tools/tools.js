@@ -100,6 +100,8 @@ var tools = (function() {
 			return "dino";
 		} else if (/^gear(o|so)?$/.exec(scrambleType)) {
 			return "gear";
+		} else if (scrambleType == 'ssq1t') {
+			return "ssq1"; // Super Square-1 (twisty/twistysq1.js)
 		} else {
 			return scrambleType;
 		}
