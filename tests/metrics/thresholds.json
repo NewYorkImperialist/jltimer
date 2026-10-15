@@ -67,7 +67,7 @@
 	"load.bundle.jlthemes.kb": { "max": 903 },
 	"load.bundle.total.gzipKb": { "max": 690 },
 	"load.bundle.twisty.gzipKb": { "max": 59 },
-	"load.bundle.twisty.kb": { "max": 190 },
+	"load.bundle.twisty.kb": { "max": 194 },
 	"load.domContentLoaded": { "max": 800 },
 	"load.loadEvent": { "max": 1000 },
 	"load.pageErrors": { "max": 0 },

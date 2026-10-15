@@ -728,6 +728,53 @@ var image = (function() {
 		};
 	})();
 
+	// Rubik's Ufo (jlTimer, lib/puzzleufo.js): the top disk seen from above and the bottom disk below it (as if seen
+	// through the top, each segment under its place), front at the bottom; each segment in its disk's grey with its
+	// two seam colours as bands along its sides, so matching seams show as one colour
+	var imgUfo = (function() {
+		var width = 40;
+		var SEAM = ['#7ed67e', '#7cb8f2', '#e0403a', '#f2d23c', '#f28fa0', '#b8732e'];
+		var BODY = ['#dadad6', '#77777c'];
+
+		function sector(svg, col, cx, cy, r0, r1, a0, a1) {
+			var xs = [], ys = [];
+			var n = Math.max(2, Math.ceil(Math.abs(a1 - a0) / 10));
+			for (var i = 0; i <= n; i++) {
+				var a = (a0 + (a1 - a0) * i / n) * Math.PI / 180;
+				xs.push(cx + r1 * Math.sin(a));
+				ys.push(cy + r1 * Math.cos(a));
+			}
+			for (var i = n; i >= 0; i--) {
+				var a = (a0 + (a1 - a0) * i / n) * Math.PI / 180;
+				xs.push(cx + r0 * Math.sin(a));
+				ys.push(cy + r0 * Math.cos(a));
+			}
+			drawPolygon(svg, col, [xs, ys], [width, 0, 0]);
+		}
+
+		return function(svg, moveseq) {
+			var st = puzzleUfo.solved();
+			var moves = puzzleUfo.parse(moveseq);
+			var recons = [];
+			for (var i = 0; i < moves.length; i++) {
+				puzzleUfo.apply(st, moves[i]);
+				recons.push(puzzleUfo.toStr(moves[i]));
+			}
+			svg.width = 4.8 * width;
+			svg.height = 2.4 * width;
+			for (var p = 0; p < 12; p++) {
+				var cx = p < 6 ? 1.2 : 3.6, cy = 1.2;
+				var phi = puzzleUfo.angleOf(p);
+				var cols = puzzleUfo.sideColours(st, p);
+				var body = BODY[st[p] < 6 ? 0 : 1];
+				sector(svg, body, cx, cy, 0, 1.1, phi - 30, phi + 30);
+				sector(svg, SEAM[cols[0]], cx, cy, 0.45, 1.1, phi - 30, phi - 22);
+				sector(svg, SEAM[cols[1]], cx, cy, 0.45, 1.1, phi + 22, phi + 30);
+			}
+			return ["~", recons, "ufo"];
+		};
+	})();
+
 	var imgCuboid = (function() {
 		var width = 30;
 		var GAP = 1 / 3;
@@ -1379,6 +1426,8 @@ var image = (function() {
 			recons = imgCuboid(svg, type, scramble[1]);
 		} else if (/^sia(1[12]3|222)$/.exec(type)) {
 			recons = imgSiamese(svg, type, scramble[1]);
+		} else if (type == "ufo") {
+			recons = imgUfo(svg, scramble[1]);
 		} else if (type == "mrbl") {
 			mrblImage(svg, 3, scramble[1]);
 		} else if (type == "15b" || type == "15p") {
