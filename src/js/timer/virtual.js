@@ -268,6 +268,7 @@ execMain(function(timer) {
 				reset();
 				$('#lcd').css({'visibility': 'unset'}); // disable dragging
 				timer.lcd.fixDisplay(false, true);
+				freeShow(); // free play switched on mid-attempt: hide the display again
 				if (recordDNF) {
 					rawMoves.reverse();
 					var dnf = ["", 0, [-1, now - timer.startTime()], 0, [$.map(rawMoves, cubeutil.moveSeq2str).filter($.trim).join(' '), curPuzzle, moveCnt]];
@@ -302,7 +303,7 @@ execMain(function(timer) {
 	// solved and Space resets it to solved. No timer, nothing recorded, no cloud gesture (that needs a solve).
 	var freeDiv = $('<aside class="jlfree">').hide(); // not a div: the #multiphase > div rows are the timer's own
 	var freeMoves = 0; // turns (not rotations) since the last reset
-	var freeDirty = true; // the cube still has to be reset to solved before free play starts
+	var freeDirty = false; // set when free play is switched on mid-attempt: reset at the next key
 
 	function freeActive() {
 		return isEnable && !!kernel.getProp('vrcFree') && timer.status() == -1;
@@ -311,6 +312,7 @@ execMain(function(timer) {
 	function freeShow() {
 		var on = freeActive();
 		freeDiv.html('<span>free play</span>' + (freeMoves ? '<span><i> \u00b7 </i>' + freeMoves + (freeMoves == 1 ? ' move' : ' moves') + '</span>' : '')).toggle(on);
+		$('#multiphase').toggleClass('jlfreeon', on); // hide the stale time under the label
 		if (on) {
 			$('#lcd').css({'visibility': 'hidden'}); // no stale time; lets the cube be dragged / swiped
 		}
@@ -326,12 +328,13 @@ execMain(function(timer) {
 	}
 
 	function freeKey(keyCode, e, now) {
-		if (freeDirty) {
+		// a touch / mouse press (synthetic event, no type) on the cube's swipe grid is a turn, not a reset
+		var onGrid = !e.type && div.find('.touchcube.active').length;
+		if (freeDirty && !onGrid) {
 			freeReset();
 		}
 		if (keyCode == 32) {
-			// a touch / mouse press (synthetic event, no type) on the cube's swipe grid is a turn, not a reset
-			if (e.type || !div.find('.touchcube.active').length) {
+			if (!onGrid) {
 				freeReset();
 			}
 			kernel.clrKey();
@@ -426,6 +429,7 @@ execMain(function(timer) {
 		} else {
 			div.hide();
 			isReseted = false;
+			$('#lcd').css({'visibility': 'unset'}); // free play / a virtual attempt may have hidden it
 		}
 		freeShow();
 	}

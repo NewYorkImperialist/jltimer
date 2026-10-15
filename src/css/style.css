@@ -3236,3 +3236,8 @@ mark.optmark {
 		display: none;
 	}
 }
+
+/* free play: no stale time under the "free play" label (js/timer/virtual.js) */
+#multiphase.jlfreeon .activetimer {
+	visibility: hidden;
+}
