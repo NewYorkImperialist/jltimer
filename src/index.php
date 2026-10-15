@@ -121,6 +121,7 @@
   <script type="text/javascript" src="js/twisty/twistynnn.js"></script>
   <script type="text/javascript" src="js/twisty/twisty112.js"></script>
   <script type="text/javascript" src="js/twisty/twistyfloppy.js"></script>
+  <script type="text/javascript" src="js/twisty/twistymirror.js"></script>
   <script type="text/javascript" src="js/twisty/twistyslide.js"></script>
   <script type="text/javascript" src="js/twisty/twistycuboid.js"></script>
   <script type="text/javascript" src="js/twisty/twistysq1.js"></script>

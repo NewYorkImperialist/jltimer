@@ -1,6 +1,6 @@
 (function() {
 	twistyjs.registerTwisty("cube", createCubeTwisty);
-	twistyjs.createCubeTwisty = createCubeTwisty; // bandaged puzzles (twisty/twistybandaged.js) build on it
+	twistyjs.createCubeTwisty = createCubeTwisty; // bandaged puzzles (twisty/twistybandaged.js) and Mirror Blocks (twisty/twistymirror.js) build on it
 
 	function axify(v1, v2, v3) {
 		var ax = new THREE.Matrix4();

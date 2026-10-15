@@ -91,8 +91,8 @@ var puzzleFactory = execMain(function() {
 			}
 			return;
 		}
-		// the 2D view has no 1x1x2 / 1x1x1, Floppies, cuboids or bandaged puzzles: they are always drawn in 3D
-		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|223|233|33[4-7]|bic|bsq)$/.exec(options['puzzle']) ? 'q' : 'v';
+		// the 2D view has no 1x1x2 / 1x1x1, Floppies, cuboids, bandaged puzzles, Mirror Blocks or Square-1 family: they are always drawn in 3D
+		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|223|233|33[4-7]|bic|bsq|mrbl|sq1|sq2|ssq1)$/.exec(options['puzzle']) ? 'q' : 'v';
 		if (puzzleSlide.info(options['puzzle'])) {
 			style = 's'; // sliding puzzles: a flat grid of their own (twisty/twistyslide.js), in either view
 		}
@@ -129,6 +129,8 @@ var puzzleFactory = execMain(function() {
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]); // U L F D L B
 			options["dimension"] = ~~puzzle.slice(4) || 3;
 			options["stickerWidth"] = 1.7;
+		} else if (puzzle == "mrbl") { // Mirror Blocks (twisty/twistymirror.js): one colour, its own
+			options["stickerWidth"] = 1.7;
 		} else if (puzzle == "112" || puzzle == "111" || /^(223|233|33[4-7])$/.exec(puzzle)) {
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]);
 		} else if (puzzle == "skb") {
@@ -138,7 +140,7 @@ var puzzleFactory = execMain(function() {
 			options["faceColors"] = $.col2std(kernel.getProp("colmgm"), [0, 2, 1, 5, 4, 3, 11, 9, 8, 7, 6, 10]);
 		} else if (puzzle == "pyr" || puzzle == "mpyr") {
 			options["faceColors"] = $.col2std(kernel.getProp("colpyr"), [3, 1, 2, 0]);
-		} else if (puzzle == "sq1" || puzzle == "bsq") {
+		} else if (puzzle == "sq1" || puzzle == "bsq" || puzzle == "sq2" || puzzle == "ssq1") {
 			options["faceColors"] = $.col2std(kernel.getProp("colsq1"), [0, 5, 4, 2, 1, 3]);
 		} else if (puzzle == "clk") {
 			options["faceColors"] = $.col2std(kernel.getProp("colclk"), [1, 2, 0, 3, 4]);
@@ -172,7 +174,7 @@ var puzzleFactory = execMain(function() {
 				continue;
 			}
 			var scene = puzzle.twistyScene;
-			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|(111|112|133|sfl|223|233|33[4-7]|bic)$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
+			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|(111|112|133|sfl|223|233|33[4-7]|bic|mrbl)$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
 				puzzle.twisty.applySkin(puzzle.twisty, null, $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]));
 				scene.redraw && scene.redraw();
 			} else if (prevParents[i][1] == 'q') {

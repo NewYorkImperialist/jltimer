@@ -453,5 +453,5 @@ var DEBUGBL = false; // for debugging bluetooth
 
 	$.CUBOID_RE = "223|233|33[4-7]"; // LxMxN cuboids (twisty/twistycuboid.js, lib/puzzlecuboid.js)
 	$.UDPOLY_RE = "skb|m?pyr|prc|heli(?:2x2|cv)?|crz3a|giga|mgm|klm|redi|dino|fto|dmd|ctico";
-	$.TWISTY_RE = "sq1|clk|udpoly|112|111|15p|15b|8p|8b|" + $.CUBOID_RE + "|" + $.UDPOLY_RE; // 112 / 111: the 1x1x2 and 1x1x1 (twisty/twisty112.js); 15p/15b/8p/8b: sliding puzzles (twisty/twistyslide.js); cuboids (twisty/twistycuboid.js)
+	$.TWISTY_RE = "sq1|clk|udpoly|112|111|15p|15b|8p|8b|mrbl|sq2|ssq1|" + $.CUBOID_RE + "|" + $.UDPOLY_RE; // 112 / 111: the 1x1x2 and 1x1x1 (twisty/twisty112.js); 15p/15b/8p/8b: sliding puzzles (twisty/twistyslide.js); cuboids (twisty/twistycuboid.js); mrbl: Mirror Blocks (twisty/twistymirror.js); sq2 / ssq1: Square-2, Super Square-1 (twisty/twistysq1.js)
 })();
