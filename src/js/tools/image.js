@@ -724,6 +724,53 @@ var image = (function() {
 		};
 	})();
 
+	// shape-shifting 3x3x5 / 3x3x7 (jlTimer, lib/puzzleshift.js): the cuboid net, each view as large as the puzzle
+	// reaches that way and showing what is seen from that side: a piece sticking out towards the viewer carries a
+	// small diamond, a face lying deeper than the cuboid's surface is drawn smaller, a face without a sticker grey
+	var imgShift = (function() {
+		var width = 30;
+		return function(svg, type, moveseq) {
+			var dims = puzzleShift.DIMS[type];
+			var pre = puzzleShift.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
+			var st = puzzleShift.solved(dims);
+			for (var i = 0; i < pre.length; i++) {
+				puzzleShift.apply(st, pre[i]);
+			}
+			if (st.dims.join() != dims.join()) { // a pre-scramble that tips it over is ignored (as in the virtual puzzle)
+				st = puzzleShift.solved(dims);
+			}
+			var moves = puzzleShift.parse(moveseq);
+			var recons = [];
+			for (var i = 0; i < moves.length; i++) {
+				var mv = puzzleShift.resolve(st, moves[i]);
+				if (mv && puzzleShift.isLegal(st, mv)) {
+					puzzleShift.apply(st, mv);
+					recons.push(puzzleShift.toStr(mv));
+				}
+			}
+			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
+			var net = puzzleShift.net(st);
+			svg.width = (net.w + 0.2) * width;
+			svg.height = (net.h + 0.2) * width;
+			for (var i = 0; i < net.cells.length; i++) {
+				var c = net.cells[i], x = c[0] + 0.1, y = c[1] + 0.1;
+				var m = c[3] < 0 ? 0.2 : 0; // deeper than the surface: smaller
+				drawPolygon(svg, c[2] < 0 ? '#777' : colors["DLBURF".indexOf("URFDLB".charAt(c[2]))], [
+					[x + m, x + m, x + 1 - m, x + 1 - m],
+					[y + m, y + 1 - m, y + 1 - m, y + m]
+				], [width, 0, 0]);
+				if (c[3] > 0) { // sticking out towards the viewer
+					var r = 0.2, cx = x + 0.5, cy = y + 0.5;
+					drawPolygon(svg, '#000', [
+						[cx, cx + r, cx, cx - r],
+						[cy - r, cy, cy + r, cy]
+					], [width, 0, 0]);
+				}
+			}
+			return ["~", recons, type];
+		};
+	})();
+
 	var mrblImage = (function() {
 		// image for mirror block
 		var width = 30;
@@ -1314,6 +1361,8 @@ var image = (function() {
 			recons = img112(svg, scramble[1], 1);
 		} else if (type == "133" || type == "sfl") {
 			recons = imgFloppy(svg, scramble[1], type);
+		} else if (type == "335" || type == "337") {
+			recons = imgShift(svg, type, scramble[1]);
 		} else if (/^(223|233|33[4-7])$/.exec(type)) {
 			recons = imgCuboid(svg, type, scramble[1]);
 		} else if (type == "mrbl") {

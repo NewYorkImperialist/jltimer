@@ -11,7 +11,7 @@
  * only make half turns becomes a half turn, layers covering the whole puzzle become the rotation.
  */
 (function() {
-	var TYPES = ['223', '233', '334', '335', '336', '337'];
+	var TYPES = ['223', '233', '334', '336']; // 335 / 337 change shape: twisty/twistyshift.js
 	for (var t = 0; t < TYPES.length; t++) {
 		twistyjs.registerTwisty(TYPES[t], createCuboidTwisty);
 	}
@@ -75,6 +75,53 @@
 		81: [2, I, "L", -2], 82: [1, W, "R", 2], 83: [2, I, "R", 2], 84: [2, I, "L", -1], 85: [1, W, "R", 1],
 		86: [2, I, "R", 1], 87: [1, 1, "D", -1], 89: [1, 1, "D", 1]
 	};
+
+	// the 3x3 keyboard map (twistynnn.js). Face keys turn one layer (U / D: du / dd layers), wide keys two
+	// (u / d: one more than U / D), M / E / S all inner layers (E: the layers between the U and D turns)
+	function keyMove(keyCode, du, dd) {
+		switch (keyCode) {
+			case 73: return [1, 1, "R", 1]; //I R
+			case 75: return [1, 1, "R", -1]; //K R'
+			case 87: return [1, 1, "B", 1]; //W B
+			case 79: return [1, 1, "B", -1]; //O B'
+			case 83: return [1, dd, "D", 1]; //S D
+			case 76: return [1, dd, "D", -1]; //L D'
+			case 68: return [1, 1, "L", 1]; //D L
+			case 69: return [1, 1, "L", -1]; //E L'
+			case 74: return [1, du, "U", 1]; //J U
+			case 70: return [1, du, "U", -1]; //F U'
+			case 72: return [1, 1, "F", 1]; //H F
+			case 71: return [1, 1, "F", -1]; //G F'
+			case 186: return [1, W, "U", 1]; //; y
+			case 65: return [1, W, "U", -1]; //A y'
+			case 85: return [1, 2, "R", 1]; //U r
+			case 82: return [1, 2, "L", -1]; //R l'
+			case 77: return [1, 2, "R", -1]; //M r'
+			case 86: return [1, 2, "L", 1]; //V l
+			case 84: return [1, W, "L", -1]; //T x
+			case 89: return [1, W, "R", 1]; //Y x
+			case 78: return [1, W, "R", -1]; //N x'
+			case 66: return [1, W, "L", 1]; //B x'
+			case 190: return [2, I, "R", 1]; //. M'
+			case 88: return [2, I, "L", -1]; //X M'
+			case 53: return [2, I, "L", 1]; //5 M
+			case 54: return [2, I, "R", -1]; //6 M
+			case 188: return [2, I, "L", 1]; //, M
+			case 49: return [2, I, "F", -1]; //1 S'
+			case 48: return [2, I, "F", 1]; //0 S
+			case 50: return du == 1 && dd == 1 ? [2, I, "U", -1] : [du + 1, -dd - 1, "U", -1]; //2 E
+			case 57: return du == 1 && dd == 1 ? [2, I, "U", 1] : [du + 1, -dd - 1, "U", 1]; //9 E'
+			case 80: return [1, W, "F", 1]; //P z
+			case 81: return [1, W, "F", -1]; //Q z'
+			case 90: return [1, dd + 1, "D", 1]; //Z d
+			case 67: return [1, du + 1, "U", -1]; //C u'
+			case 191: return [1, dd + 1, "D", -1]; /// d'
+		}
+		return null;
+	}
+
+	// shared with the shape-shifting 3x3x5 / 3x3x7 (twisty/twistyshift.js)
+	twistyjs.jlCuboidKeys = { keyMove: keyMove, TOUCH: TOUCH };
 
 	function matrix4Power(inMatrix, power) {
 		var matrix = power < 0 ? THREE.Matrix4.makeInvert(inMatrix, new THREE.Matrix4()) : inMatrix.clone();
@@ -320,50 +367,6 @@
 		// layer depth of the U-side and D-side keys (keys 7 / 8 and 3 / 4, space resets; as the NxN's R / L depth)
 		var du = 1, dd = 1;
 
-		// the 3x3 keyboard map (twistynnn.js). Face keys turn one layer (U / D: du / dd layers), wide keys two
-		// (u / d: one more than U / D), M / E / S all inner layers (E: the layers between the U and D turns)
-		function keyMove(keyCode) {
-			switch (keyCode) {
-				case 73: return [1, 1, "R", 1]; //I R
-				case 75: return [1, 1, "R", -1]; //K R'
-				case 87: return [1, 1, "B", 1]; //W B
-				case 79: return [1, 1, "B", -1]; //O B'
-				case 83: return [1, dd, "D", 1]; //S D
-				case 76: return [1, dd, "D", -1]; //L D'
-				case 68: return [1, 1, "L", 1]; //D L
-				case 69: return [1, 1, "L", -1]; //E L'
-				case 74: return [1, du, "U", 1]; //J U
-				case 70: return [1, du, "U", -1]; //F U'
-				case 72: return [1, 1, "F", 1]; //H F
-				case 71: return [1, 1, "F", -1]; //G F'
-				case 186: return [1, W, "U", 1]; //; y
-				case 65: return [1, W, "U", -1]; //A y'
-				case 85: return [1, 2, "R", 1]; //U r
-				case 82: return [1, 2, "L", -1]; //R l'
-				case 77: return [1, 2, "R", -1]; //M r'
-				case 86: return [1, 2, "L", 1]; //V l
-				case 84: return [1, W, "L", -1]; //T x
-				case 89: return [1, W, "R", 1]; //Y x
-				case 78: return [1, W, "R", -1]; //N x'
-				case 66: return [1, W, "L", 1]; //B x'
-				case 190: return [2, I, "R", 1]; //. M'
-				case 88: return [2, I, "L", -1]; //X M'
-				case 53: return [2, I, "L", 1]; //5 M
-				case 54: return [2, I, "R", -1]; //6 M
-				case 188: return [2, I, "L", 1]; //, M
-				case 49: return [2, I, "F", -1]; //1 S'
-				case 48: return [2, I, "F", 1]; //0 S
-				case 50: return du == 1 && dd == 1 ? [2, I, "U", -1] : [du + 1, -dd - 1, "U", -1]; //2 E
-				case 57: return du == 1 && dd == 1 ? [2, I, "U", 1] : [du + 1, -dd - 1, "U", 1]; //9 E'
-				case 80: return [1, W, "F", 1]; //P z
-				case 81: return [1, W, "F", -1]; //Q z'
-				case 90: return [1, dd + 1, "D", 1]; //Z d
-				case 67: return [1, du + 1, "U", -1]; //C u'
-				case 191: return [1, dd + 1, "D", -1]; /// d'
-			}
-			return null;
-		}
-
 		function keydownCallback(twisty, e) {
 			if (e.altKey || e.ctrlKey) {
 				return false;
@@ -386,7 +389,7 @@
 			}
 			du = Math.min(du, maxDepth);
 			dd = Math.min(dd, maxDepth);
-			var move = keyMove(keyCode);
+			var move = keyMove(keyCode, du, dd);
 			move = move && puzzleCuboid.resolve(qState, move);
 			if (move) {
 				twistyScene.addMoves([move]);

@@ -592,8 +592,12 @@
 	});
 
 	// LxMxN cuboids (jlTimer, lib/puzzlecuboid.js): Domino random state, 3x3xN random moves that turn every layer
-	scrMgr.reg(['233', '334', '335', '336', '337'], function(type, len) {
+	scrMgr.reg(['233', '334', '336'], function(type, len) {
 		return puzzleCuboid.scramble(type, len, rn);
+	});
+	// shape-shifting 3x3x5 / 3x3x7 (lib/puzzleshift.js): cuboid moves, then a random-state 3x3x3 of the core
+	scrMgr.reg(['335', '337'], function(type, len) {
+		return puzzleShift.scramble(type, len, rn, scramble_333.getRandomScramble);
 	});
 
 	scrMgr.reg(['15p', '15pm', '15pat', 'clkwca', 'clkwcab', 'clknf', 'clk', 'clkc', 'clke', 'giga', 'mgmo', 'mgmp', 'mgmc', 'mgms2l', 'klmp', 'heli', 'helicv', 'heli2x2', 'heli2x2g', 'redi', 'redim', 'pyrm', 'prcp', 'mpyr', 'r3', 'r3ni', 'sq1h', 'sq1t', 'sq2', 'ssq1t', 'bsq', 'ctico', 'dmdso', '-1', '333noob', 'lol'], utilscramble);
