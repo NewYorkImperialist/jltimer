@@ -509,6 +509,65 @@ var image = (function() {
 		};
 	})();
 
+	// LxMxN cuboids (jlTimer, lib/puzzlecuboid.js): a cross net like the NxN's, U above F, L F R B in a row, D below
+	// F, each face as many cells as the cuboid has layers that way; colours from colcube like the NxN net
+	var imgCuboid = (function() {
+		var width = 30;
+		var GAP = 1 / 3;
+
+		return function(svg, type, moveseq) {
+			var dims = puzzleCuboid.DIMS[type];
+			var X = dims[0], Y = dims[1], Z = dims[2];
+			var pre = puzzleCuboid.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
+			var st = puzzleCuboid.solved(dims);
+			for (var i = 0; i < pre.length; i++) {
+				puzzleCuboid.apply(st, pre[i]);
+			}
+			if (st.dims.join() != dims.join()) { // a pre-scramble that tips it over is ignored (as in the virtual puzzle)
+				st = puzzleCuboid.solved(dims);
+			}
+			var moves = puzzleCuboid.parse(moveseq);
+			var recons = [];
+			for (var i = 0; i < moves.length; i++) {
+				var mv = puzzleCuboid.resolve(st, moves[i]);
+				if (mv) {
+					puzzleCuboid.apply(st, mv);
+					recons.push(puzzleCuboid.toStr(mv));
+				}
+			}
+			var at = {};
+			for (var i = 0; i < st.stickers.length; i++) {
+				var s = st.stickers[i];
+				at[[s.c[0] + s.n[0], s.c[1] + s.n[1], s.c[2] + s.n[2]].join()] = s.col;
+			}
+			var colors = kernel.getProp('colcube').match(colre); // D L B U R F
+			// face (URFDLB), net position (cells), size in cells, and the sticker (cubie centre + normal) of cell (i, j)
+			var FACESPEC = [
+				[0, Z + GAP, 0, X, Z, function(i, j) { return [2 * i - X + 1, Y, 2 * j - Z + 1]; }],
+				[1, Z + X + 2 * GAP, Z + GAP, Z, Y, function(i, j) { return [X, Y - 1 - 2 * j, Z - 1 - 2 * i]; }],
+				[2, Z + GAP, Z + GAP, X, Y, function(i, j) { return [2 * i - X + 1, Y - 1 - 2 * j, Z]; }],
+				[3, Z + GAP, Z + Y + 2 * GAP, X, Z, function(i, j) { return [2 * i - X + 1, -Y, Z - 1 - 2 * j]; }],
+				[4, 0, Z + GAP, Z, Y, function(i, j) { return [-X, Y - 1 - 2 * j, 2 * i - Z + 1]; }],
+				[5, 2 * Z + X + 3 * GAP, Z + GAP, X, Y, function(i, j) { return [X - 1 - 2 * i, Y - 1 - 2 * j, -Z]; }]
+			];
+			svg.width = (2 * Z + 2 * X + 3 * GAP + 0.2) * width;
+			svg.height = (2 * Z + Y + 2 * GAP + 0.2) * width;
+			for (var f = 0; f < 6; f++) {
+				var spec = FACESPEC[f];
+				for (var i = 0; i < spec[3]; i++) {
+					for (var j = 0; j < spec[4]; j++) {
+						var col = at[spec[5](i, j).join()];
+						drawPolygon(svg, col == null ? '#777' : colors["DLBURF".indexOf("URFDLB".charAt(col))], [
+							[i, i, i + 1, i + 1],
+							[j, j + 1, j + 1, j]
+						], [width, spec[1] + 0.1, spec[2] + 0.1]);
+					}
+				}
+			}
+			return ["~", recons, type];
+		};
+	})();
+
 	var mrblImage = (function() {
 		// image for mirror block
 		var width = 30;
@@ -1045,6 +1104,8 @@ var image = (function() {
 			gearImage(svg, scramble[1]);
 		} else if (type == "112") {
 			recons = img112(svg, scramble[1]);
+		} else if (/^(223|233|33[4-7])$/.exec(type)) {
+			recons = imgCuboid(svg, type, scramble[1]);
 		} else if (type == "mrbl") {
 			mrblImage(svg, 3, scramble[1]);
 		} else if (type == "15b" || type == "15p") {

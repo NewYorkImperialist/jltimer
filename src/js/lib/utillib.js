@@ -451,6 +451,7 @@ var DEBUGBL = false; // for debugging bluetooth
 		return format.replace(/{(\d+)}/g, (m, num) => args[~~num] || '');
 	};
 
+	$.CUBOID_RE = "223|233|33[4-7]"; // LxMxN cuboids (twisty/twistycuboid.js, lib/puzzlecuboid.js)
 	$.UDPOLY_RE = "skb|m?pyr|prc|heli(?:2x2|cv)?|crz3a|giga|mgm|klm|redi|dino|fto|dmd|ctico";
-	$.TWISTY_RE = "sq1|clk|udpoly|112|" + $.UDPOLY_RE; // 112: the 1x1x2 (twisty/twisty112.js)
+	$.TWISTY_RE = "sq1|clk|udpoly|112|" + $.CUBOID_RE + "|" + $.UDPOLY_RE; // 112: the 1x1x2 (twisty/twisty112.js)
 })();
