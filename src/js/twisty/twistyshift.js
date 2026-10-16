@@ -13,6 +13,8 @@
 (function() {
 	twistyjs.registerTwisty('335', createShiftTwisty);
 	twistyjs.registerTwisty('337', createShiftTwisty);
+	twistyjs.registerTwisty('335f', createShiftTwisty); // the flexible rules (lib/puzzleshift.js)
+	twistyjs.registerTwisty('337f', createShiftTwisty);
 
 	var axify = twistyjs.axify;
 
@@ -62,6 +64,7 @@
 
 	function createShiftTwisty(twistyScene, twistyParameters) {
 		var dims0 = puzzleShift.DIMS[twistyParameters.type];
+		var flex0 = !!puzzleShift.FLEX[twistyParameters.type];
 		var keys = twistyjs.jlCuboidKeys;
 		var obj3d = new THREE.Object3D();
 
@@ -104,8 +107,8 @@
 		var bodyGeometry = new THREE.Plane(2.02, 2.02);
 		var stickerGeometry = new THREE.Plane(2, 2);
 
-		var state = puzzleShift.solved(dims0); // what is drawn (moves applied when their animation ends)
-		var qState = puzzleShift.solved(dims0); // after every move entered so far, for reading new input
+		var state = puzzleShift.solved(dims0, flex0); // what is drawn (moves applied when their animation ends)
+		var qState = puzzleShift.solved(dims0, flex0); // after every move entered so far, for reading new input
 		var pending = 0; // moves entered with addMoves that have not been applied yet
 		// faces[i] = [baseMatrix, object, cubie, face (URFDLB, home direction), hasSticker, interiorMesh, bodyMesh]
 		var faces = [];
@@ -455,7 +458,7 @@
 			var moves = puzzleShift.parse(scramble);
 			if (addPreScr) {
 				var pre = puzzleShift.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
-				var st = puzzleShift.solved(dims0);
+				var st = puzzleShift.solved(dims0, flex0);
 				for (var i = 0; i < pre.length; i++) {
 					puzzleShift.apply(st, pre[i]);
 				}
@@ -463,7 +466,7 @@
 					moves = pre.concat(moves);
 				}
 			}
-			var sim = puzzleShift.solved(dims0);
+			var sim = puzzleShift.solved(dims0, flex0);
 			var ret = [];
 			for (var i = 0; i < moves.length; i++) {
 				var mv = moves[i][1] == puzzleShift.CORE ? puzzleShift.resolve(sim, moves[i]) : moves[i];

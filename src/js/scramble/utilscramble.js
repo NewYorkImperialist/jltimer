@@ -596,7 +596,7 @@
 		return puzzleCuboid.scramble(type, len, rn);
 	});
 	// shape-shifting 3x3x5 / 3x3x7 (lib/puzzleshift.js): cuboid moves, then a random-state 3x3x3 of the core
-	scrMgr.reg(['335', '337'], function(type, len) {
+	scrMgr.reg(['335', '337', '335f', '337f'], function(type, len) {
 		return puzzleShift.scramble(type, len, rn, scramble_333.getRandomScramble);
 	});
 
