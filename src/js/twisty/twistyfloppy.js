@@ -15,6 +15,7 @@
 (function() {
 	twistyjs.registerTwisty("133", createFloppyTwisty);
 	twistyjs.registerTwisty("sfl", createFloppyTwisty);
+	twistyjs.registerTwisty("sfli", createFloppyTwisty);
 
 	var axify = twistyjs.axify;
 
@@ -115,12 +116,12 @@
 	}
 
 	function createFloppyTwisty(twistyScene, twistyParameters) {
-		var kind = twistyParameters.type; // "133" or "sfl"
+		var kind = twistyParameters.type; // "133", "sfl" (official rules) or "sfli" (imitation rules)
 		var half = kind == "133"; // the Floppy turns its sides 180 degrees only
 
-		// official Super Floppy rules (Options > scramble > "Super Floppy rules"): a bare edge can't turn
+		// official Super Floppy rules (scramble type "sfl"; "sfli" = imitation, every side turns): a bare edge can't turn
 		function official() {
-			return kind == "sfl" && kernel.getProp('sflMode', 'o') != 'i';
+			return kind == "sfl";
 		}
 		var obj3d = new THREE.Object3D();
 
@@ -474,7 +475,7 @@
 		function parseScramble(scramble, addPreScr) {
 			// old csTimer Super Floppy scrambles (R L U D, held upright) are applied laid flat (U = B, D = F); scramble
 			// moves are applied without the official lock, as those old scrambles ignored it
-			var moves = puzzleFloppy.parse(kind == "sfl" ? puzzleFloppy.legacySfl(scramble) : scramble);
+			var moves = puzzleFloppy.parse(kind != "133" ? puzzleFloppy.legacySfl(scramble) : scramble);
 			if (addPreScr) {
 				var pre = puzzleFloppy.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
 				var st = puzzleFloppy.solved();

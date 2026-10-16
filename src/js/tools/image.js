@@ -600,7 +600,7 @@ var image = (function() {
 		return function(svg, moveseq, kind) {
 			var half = kind == '133';
 			var rows = half ? 1 : 3;
-			if (kind == 'sfl') {
+			if (kind != '133') {
 				moveseq = puzzleFloppy.legacySfl(moveseq); // old csTimer scrambles: R L U D, held upright
 			}
 			var st = puzzleFloppy.run(moveseq, half);
@@ -1503,7 +1503,7 @@ var image = (function() {
 			recons = img112(svg, scramble[1], 2);
 		} else if (type == "111") {
 			recons = img112(svg, scramble[1], 1);
-		} else if (type == "133" || type == "sfl") {
+		} else if (type == "133" || type == "sfl" || type == "sfli") {
 			recons = imgFloppy(svg, scramble[1], type);
 		} else if (type == "335" || type == "337") {
 			recons = imgShift(svg, type, scramble[1]);

@@ -92,7 +92,7 @@ var puzzleFactory = execMain(function() {
 			return;
 		}
 		// the 2D view has no 1x1x2 / 1x1x1, Floppies, cuboids, bandaged puzzles, Mirror Blocks, Square-1 family, Gear Cube, Siamese, Ufo or Cmetrick: they are always drawn in 3D
-		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfl|223|233|33[4-7]|bic|bsq|mrbl|sq1|sq2|ssq1|gear|sia1[12]3|sia222|ufo|cm[23])$/.exec(options['puzzle']) ? 'q' : 'v';
+		var style = /^q[2l]?$/.exec(options['style']) && !/^(111|112|133|sfli?|223|233|33[4-7]|bic|bsq|mrbl|sq1|sq2|ssq1|gear|sia1[12]3|sia222|ufo|cm[23])$/.exec(options['puzzle']) ? 'q' : 'v';
 		if (puzzleSlide.info(options['puzzle'])) {
 			style = 's'; // sliding puzzles: a flat grid of their own (twisty/twistyslide.js), in either view
 		}
@@ -151,7 +151,7 @@ var puzzleFactory = execMain(function() {
 		} else if (/^ctico$/.exec(puzzle)) {
 			options["faceColors"] = $.col2std(kernel.getProp("colico"), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
 		}
-		if (/^(133|sfl)$/.exec(puzzle)) { // Floppy, Super Floppy (twisty/twistyfloppy.js): the cube colours
+		if (/^(133|sfli?)$/.exec(puzzle)) { // Floppy, Super Floppy (twisty/twistyfloppy.js): the cube colours
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]);
 		}
 		if (puzzle == "bic") { // Bicube (twisty/twistybandaged.js): a 3x3x3 with the cube colours
@@ -174,7 +174,7 @@ var puzzleFactory = execMain(function() {
 				continue;
 			}
 			var scene = puzzle.twistyScene;
-			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|(111|112|133|sfl|223|233|33[4-7]|bic|mrbl|gear|sia1[12]3|sia222)$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
+			if (puzzle.twisty.applySkin && puzzle.twisty.type && /^(cube|(111|112|133|sfli?|223|233|33[4-7]|bic|mrbl|gear|sia1[12]3|sia222)$)/.exec(puzzle.twisty.type['puzzle'] || '')) {
 				puzzle.twisty.applySkin(puzzle.twisty, null, $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]));
 				scene.redraw && scene.redraw();
 			} else if (prevParents[i][1] == 'q') {

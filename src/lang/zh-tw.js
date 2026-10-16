@@ -441,7 +441,8 @@ var scrdata = [
 		['超級SQ-1', "ssq1t", 20]
 	]],
 	['超級軟碟方塊', [
-		['random state', "sfl", 0]
+		['official', "sfl", 0],
+		['imitation', "sfli", 0]
 	]],
 	['飛碟方塊', [
 		['Jaap打亂法', "ufo", 25]

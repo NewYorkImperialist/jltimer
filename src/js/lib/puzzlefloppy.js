@@ -318,7 +318,7 @@ var puzzleFloppy = (function() {
 	// the virtual puzzle is a twisty type (twisty/twistyfloppy.js): register it next to $.TWISTY_RE (lib/utillib.js)
 	var jq = /** @type {any} */ (typeof $ != 'undefined' ? $ : null);
 	if (jq && jq.TWISTY_RE) {
-		jq.TWISTY_RE += '|133|sfl';
+		jq.TWISTY_RE += '|133|sfli?';
 	}
 
 	return {

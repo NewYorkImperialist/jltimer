@@ -441,7 +441,8 @@ var scrdata = [
 		['슈퍼 스퀘어-1', "ssq1t", 20]
 	]],
 	['슈퍼 플로피', [
-		['random state', "sfl", 0]
+		['official', "sfl", 0],
+		['imitation', "sfli", 0]
 	]],
 	['UFO', [
 		['얍(Jaap)', "ufo", 25]

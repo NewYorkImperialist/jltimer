@@ -5,8 +5,8 @@
 //
 // A uniform random state of the 3,041,280 is picked (never solved) and solved optimally by IDA*; the scramble is the
 // inverse of that solution, in R F L B quarter / half turns (a half turn counts as one move, as in Jaap Scherphuis's
-// analysis, jaapsch.net/puzzles/floppy2.htm). The rules setting (Options > scramble > "Super Floppy rules", prop
-// sflMode) picks official or imitation: official solutions never turn a side that holds no corner, which the official
+// analysis, jaapsch.net/puzzles/floppy2.htm). Two scramble types (Super Floppy > official / imitation in the menu)
+// pick the rules: official solutions never turn a side that holds no corner, which the official
 // puzzle blocks, and their inverse doesn't either (a side holding a corner keeps it while it turns); imitation
 // scrambles may turn bare edges and are a bit shorter. God's number: official 15, imitation 13; the scrambles are
 // optimal, so never longer. The IDA* heuristic is the largest of six exact distance tables of projections (corner
@@ -14,9 +14,8 @@
 // pairs through the puzzle's 4-fold symmetry): 2 x 331,776 bytes per rules set, built with the move tables on the first
 // scramble of a rules set (about 40 ms in the browser, 20 ms for the second set); a solve then takes ~0.02 ms.
 //
-// The scrambler id is "sfl" for official rules and "sfli" for imitation rules; the menu entry is always "sfl" and
-// scramble/scramble.js points it at "sfli" (alias, like 444wca -> 444m) when the setting is imitation, so cached
-// scrambles from the worker are always of the chosen rules.
+// The scramble type is "sfl" for official rules (csTimer's id, so old sessions stay official) and "sfli" for imitation
+// rules; each is its own menu entry and twisty type (twisty/twistyfloppy.js), so a solve records its rules.
 var superFloppy = (function() {
 	var LOCS = puzzleFloppy.LOCS;
 	var SIDES = puzzleFloppy.SIDES;
