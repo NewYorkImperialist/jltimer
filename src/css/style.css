@@ -3242,7 +3242,11 @@ mark.optmark {
 	visibility: hidden;
 }
 
-/* free play: no scramble to show; the event menus and last/next stay (js/timer/virtual.js) */
+/* free play: no scramble to show, so the banner shrinks to the event menus and last/next row (js/timer/virtual.js) */
 html.jlfreeplay #scrambleTxt {
-	visibility: hidden;
+	display: none;
+}
+
+html.jlfreeplay #scrambleDiv > .title {
+	margin-bottom: 0;
 }
