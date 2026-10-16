@@ -313,6 +313,7 @@ execMain(function(timer) {
 		var on = freeActive();
 		freeDiv.html('<span>free play</span>' + (freeMoves ? '<span><i> \u00b7 </i>' + freeMoves + (freeMoves == 1 ? ' move' : ' moves') + '</span>' : '')).toggle(on);
 		$('#multiphase').toggleClass('jlfreeon', on); // hide the stale time under the label
+		$('html').toggleClass('jlfreeplay', on); // free play has no scramble: hide its text (the event menus stay)
 		if (on) {
 			$('#lcd').css({'visibility': 'hidden'}); // no stale time; lets the cube be dragged / swiped
 		}
