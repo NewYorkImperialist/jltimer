@@ -163,7 +163,8 @@ window.twistyjs = (function() {
 			 * Go!
 			 */
 
-			renderer = new THREE.CanvasRenderer();
+			// big cubes (twisty/twistybig.js) draw themselves with WebGL; everything else uses the canvas renderer
+			renderer = twisty.getRenderer && twisty.getRenderer(that) || new THREE.CanvasRenderer();
 			twistyCanvas = renderer.domElement;
 
 			twistyContainer.appendChild(twistyCanvas);
