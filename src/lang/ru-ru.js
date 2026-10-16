@@ -441,7 +441,8 @@ var scrdata = [
 		['Супер Скваер', "ssq1t", 20]
 	]],
 	['Супер Флоппи', [
-		['random state', "sfl", 0]
+		['official', "sfl", 0],
+		['imitation', "sfli", 0]
 	]],
 	['НЛО', [
 		['Стиль Jaap', "ufo", 25]

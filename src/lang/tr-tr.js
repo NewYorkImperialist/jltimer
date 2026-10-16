@@ -441,7 +441,8 @@ var scrdata = [
 		['Süper Kare-1', "ssq1t", 20]
 	]],
 	['süper disket', [
-		['random state', "sfl", 0]
+		['official', "sfl", 0],
+		['imitation', "sfli", 0]
 	]],
 	['UFO', [
 		['Jaap Stili', "ufo", 25]

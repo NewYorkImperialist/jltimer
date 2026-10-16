@@ -13,8 +13,11 @@
 // pieces, so a quarter turn of a long side (R L F B, and the slices M S) swings the outer pieces of that side out to
 // the front / back: the puzzle changes shape. The outer pieces can only be separated from the core piece they sit on
 // (a turn of an outer layer on its own: U, D, or an inner layer between the core and the ends) when they form a
-// complete 3x3 outer layer; otherwise that turn is blocked. Solved = cuboid shape and every face one colour, in any
-// orientation.
+// complete 3x3 outer layer; otherwise that turn is blocked. A turn of the core's own end layer (on the 3x3x5 2-2Uw,
+// the 3x3x7 3-3Uw) while its end layer is incomplete carries the end pieces stacked on it (the plane between them
+// cuts nothing), so it turns as Uw / 3Uw. The rule in general: a layer turn is possible iff no stack of attached
+// pieces crosses its boundary planes, the stacks whose core end it turns riding along (span). Solved = cuboid shape
+// and every face one colour, in any orientation.
 //
 // Coordinates: one unit per cubie, the core occupies -1..1 on every axis, an outer piece has one coordinate beyond
 // +-1 (up to +-2 / +-3). Every cubie (also the hidden core centre) is stored with its position and the current
@@ -126,7 +129,8 @@ var puzzleShift = (function() {
 	}
 
 	/**
-	 * true if the layer at coordinate v of axis a is a complete 3x3 outer layer
+	 * true if the outer layer at coordinate v of axis a can separate from the stacks it sits on: it is a complete 3x3
+	 * layer (or empty: no stack reaches it)
 	 * @param {any} st
 	 * @param {number} a
 	 * @param {number} v
@@ -138,21 +142,49 @@ var puzzleShift = (function() {
 				n++;
 			}
 		}
-		return n == 9;
+		return n == 9 || n == 0;
 	}
 
 	/**
-	 * the cut between coordinates u and u + 1 of axis a can turn: always inside the core, beyond it only along a
-	 * complete outer layer
+	 * the layers a move really turns, by the geometry: [axis, lo, hi] as slab(), 'whole', or null if the move can't be
+	 * made now. Every end piece sits on a stack: it is attached to the piece next to it towards the core along the
+	 * axis it sticks out on (the core is always complete, so every stack reaches it). A boundary plane of the slab
+	 * inside the core cuts no piece. A plane beyond the core (between u and u + 1, |u| >= 1) cuts the stacks crossing
+	 * it unless the layer beyond it is a complete 3x3 (the end layer then separates from the core, Jaap's rule). If
+	 * it would cut them, the turn is still possible when the slab holds the inner end of every stack crossing it
+	 * (the plane is its outer boundary): the pieces beyond ride along on their stacks, so the slab extends to the end
+	 * of the puzzle. If the slab holds the outer end (its inner boundary), it would tear the stacks: blocked. A slab
+	 * extended to the whole puzzle is no layer turn (nothing is held): blocked. Turning whole layers of the grid
+	 * can't collide with anything.
 	 * @param {any} st
-	 * @param {number} a
-	 * @param {number} u
+	 * @param {any[]} mv
+	 * @returns {any}
 	 */
-	function cutFree(st, a, u) {
-		if (u == -1 || u == 0) {
-			return true;
+	function span(st, mv) {
+		var sl = slab(st, mv);
+		if (!sl || !mv[3] || sl == 'whole') {
+			return mv[3] ? sl : null;
 		}
-		return layerComplete(st, a, u >= 1 ? u + 1 : u);
+		var a = sl[0], lo = sl[1], hi = sl[2];
+		// the upper boundary (between hi and hi + 1) beyond the core: hi >= 1 (the slab holds the inner ends) or
+		// hi <= -2 (the outer ends, below the core)
+		if (hi != Infinity && (hi >= 1 || hi <= -2) && !layerComplete(st, a, hi >= 1 ? hi + 1 : hi)) {
+			if (hi <= -2) {
+				return null;
+			}
+			hi = Infinity;
+		}
+		// the lower boundary (between lo - 1 and lo): lo <= -1 (inner ends) or lo >= 2 (outer ends)
+		if (lo != -Infinity && (lo <= -1 || lo >= 2) && !layerComplete(st, a, lo <= -1 ? lo - 1 : lo)) {
+			if (lo >= 2) {
+				return null;
+			}
+			lo = -Infinity;
+		}
+		if (lo == -Infinity && hi == Infinity) {
+			return null;
+		}
+		return [a, lo, hi];
 	}
 
 	/**
@@ -161,28 +193,22 @@ var puzzleShift = (function() {
 	 * @param {any[]} mv
 	 */
 	function isLegal(st, mv) {
-		var sl = slab(st, mv);
-		if (!sl || !mv[3]) {
-			return false;
-		}
-		if (sl == 'whole') {
-			return true;
-		}
-		return (sl[1] == -Infinity || cutFree(st, sl[0], sl[1] - 1)) && (sl[2] == Infinity || cutFree(st, sl[0], sl[2]));
+		return !!span(st, mv);
 	}
 
 	/**
-	 * indices of the cubies a move turns (all of them for a rotation; none if it is not legal)
+	 * indices of the cubies a move turns (all of them for a rotation; none if it is not legal); in a shifted shape
+	 * this may include the pieces riding along on the stacks of the turning layers (see span)
 	 * @param {any} st
 	 * @param {any[]} mv
 	 * @returns {number[]}
 	 */
 	function turning(st, mv) {
 		var ret = [];
-		if (!isLegal(st, mv)) {
+		var sl = span(st, mv);
+		if (!sl) {
 			return ret;
 		}
-		var sl = slab(st, mv);
 		for (var i = 0; i < st.cubies.length; i++) {
 			var p = st.cubies[i].p;
 			if (sl == 'whole' || p[sl[0]] >= sl[1] && p[sl[0]] <= sl[2]) {

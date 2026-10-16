@@ -441,7 +441,8 @@ var scrdata = [
 		['סופר סקוואן', "ssq1t", 20]
 	]],
 	['Super Floppy', [
-		['random state', "sfl", 0]
+		['official', "sfl", 0],
+		['imitation', "sfli", 0]
 	]],
 	['עב"מ', [
 		['Jaap style', "ufo", 25]
