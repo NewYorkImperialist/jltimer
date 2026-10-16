@@ -196,6 +196,9 @@ worker.js)
 
 cstimer = $(dest)/js/cstimer.js
 twisty = $(dest)/js/twisty.js
+# big NxNxN cubes (WebGL), loaded by puzzleFactory only when one is shown
+twistybigSrc = $(src)/js/twisty/twistybig.js
+twistybig = $(dest)/js/twistybig.js
 # enhanced themes: one file per theme, shipped as a separate bundle loaded after the timer starts
 themeSrc = $(sort $(wildcard $(src)/js/themes/*.js))
 jlthemes = $(dest)/js/jlthemes.js
@@ -209,7 +212,7 @@ langPHP = $(addprefix $(dest)/lang/, $(shell ls $(src)/lang/ | grep .*\.php))
 
 version := $(shell git describe --tags --always 2>/dev/null || echo Unspecified)
 
-all: $(cstimer) $(twisty) $(jlthemes) $(jlfx) $(css) $(langJS) $(langPHP) version $(dest)/cache.manifest $(dest)/sw.js
+all: $(cstimer) $(twisty) $(twistybig) $(jlthemes) $(jlfx) $(css) $(langJS) $(langPHP) version $(dest)/cache.manifest $(dest)/sw.js
 
 module: $(cstimer_module)
 
@@ -229,14 +232,15 @@ local: all
 	cp $(dest)/js/jquery.min.js $(dest)/local/js/jquery.min.js
 	cp $(dest)/js/cstimer.js $(dest)/local/js/cstimer.js
 	cp $(dest)/js/twisty.js $(dest)/local/js/twisty.js
+	cp $(dest)/js/twistybig.js $(dest)/local/js/twistybig.js
 	cp $(dest)/js/jlthemes.js $(dest)/local/js/jlthemes.js
 	cp $(dest)/js/jlfx.js $(dest)/local/js/jlfx.js
 	cp $(dest)/css/style.css $(dest)/local/css/style.css
 	cp $(dest)/jltimer.webmanifest $(dest)/jltimer512x512.png $(dest)/jltimer192x192.png $(dest)/jltimer180x180.png $(dest)/jltimer32x32.png $(dest)/jltimer16x16.png $(dest)/local/
 	sed "/'timer.php',/d" $(dest)/sw.js > $(dest)/local/sw.js
 
-check: $(twistySrc) $(timerSrc)
-	@$(compile) --externs experiment/checkwrap.js $(src)/lang/en-us.js $(timerSrc) $(twistySrc) -O ADVANCED --checks-only --jscomp_off checkTypes
+check: $(twistySrc) $(twistybigSrc) $(timerSrc)
+	@$(compile) --externs experiment/checkwrap.js $(src)/lang/en-us.js $(timerSrc) $(twistySrc) $(twistybigSrc) -O ADVANCED --checks-only --jscomp_off checkTypes
 
 # performance + timing-accuracy metric suite over dist/local (tests/metrics/README.md); needs npm install once
 metrics: local
@@ -256,6 +260,10 @@ $(cstimer): $(twisty) $(timerSrc)
 $(twisty): $(twistySrc)
 	@echo $@
 	@$(compile) $(twistySrc) --js_output_file $(twisty)
+
+$(twistybig): $(twistybigSrc)
+	@echo $@
+	@$(compile) $(twistybigSrc) --js_output_file $(twistybig)
 
 $(jlthemes): $(themeSrc)
 	@echo $@

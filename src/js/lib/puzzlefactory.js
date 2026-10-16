@@ -76,6 +76,16 @@ var puzzleFactory = execMain(function() {
 
 	var toInitCalls = null;
 
+	// cubes from this size up use the WebGL renderer (twisty/twistybig.js) in the 3D view when the browser has WebGL2
+	var bigCubeOpts = { min: 13 };
+	var bigLoading = false;
+	var bigFailed = false;
+
+	function isBigCube(options) {
+		var m = /^cube(\d+)$/.exec(options['puzzle']);
+		return !!m && ~~m[1] >= bigCubeOpts.min && !/^q[2l]?$/.exec(options['style']) && !!window.WebGL2RenderingContext;
+	}
+
 	var prevParents = [];
 
 	function init(options, moveListener, parent, callback) {
@@ -88,6 +98,22 @@ var puzzleFactory = execMain(function() {
 				});
 			} else {
 				callback(undefined, true);
+			}
+			return;
+		}
+		// big NxNxN cubes in 3D (twisty/twistybig.js, WebGL): a separate bundle, loaded the first time one is shown
+		var bigCube = isBigCube(options);
+		if (bigCube && !twistyjs.bigcube && !bigFailed) {
+			toInitCalls = init.bind(null, options, moveListener, parent, callback);
+			if (!bigLoading) {
+				bigLoading = true;
+				$.getScript("js/twistybig.js", function() {
+					toInitCalls && toInitCalls();
+				}).fail(function() {
+					bigFailed = true; // offline and not cached: the canvas renderer draws it
+					bigLoading = false;
+					toInitCalls && toInitCalls();
+				});
 			}
 			return;
 		}
@@ -129,6 +155,9 @@ var puzzleFactory = execMain(function() {
 			options["faceColors"] = $.col2std(kernel.getProp("colcube"), [3, 4, 5, 0, 1, 2]); // U L F D L B
 			options["dimension"] = ~~puzzle.slice(4) || 3;
 			options["stickerWidth"] = 1.7;
+			if (bigCube && twistyjs.bigcube && twistyjs.bigcube.api == 1 && twistyjs.bigcube.supported()) {
+				options["type"] = "bigcube";
+			}
 		} else if (puzzle == "mrbl") { // Mirror Blocks (twisty/twistymirror.js): one colour, its own
 			options["stickerWidth"] = 1.7;
 		} else if (puzzle == "112" || puzzle == "111" || /^(223|233|33[4-7]|gear|sia1[12]3|sia222|cm[23])$/.exec(puzzle)) {
@@ -184,6 +213,7 @@ var puzzleFactory = execMain(function() {
 	}
 
 	return {
+		bigCube: bigCubeOpts,
 		restyle: restyle,
 		twistyre: new RegExp("^(" + $.TWISTY_RE + ")$"),
 		init: init
