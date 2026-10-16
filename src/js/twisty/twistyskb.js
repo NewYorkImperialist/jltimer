@@ -301,20 +301,29 @@
 
 		//[axis, power, min, max]
 		//axis: 1: top, 2: bot, 0: /, 3: z2
+		// jlTimer: the 3x3 face keys type the scramble's own moves (WCA R L U B: I/K, D/E, J/F, W/O); csTimer had r / l
+		// (the upper corners, which no scramble uses) on I/K and D/E. Those move to the 3x3 wide keys (U/M r, V/R l)
+		var mR0 = 1,
+			mL0 = 2;
+
 		function generateCubeKeyMapping() {
 			return {
-				73: [mR, 4, 0, 5], //I R
-				75: [mR, -4, 0, 5], //K R'
+				73: [mR0, 4, 0, 5], //I R
+				75: [mR0, -4, 0, 5], //K R'
 				87: [mB, 4, 0, 5], //W B
 				79: [mB, -4, 0, 5], //O B'
 				83: [mD, 4, 0, 5], //S D
 				76: [mD, -4, 0, 5], //L D'
-				68: [mL, 4, 0, 5], //D L
-				69: [mL, -4, 0, 5], //E L'
+				68: [mL0, 4, 0, 5], //D L
+				69: [mL0, -4, 0, 5], //E L'
 				74: [mU, 4, 0, 5], //J U
 				70: [mU, -4, 0, 5], //F U'
 				72: [mF, 4, 0, 5], //H F
 				71: [mF, -4, 0, 5], //G F'
+				85: [mR, 4, 0, 5], //U r
+				77: [mR, -4, 0, 5], //M r'
+				86: [mL, 4, 0, 5], //V l
+				82: [mL, -4, 0, 5], //R l'
 				186: [mY, 3, -5, 5], //; y
 				65: [mY, -3, -5, 5], //A y'
 				84: [mX, 3, -5, 5], //T x
