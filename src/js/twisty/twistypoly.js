@@ -190,17 +190,18 @@
 		return twisty;
 	});
 
+	// jlTimer: W/O b/b' (the bottom back corner DLB had no key; csTimer leaves W/O unbound on these two)
 	twistyjs.registerTwisty("redi", function(scene, param) {
 		poly3d.getFamousPuzzle("redi", param);
 		var twisty = createCubeTwisty(scene, param);
-		bindKeyMap("I:R K:R' E:L' D:L H:F G:F' J:B F:B' L:f' S:f ;:y A:y' U:r M:r' R:l' V:l T:x Y:x N:x' B:x' P:z Q:z'", twisty);
+		bindKeyMap("I:R K:R' E:L' D:L H:F G:F' J:B F:B' L:f' S:f W:b O:b' ;:y A:y' U:r M:r' R:l' V:l T:x Y:x N:x' B:x' P:z Q:z'", twisty);
 		return twisty;
 	});
 
 	twistyjs.registerTwisty("dino", function(scene, param) {
 		poly3d.getFamousPuzzle("dino", param);
 		var twisty = createCubeTwisty(scene, param);
-		bindKeyMap("I:R K:R' E:L' D:L H:F G:F' J:B F:B' L:f' S:f ;:y A:y' U:r M:r' R:l' V:l T:x Y:x N:x' B:x' P:z Q:z'", twisty);
+		bindKeyMap("I:R K:R' E:L' D:L H:F G:F' J:B F:B' L:f' S:f W:b O:b' ;:y A:y' U:r M:r' R:l' V:l T:x Y:x N:x' B:x' P:z Q:z'", twisty);
 		return twisty;
 	});
 
@@ -268,8 +269,10 @@
 		param.pieceGap = 0.05;
 		var twisty = createCubeTwisty(scene, param);
 		// jlTimer: the Icosamate had no keys; its six scramble axes on the 3x3 key positions (I/K right, D/E left,
-		// J/F top, H/G front, W/O back left, S/L back right); the arrow keys turn the view
-		bindKeyMap("I:UR K:UR' D:UL E:UL' J:UrUl F:UrUl' H:FlFr G:FlFr' W:LBl O:LBl' S:RBr L:RBr'", twisty);
+		// J/F top, H/G front, W/O back left, S/L back right); whole-puzzle turns about the top, right and front
+		// axes on the rotation keys (;/A, T Y/B N, P/Q); the arrow keys turn the view
+		bindKeyMap("I:UR K:UR' D:UL E:UL' J:UrUl F:UrUl' H:FlFr G:FlFr' W:LBl O:LBl' S:RBr L:RBr' " +
+			";:[UrUl] A:[UrUl'] T:[UR] Y:[UR] N:[UR'] B:[UR'] P:[FlFr] Q:[FlFr']", twisty);
 		return twisty;
 	});
 
