@@ -159,6 +159,9 @@
 		return twisty;
 	});
 
+	// jlTimer Megaminx keys: U R L F on the 3x3 keys as before; the faces right of F on the right hand (BR O/L, DR , .),
+	// those left of it on the left (BL S/W, DL C/X); the scramble moves R++ / R-- and D++ / D-- one press each on the
+	// 3x3 wide keys (U/M, R/V), so a Pochmann scramble types in rhythm. csTimer: BR W/O, DR S/L, DL C/,, R+ / L+ (1/5)
 	function mgmTwisty(type, scene, param) {
 		poly3d.getFamousPuzzle(type, param);
 		if (type == "klm") {
@@ -166,7 +169,7 @@
 		}
 		var twisty = createCubeTwisty(scene, param);
 		bindKeyMap(type != "giga"
-			? "I:R K:R' W:BR O:BR' S:DR L:DR' C:DL ,:DL' D:L E:L' J:U F:U' H:F G:F' ;:[u] A:[u'] U:R+ R:L- M:R- V:L+ T:[l'] Y:[r] N:[r'] B:[l] P:[f] Q:[f'] 62:BR 63:R 64:[u2] 65:[u] 67:F2 69:F 41:L' 42:BR' 45:[u'] 46:[u2'] 47:F' 49:F2' 31:U2 32:U 36:R' 37:[f'] 39:R2' 12:U' 13:U2' 14:L 17:L2 19:[f] 91:[f'] 92:BR2 93:R2 94:F2' 96:F' 97:DR2' 98:DR' 73:[f] 72:BR2' 71:L2' 76:F2 74:F 79:DR2 78:DR 21:U 23:U' 24:BR 25:[r'] 26:BR' 27:BR2 28:[r2'] 29:BR2' 52:[r] 54:[u] 56:[u'] 58:[r'] 82:[r2] 85:[r] 87:DR' 89:DR"
+			? "I:R K:R' O:BR L:BR' S:BL W:BL' ,:DR .:DR' C:DL X:DL' D:L E:L' J:U F:U' H:F G:F' ;:[u] A:[u'] U:R++ M:R-- R:D++ V:D-- T:[l'] Y:[r] N:[r'] B:[l] P:[f] Q:[f'] 62:BR 63:R 64:[u2] 65:[u] 67:F2 69:F 41:L' 42:BR' 45:[u'] 46:[u2'] 47:F' 49:F2' 31:U2 32:U 36:R' 37:[f'] 39:R2' 12:U' 13:U2' 14:L 17:L2 19:[f] 91:[f'] 92:BR2 93:R2 94:F2' 96:F' 97:DR2' 98:DR' 73:[f] 72:BR2' 71:L2' 76:F2 74:F 79:DR2 78:DR 21:U 23:U' 24:BR 25:[r'] 26:BR' 27:BR2 28:[r2'] 29:BR2' 52:[r] 54:[u] 56:[u'] 58:[r'] 82:[r2] 85:[r] 87:DR' 89:DR"
 			: "I:R K:R' W:BR O:BR' S:DR L:DR' C:DL ,:DL' D:L E:L' J:U F:U' H:F G:F' ;:[u] A:[u'] U:r R:l' M:r' V:l T:[l'] Y:[r] N:[r'] B:[l] P:[f] Q:[f'] 61:u2 62:BR 63:R 64:[u2] 65:[u] 67:F2 69:F 41:L' 42:BR' 43:u2' 45:[u'] 46:[u2'] 47:F' 49:F2' 31:U2 32:U 34:u2 35:u 36:R' 37:[f'] 39:R2' 12:U' 13:U2' 14:L 15:u' 16:u2' 17:L2 19:[f] 91:[f'] 92:BR2 93:R2 94:F2' 95:r 96:F' 97:DR2' 98:DR' 73:[f] 72:BR2' 71:L2' 76:F2 75:l' 74:F 79:DR2 78:DR 21:U 23:U' 24:BR 25:[r'] 26:BR' 27:BR2 28:[r2'] 29:BR2' 51:u 52:[r] 53:u' 54:[u] 56:[u'] 57:l 58:[r'] 59:r' 82:[r2] 85:[r] 87:DR' 89:DR", twisty);
 		return twisty;
 	}
