@@ -340,6 +340,17 @@ Scramble types **Other → LxMxN → 3x3x5** (`335`) and **3x3x7** (`337`), ids 
 
 How it works: `src/js/lib/puzzleshift.js` is the model (cubie positions and face directions, the core slabs and the end-layer / stack rule (`span`), the frame, solved, the old-scramble reading, the scrambler, the image net), using the notation of `lib/puzzlecuboid.js`; `src/js/twisty/twistyshift.js` is the renderer (twisty types `335` / `337`, faces as in `twistyfloppy.js`, keys and touch board shared from `twistycuboid.js` via `twistyjs.jlCuboidKeys`, `refuseMove` for blocked turns). Move logs replay exactly: the moves are read against the puzzle they are applied to.
 
+### 3x3x5 / 3x3x7 (flexible)
+
+Scramble types **Other → LxMxN → 3x3x5 (flexible)** (`335f`) and **3x3x7 (flexible)** (`337f`), next to the strict entries, each with its own sessions and times (a solve records which rules it was done under). The strict entries above stay exactly as they are.
+
+- **Rules**: no mechanism, only geometry: a turn is possible whenever its cut planes pass through no piece and its pieces can turn without hitting the others. Every piece is a unit cubie on the grid and every turn is a quarter turn of whole grid layers about an axis through the centre, so a cut plane never passes through a piece and the turning pieces stay within their layers, where no other piece is: **every layer turn that holds at least one piece (and not all of them) is possible**, in any shape. Examples on the 3x3x5: after R, `U` turns the six end pieces left on top (strict: blocked); `2-2Uw` turns the core's top layer on its own (strict: it carries the end pieces as `Uw`); `E` and `D` turn too. On the 3x3x7 also its `2-2Uw` (the layer between the core and the top). The only refused turns are layers with no pieces in them (e.g. a top layer every piece has left) — and the U / D keys then take the next layer down, as on the strict puzzle.
+- **Solved**: as the strict puzzle (cuboid shape, every face one colour, any orientation), and every sticker on the outside: a core piece can now end up in an end layer with its sticker turned inwards, which would leave a blank face.
+- **Scramble**: the strict scrambles (also legal here, and they turn the same pieces: none of their moves is ever extended by the mechanism). A flexible-only random-move scramble would reach far odder shapes, but a strict scramble already mixes every piece, and the two entries' times stay comparable.
+- Everything else (keys, notation, look, image, replay, free play) as the strict puzzle.
+
+How it works: `lib/puzzleshift.js` keeps `st.flex` (types in `FLEX`); `span` then only checks that the slab holds some pieces but not all; `isSolved` adds the outside-sticker check. Verified by a brute-force geometry checker (unit boxes, cut planes, the swept volume of a 90° turn) against the model on about 30,000 (state, turn) pairs of random flexible states, with strict and flexible agreeing in cuboid shape and every strict turn that moves some pieces being flexible-legal.
+
 ## Siamese Cubes (virtual)
 
 Scramble types **Special → Siamese Cube → 1x1x3 block** (`sia113`), **1x2x3 block** (`sia123`) and **2x2x2 block** (`sia222`): csTimer's ids, menu place and scramblers (unchanged), so old sessions and exports load as they are. Now playable in the virtual timer.

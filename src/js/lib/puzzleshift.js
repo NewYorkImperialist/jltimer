@@ -19,6 +19,16 @@
 // pieces crosses its boundary planes, the stacks whose core end it turns riding along (span). Solved = cuboid shape
 // and every face one colour, in any orientation.
 //
+// The flexible entries 335f / 337f (3x3x5 / 3x3x7 "flexible", their own scramble and twisty types) drop the mechanism
+// and keep only the geometry: a turn is possible whenever its cut planes pass through no piece and its pieces can turn
+// without hitting the others. Every piece is a unit cubie on the grid and every turn is a quarter turn of whole grid
+// layers about an axis through the centre, so a cut plane (between grid layers) never passes through a piece and the
+// turning pieces stay within their layers along the axis, where no other piece is: every layer turn is possible that
+// holds at least one piece and not all of them (that would be a rotation). After R on the 3x3x5 its U turns the six
+// end pieces left on top, 2-2Uw the core's top layer on its own. The reachable shapes stay on the grid (rotations
+// keep every coordinate within +-(k + 1)), so the same state holds them; solved additionally needs every sticker on
+// the outside, since a core piece could now sit in an end layer with its sticker turned inwards.
+//
 // Coordinates: one unit per cubie, the core occupies -1..1 on every axis, an outer piece has one coordinate beyond
 // +-1 (up to +-2 / +-3). Every cubie (also the hidden core centre) is stored with its position and the current
 // directions of its six faces (in URFDLB home order); a face that is outside on the solved cuboid carries a sticker of
@@ -41,8 +51,12 @@ var puzzleShift = (function() {
 	/** @type {Object<string, number[]>} */
 	var DIMS = {
 		'335': [3, 5, 3],
-		'337': [3, 7, 3]
+		'337': [3, 7, 3],
+		'335f': [3, 5, 3],
+		'337f': [3, 7, 3]
 	};
+	/** @type {Object<string, boolean>} */
+	var FLEX = { '335f': true, '337f': true };
 	var WHOLE = 99;
 	var INNER = -2;
 	var CORE = -3;
@@ -64,9 +78,10 @@ var puzzleShift = (function() {
 	/**
 	 * the solved puzzle, upright
 	 * @param {number[]} dims
+	 * @param {boolean=} flex the flexible rules (335f / 337f)
 	 * @returns {any}
 	 */
-	function solved(dims) {
+	function solved(dims, flex) {
 		var h = (dims[1] - 1) / 2;
 		var cubies = [];
 		for (var x = -1; x <= 1; x++) {
@@ -82,7 +97,7 @@ var puzzleShift = (function() {
 				}
 			}
 		}
-		return { dims: dims.slice(), k: h - 1, cubies: cubies };
+		return { dims: dims.slice(), k: h - 1, flex: !!flex, cubies: cubies };
 	}
 
 	/** @param {any} st */
@@ -90,6 +105,7 @@ var puzzleShift = (function() {
 		return {
 			dims: st.dims.slice(),
 			k: st.k,
+			flex: st.flex,
 			cubies: st.cubies.map(function(c) {
 				return { p: c.p.slice(), n: c.n.map(function(v) { return v.slice(); }), st: c.st };
 			})
@@ -166,6 +182,16 @@ var puzzleShift = (function() {
 			return mv[3] ? sl : null;
 		}
 		var a = sl[0], lo = sl[1], hi = sl[2];
+		if (st.flex) { // no mechanism: any layers that hold some of the pieces but not all (see the top)
+			var n = 0;
+			for (var i = 0; i < st.cubies.length; i++) {
+				var u = st.cubies[i].p[a];
+				if (u >= lo && u <= hi) {
+					n++;
+				}
+			}
+			return n > 0 && n < st.cubies.length ? sl : null;
+		}
 		// the upper boundary (between hi and hi + 1) beyond the core: hi >= 1 (the slab holds the inner ends) or
 		// hi <= -2 (the outer ends, below the core)
 		if (hi != Infinity && (hi >= 1 || hi <= -2) && !layerComplete(st, a, hi >= 1 ? hi + 1 : hi)) {
@@ -316,7 +342,8 @@ var puzzleShift = (function() {
 	 * @param {any} st
 	 */
 	function isSolved(st) {
-		if (cuboidAxis(st) == -1) {
+		var ca = cuboidAxis(st);
+		if (ca == -1) {
 			return false;
 		}
 		var nrm = [];
@@ -327,6 +354,12 @@ var puzzleShift = (function() {
 					continue;
 				}
 				var m = nrm[f], v = c.n[f];
+				if (st.flex) { // every sticker on the outside (strict shapes can't hide one)
+					var b = v[0] ? 0 : v[1] ? 1 : 2;
+					if (c.p[b] * v[b] != (b == ca ? st.k + 1 : 1)) {
+						return false;
+					}
+				}
 				if (!m) {
 					nrm[f] = v;
 				} else if (m[0] != v[0] || m[1] != v[1] || m[2] != v[2]) {
@@ -361,9 +394,10 @@ var puzzleShift = (function() {
 	 * the state after a sequence, from solved (moves the puzzle can't make are skipped)
 	 * @param {number[]} dims
 	 * @param {string} str
+	 * @param {boolean=} flex the flexible rules
 	 */
-	function run(dims, str) {
-		var st = solved(dims);
+	function run(dims, str, flex) {
+		var st = solved(dims, flex);
 		var mv = parse(str);
 		for (var i = 0; i < mv.length; i++) {
 			apply(st, mv[i]);
@@ -376,6 +410,8 @@ var puzzleShift = (function() {
 	 * outer layers and keeps the shape, then a random-state 3x3x3 scramble of the core, written as the moves it is:
 	 * U / D as the core's layers (Uw / 3Uw), R L F B quarter turns that change the shape). The 3x3x3 part is drawn
 	 * again if the shape is a cuboid at its end or turns into a lying cuboid on the way (the frame would change).
+	 * The flexible types get the same scrambles: none of these moves is ever extended by the mechanism (span), so
+	 * they turn the same pieces under both rules.
 	 * @param {string} type
 	 * @param {number} len length of the first part (scramble length setting)
 	 * @param {(n: number) => number} rn
@@ -471,6 +507,7 @@ var puzzleShift = (function() {
 		NORMALS: NORMALS,
 		AXIS: AXIS,
 		DIMS: DIMS,
+		FLEX: FLEX,
 		WHOLE: WHOLE,
 		INNER: INNER,
 		CORE: CORE,

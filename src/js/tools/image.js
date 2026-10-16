@@ -876,12 +876,12 @@ var image = (function() {
 		return function(svg, type, moveseq) {
 			var dims = puzzleShift.DIMS[type];
 			var pre = puzzleShift.parse(kernel.getProp(tools.isCurTrainScramble() ? 'preScrT' : 'preScr'));
-			var st = puzzleShift.solved(dims);
+			var st = puzzleShift.solved(dims, puzzleShift.FLEX[type]);
 			for (var i = 0; i < pre.length; i++) {
 				puzzleShift.apply(st, pre[i]);
 			}
 			if (st.dims.join() != dims.join()) { // a pre-scramble that tips it over is ignored (as in the virtual puzzle)
-				st = puzzleShift.solved(dims);
+				st = puzzleShift.solved(dims, puzzleShift.FLEX[type]);
 			}
 			var moves = puzzleShift.parse(moveseq);
 			var recons = [];
@@ -1505,7 +1505,7 @@ var image = (function() {
 			recons = img112(svg, scramble[1], 1);
 		} else if (type == "133" || type == "sfl" || type == "sfli") {
 			recons = imgFloppy(svg, scramble[1], type);
-		} else if (type == "335" || type == "337") {
+		} else if (/^33[57]f?$/.exec(type)) {
 			recons = imgShift(svg, type, scramble[1]);
 		} else if (/^(223|233|33[4-7])$/.exec(type)) {
 			recons = imgCuboid(svg, type, scramble[1]);

@@ -230,7 +230,7 @@ var replay = execMain(function() {
 	}
 
 	function fixMoveOri(move, isInit) {
-		if (!autoOri || !/^\d+$/.exec(puzzle) || /^(111|112|133|223|233|33[4-7])$/.exec(puzzle)) { // 1x1x2 / 1x1x1 / Floppy / cuboids replay in the orientation they were solved in
+		if (!autoOri || !/^\d+$/.exec(puzzle) || /^(111|112|133|223|233|33[4-7]|33[57]f)$/.exec(puzzle)) { // 1x1x2 / 1x1x1 / Floppy / cuboids replay in the orientation they were solved in
 			return isInit ? [] : move;
 		}
 		var targetOri = kernel.getProp('giiOri');
