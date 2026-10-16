@@ -3250,3 +3250,17 @@ html.jlfreeplay #scrambleTxt {
 html.jlfreeplay #scrambleDiv > .title {
 	margin-bottom: 0;
 }
+
+/* ...and loses its panel: only the menus float over the cube */
+html.jlfreeplay #scrambleDiv,
+html.jlfreeplay #scrambleDiv:hover {
+	background: transparent !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+	-webkit-backdrop-filter: none !important;
+	backdrop-filter: none !important;
+}
+
+html.jlfreeplay #scrambleDiv::before {
+	display: none;
+}
