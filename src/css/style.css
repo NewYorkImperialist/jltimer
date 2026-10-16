@@ -3237,8 +3237,9 @@ mark.optmark {
 	}
 }
 
-/* free play: no stale time under the "free play" label (js/timer/virtual.js) */
-#multiphase.jlfreeon .activetimer {
+/* free play: nothing from the last solve beside the "free play" label: no time, splits, turns / tps or averages (js/timer/virtual.js) */
+#multiphase.jlfreeon .activetimer,
+#multiphase.jlfreeon > :not(aside.jlfree) {
 	visibility: hidden;
 }
 
