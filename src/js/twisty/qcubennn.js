@@ -78,6 +78,15 @@
 	}
 
 	var colors = [];
+	// D face edges (D = face 0), their partners on L B R F (the middle of each bottom row) and the 6 centres
+	var CROSS3 = [1, 3, 5, 7, 16, 25, 43, 52, 4, 13, 22, 31, 40, 49];
+
+	function col(twisty, k) {
+		if (twisty.crossOnly && kernel.getProp('vrcStick', 'f') == 'x' && CROSS3.indexOf(twisty.pid[k]) == -1) {
+			return '#7f7f7f';
+		}
+		return colors[twisty.posit[k]];
+	}
 
 	function render(twisty) {
 		if (!twisty.twistyScene.getCanvas()) {
@@ -104,18 +113,18 @@
 			var ii = size - 1 - i;
 			var piece = [[0, 0, 1, 1], [i, i + 1, i + 1, i]];
 			// R
-			drawPolygon(ctx, colors[posit[(4 * size + 0) * size + ii]], piece, [width, size + gap * 2 + offset, gap + offset]);
+			drawPolygon(ctx, col(twisty, (4 * size + 0) * size + ii), piece, [width, size + gap * 2 + offset, gap + offset]);
 			// B and L
 			if (!isTwoLook) {
-				drawPolygon(ctx, colors[posit[(1 * size + 0) * size + ii]], piece, [width, gap + 0, gap * 2 + 1]);
+				drawPolygon(ctx, col(twisty, (1 * size + 0) * size + ii), piece, [width, gap + 0, gap * 2 + 1]);
 				piece = [[i, i, i + 1, i + 1], [0, 1, 1, 0]];
-				drawPolygon(ctx, colors[posit[(2 * size + 0) * size + i]], piece, [width, 1 + gap * 2, gap]);
+				drawPolygon(ctx, col(twisty, (2 * size + 0) * size + i), piece, [width, 1 + gap * 2, gap]);
 			}
 			for (var j = 0; j < size; j++) { // U and F
 				piece = [[i, i, i + 1, i + 1], [j, j + 1, j + 1, j]];
-				drawPolygon(ctx, colors[posit[(3 * size + j) * size + i]], piece, [width, gap + offset, gap + offset]);
+				drawPolygon(ctx, col(twisty, (3 * size + j) * size + i), piece, [width, gap + offset, gap + offset]);
 				if (j < 2) {
-					drawPolygon(ctx, colors[posit[(5 * size + j) * size + i]], piece, [width, gap + offset, size + gap * 2 + offset]);
+					drawPolygon(ctx, col(twisty, (5 * size + j) * size + i), piece, [width, gap + offset, size + gap * 2 + offset]);
 				}
 			}
 		}
@@ -135,23 +144,23 @@
 			var piece = [[0, 0, 1, 1], [i, i + 1, i + 1, i]];
 			// L and R
 			if (i != 0) {
-				drawPolygon(ctx, colors[posit[(1 * size + i) * size + 0]], piece, [width, gap, size + gap * 2]);
-				drawPolygon(ctx, colors[posit[(4 * size + i) * size + 0]], piece, [width, size + 1 + gap * 3, size + gap * 2]);
+				drawPolygon(ctx, col(twisty, (1 * size + i) * size + 0), piece, [width, gap, size + gap * 2]);
+				drawPolygon(ctx, col(twisty, (4 * size + i) * size + 0), piece, [width, size + 1 + gap * 3, size + gap * 2]);
 			}
 			if (i != size - 1) {
-				drawPolygon(ctx, colors[posit[(1 * size + 0) * size + ii]], piece, [width, gap + 0, gap + 0]);
-				drawPolygon(ctx, colors[posit[(4 * size + 0) * size + ii]], piece, [width, gap + size + 1 + gap * 2, gap]);
+				drawPolygon(ctx, col(twisty, (1 * size + 0) * size + ii), piece, [width, gap + 0, gap + 0]);
+				drawPolygon(ctx, col(twisty, (4 * size + 0) * size + ii), piece, [width, gap + size + 1 + gap * 2, gap]);
 			}
 			for (var j = 0; j < size; j++) {
 				piece = [[i, i, i + 1, i + 1], [j, j + 1, j + 1, j]];
 				// U and F
-				drawPolygon(ctx, colors[posit[(3 * size + j) * size + i]], piece, [width, 1 + gap * 2, gap]);
-				drawPolygon(ctx, colors[posit[(5 * size + j) * size + i]], piece, [width, 1 + gap * 2, size + gap * 2]);
+				drawPolygon(ctx, col(twisty, (3 * size + j) * size + i), piece, [width, 1 + gap * 2, gap]);
+				drawPolygon(ctx, col(twisty, (5 * size + j) * size + i), piece, [width, 1 + gap * 2, size + gap * 2]);
 			}
 		}
 		var piece2 = [[0, 0, 1, 1], [0, 2 + gap, 2 + gap, 0]];
-		drawPolygon(ctx, colors[posit[(1 * size + 0) * size + 0]], piece2, [width, gap, gap + size - 1]);
-		drawPolygon(ctx, colors[posit[(4 * size + 0) * size + 0]], piece2, [width, size + 1 + gap * 3, gap + size - 1]);
+		drawPolygon(ctx, col(twisty, (1 * size + 0) * size + 0), piece2, [width, gap, gap + size - 1]);
+		drawPolygon(ctx, col(twisty, (4 * size + 0) * size + 0), piece2, [width, size + 1 + gap * 3, gap + size - 1]);
 		if (size > 5) {
 			drawPolygon(ctx, '#fff', [[-0.1, -0.1, 0.1, 0.1], [-0.1, 0.1, 0.1, -0.1]], [width, size * 0.5 + 1 + gap * 2, size * 0.5 + gap]);
 			drawPolygon(ctx, '#fff', [[-0.1, -0.1, 0.1, 0.1], [-0.1, 0.1, 0.1, -0.1]], [width, size * 0.5 + 1 + gap * 2, size * 1.5 + gap * 2]);
@@ -231,6 +240,13 @@
 				this.posit[cnt++] = i;
 			}
 		}
+		// partial stickering (option vrcStick, js/timer/virtual.js), 3x3 only: which sticker sits where (pid), so
+		// the centres and the D cross edges keep their colours wherever they go and the rest is drawn grey
+		this.pid = [];
+		for (var i = 0; i < 6 * size * size; i++) {
+			this.pid[i] = i;
+		}
+		this.crossOnly = size == 3 && options['puzzle'] == 'cube3';
 		this.cntMove = function(move) {
 			if (!this.isInspectionLegalMove(this, move) && move[2] != this.lastMove) {
 				this.counter++;
@@ -323,11 +339,14 @@
 			var pow = (move[3] + 3) % 4 + 1;
 			for (var j = move[0]; j < move[1]; j++) {
 				doslice(face, j - 1, pow, this.size, this.posit);
+				doslice(face, j - 1, pow, this.size, this.pid);
 			}
 			if (move[1] == size) {
 				doslice((face + 3) % 6, 0, 4 - pow, this.size, this.posit);
+				doslice((face + 3) % 6, 0, 4 - pow, this.size, this.pid);
 			} else {
 				doslice(face, move[1] - 1, pow, this.size, this.posit);
+				doslice(face, move[1] - 1, pow, this.size, this.pid);
 			}
 			this.cntMove(move);
 		};
