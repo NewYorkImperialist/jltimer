@@ -801,6 +801,7 @@
 		'uniform vec4 uCu;', // clip step per su
 		'uniform vec4 uCv;', // clip step per sv
 		'uniform vec4 uCs[4];', // clip offsets of a sticker's corners
+		'uniform float uFill;', // a plain sticker's scale that fills its whole cell (2 / sticker width)
 		'uniform vec4 uCb[4];', // clip offsets of a body quad's corners
 		'uniform vec2 uView;',
 		'uniform int uN;',
@@ -851,10 +852,18 @@
 		'  for (int i = 0; i < 4; i++) { if (i >= NV) break; vec2 p = Q[i], q = Q[i + 1 < NV ? i + 1 : 0]; s += p.x * q.y - p.y * q.x; }',
 		'  return s >= 0.0 ? 1.0 : -1.0;',
 		'}',
-		'vec2 nrm(int i, float or) {', // outward normal of edge i, half a pixel long
+		// outward normal of edge i, half a pixel long; on stickers under 8 px (longer side, so a face seen edge-on keeps its look) the 1 px outline thins with them
+		// (see uFill), so on huge cubes the colours are not buried under black (8 px and up: the canvas renderer's stroke)
+		'float lineW() {',
+		'  float m = 0.0;',
+		'  for (int i = 0; i < 4; i++) { if (i >= NV) break; m = max(m, length(Q[i + 1 < NV ? i + 1 : 0] - Q[i])); }',
+		'  float t = min(1.0, m / 8.0);',
+		'  return t * t;',
+		'}',
+		'vec2 nrm(int i, float or) {',
 		'  vec2 e = Q[i + 1 < NV ? i + 1 : 0] - Q[i];',
 		'  float l = length(e);',
-		'  return l < 1e-6 ? vec2(0.0) : or * vec2(e.y, -e.x) / l * 0.5;',
+		'  return l < 1e-6 ? vec2(0.0) : or * vec2(e.y, -e.x) / l * 0.5 * lineW();',
 		'}',
 		// fill + outline: triangle t of [outer octagon (2 NV - 2 triangles), quad shrunk by 0.5 px (NV - 2)];
 		// colour 0 = outline, 1 = fill; a = false when the triangle is unused
@@ -973,7 +982,15 @@
 		'    float dd = uDep.x + uDep.y * float(su) + uDep.z * float(sv);',
 		'    if (!(dd > uBand.x && dd <= uBand.y)) base = 0;',
 		'    vec4 c = uC0 + float(su) * uCu + float(sv) * uCv;',
-		'    for (int i = 0; i < 4; i++) Q[i] = px(c + (base == 3 ? uCb[i] : uCs[i]));',
+		'    float grow = 1.0;',
+		// plain stickers under 8 px apart (the longer way) grow into the black gap between them (filling it at 0 px),
+		// so huge cubes show their colours; 8 px and up they are exactly the canvas renderer's
+		'    if (base == 1) {',
+		'      vec2 p0 = px(c);',
+		'      float cell = max(length(px(c + uCu) - p0), length(px(c + uCv) - p0));',
+		'      grow = mix(uFill, 1.0, min(1.0, cell / 8.0));',
+		'    }',
+		'    for (int i = 0; i < 4; i++) Q[i] = px(c + (base == 3 ? uCb[i] : uCs[i] * grow));',
 		'    bool hit = true;',
 		'    if (uAH.x == 1) hit = eff(sv) || eff(uN - 1 - sv) || eff(su) || eff(uN - 1 - su);',
 		'    if (base == 3) {',
@@ -1109,7 +1126,7 @@
 		return p;
 	}
 
-	var UNIFORMS = ['uC0', 'uCu', 'uCv', 'uCs', 'uCb', 'uView', 'uN', 'uRect', 'uOrd', 'uParts', 'uInst0', 'uDep', 'uBand', 'uKinds', 'uSeg', 'uSegS',
+	var UNIFORMS = ['uC0', 'uCu', 'uCv', 'uCs', 'uFill', 'uCb', 'uView', 'uN', 'uRect', 'uOrd', 'uParts', 'uInst0', 'uDep', 'uBand', 'uKinds', 'uSeg', 'uSegS',
 		'uRound', 'uState', 'uMapX', 'uMapY', 'uTile', 'uPal', 'uBody', 'uOver', 'uEdge', 'uAH', 'uEff', 'uCustom', 'uPoly',
 		'uPolyCol'];
 
@@ -1499,6 +1516,7 @@
 				gl.uniform4f(loc.uOver, 0, 0, 0, 1);
 			}
 			var h = skin.stickerWidth / 2;
+			gl.uniform1f(loc.uFill, 1 / h);
 			var m = pt.mvp;
 			setVec4s(loc.uCs, [clip(m, -h, h, 0, 0), clip(m, -h, -h, 0, 0), clip(m, h, -h, 0, 0), clip(m, h, h, 0, 0)]);
 			setVec4s(loc.uCb, [clip(m, -1.01, 1.01, -0.02, 0), clip(m, -1.01, -1.01, -0.02, 0), clip(m, 1.01, -1.01, -0.02, 0), clip(m, 1.01, 1.01, -0.02, 0)]);
