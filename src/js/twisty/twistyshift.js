@@ -399,6 +399,17 @@
 			dd = Math.min(dd, maxDepth);
 			var move = keys.keyMove(keyCode, du, dd);
 			move = move && puzzleShift.resolve(qState, move);
+			// U / D keys (j f / s l) that can't turn while shape-shifted take the shallowest block that can, as a hand
+			// grabbing the top would: on the 3x3x5 after R, j is the lid with the core's top layer
+			if (move && (keyCode == 74 || keyCode == 70 || keyCode == 83 || keyCode == 76) && !puzzleShift.isLegal(qState, move)) {
+				for (var d = (keyCode == 83 || keyCode == 76 ? dd : du) + 1; d <= maxDepth; d++) {
+					var deeper = puzzleShift.resolve(qState, keys.keyMove(keyCode, keyCode == 83 || keyCode == 76 ? du : d, keyCode == 83 || keyCode == 76 ? d : dd));
+					if (deeper && puzzleShift.isLegal(qState, deeper)) {
+						move = deeper;
+						break;
+					}
+				}
+			}
 			if (move && !refuseMove(twisty, move)) {
 				twistyScene.addMoves([move]);
 			}
