@@ -453,6 +453,11 @@ execMain(function(timer) {
 		kernel.regListener('vrcmirror', 'property', function(signal, value) {
 			value[2] == 'modify' && puzzleFactory.restyle();
 		}, /^vrcMirror$/);
+		// partial stickering (twisty/twistynnn.js, qcube.js; Alt+X): 3x3 cross only
+		kernel.regProp('vrc', 'vrcStick', 1, 'Stickering (3x3; Alt+X)', ['f', ['f', 'x'], ['full', 'cross only']]);
+		kernel.regListener('vrcstick', 'property', function(signal, value) {
+			value[2] == 'modify' && puzzleFactory.restyle();
+		}, /^vrcStick$/);
 		kernel.regListener('vrcfree', 'property', function(signal, value) { // own module name: one listener per module
 			value[2] != 'set' && freeToggle(value[1]);
 		}, /^vrcFree$/);

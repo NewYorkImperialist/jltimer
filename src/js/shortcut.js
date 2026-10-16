@@ -47,7 +47,7 @@ var shortcuts = execMain(function(){
 		76: [['input', 'l']]  //last layer
 	}
 
-	// jlTimer: Alt+L toggles the layout, Alt+F virtual cube free play, Alt+=/-/0 resize the virtual cube.
+	// jlTimer: Alt+L toggles the layout, Alt+F virtual cube free play, Alt+X cross-only stickering, Alt+=/-/0 resize the virtual cube.
 	// Only while idle and outside text fields and dialogs, so solving and typing are never affected.
 	function jlShortcut(e) {
 		if (!e.altKey || e.ctrlKey || e.metaKey || kernel.ui.isPop() || timer.status() != -1
@@ -65,6 +65,9 @@ var shortcuts = execMain(function(){
 				kernel.setProp('vrcFree', !kernel.getProp('vrcFree'));
 				logohint.push(kernel.getProp('vrcFree') ? 'Free play on: Esc resets the cube' : 'Free play off');
 			}
+		} else if (key == 88) { // x: partial stickering, cross only (js/timer/virtual.js)
+			kernel.setProp('vrcStick', kernel.getProp('vrcStick', 'f') == 'x' ? 'f' : 'x');
+			logohint.push(kernel.getProp('vrcStick') == 'x' ? 'Stickering: cross only' : 'Stickering: full');
 		} else if (key == 187 || key == 61 || key == 107) { // = or numpad +
 			logohint.push('Virtual cube ' + timer.stepVrcSize(1) + '%');
 		} else if (key == 189 || key == 173 || key == 109) { // - or numpad -

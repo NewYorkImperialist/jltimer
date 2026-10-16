@@ -139,6 +139,26 @@
 				opacity: cubeOptions.opacity
 			});
 		}
+		// partial stickering (option vrcStick, Alt+X; js/timer/virtual.js), 3x3 only: 'x' = cross, every sticker
+		// grey but the centres and the four D cross edges, which keep their colours wherever they go
+		var greyMaterial = new THREE.MeshBasicMaterial({ color: 0x7f7f7f, opacity: cubeOptions.opacity });
+
+		function stickering() {
+			return cubeOptions.dimension == 3 && twistyParameters['puzzle'] == 'cube3' && window.kernel ? kernel.getProp('vrcStick', 'f') : 'f';
+		}
+
+		// is the sticker (face i, translation matrix m) on a centre or a D cross edge (3x3)
+		function crossPiece(m) {
+			var p = [m.n14, m.n24, m.n34];
+			var nz = 0;
+			for (var k = 0; k < 3; k++) {
+				if (Math.abs(p[k]) > 2.5) {
+					p[k] = p[k] > 0 ? 2 : -2; // the sticker sits on its cubie's outer face
+				}
+				nz += Math.abs(p[k]) > 0.5 ? 1 : 0;
+			}
+			return nz == 1 || nz == 2 && p[1] < -1;
+		}
 		// Cube Helper Linear Algebra
 
 		//Cube Object Generation
@@ -177,6 +197,7 @@
 						su * 2 - cubeOptions.dimension + 1, -(sv * 2 - cubeOptions.dimension + 1),
 						cubeOptions.dimension
 					));
+					stickerInterior.jlCross = cubeOptions.dimension == 3 && crossPiece(transformationMatrix);
 
 					sticker.matrix.copy(transformationMatrix);
 
@@ -207,6 +228,10 @@
 				mat.jlShade = skin.shade;
 			}
 			borderMaterial.jlRound = skin.round;
+			greyMaterial.jlRound = skin.round;
+			greyMaterial.jlSheen = skin.sheen;
+			greyMaterial.jlShade = skin.shade;
+			var cross = stickering() == 'x';
 			var hasBody = skin.body != null;
 			if (hasBody) {
 				bodyMaterial.color.setHex(skin.body);
@@ -222,7 +247,8 @@
 					var obj = cubePieces[f][j][1];
 					var interior = obj.children[0];
 					interior.scale.x = interior.scale.y = scale;
-					interior.materials = cubeOptions.stickerBorder && skin.border ? [interior.jlMat, borderMaterial] : [interior.jlMat];
+					var mat = cross && !interior.jlCross ? greyMaterial : interior.jlMat;
+					interior.materials = cubeOptions.stickerBorder && skin.border ? [mat, borderMaterial] : [mat];
 					// with a body in front of them, the stickers on the far side can never be seen
 					interior.doubleSided = hasBody ? false : cubeOptions.doubleSided;
 					obj.children[1].visible = hasBody;
@@ -404,7 +430,9 @@
 				var faceColor = visible ? cubeOptions.faceColors[faceIndex] : 0x7f7f7f;
 				for (var stickerIndex = 0, faceStickerslength = faceStickers.length; stickerIndex < faceStickerslength; stickerIndex++) {
 					var sticker = faceStickers[stickerIndex];
-					sticker[1].children[0].materials[0].color.setHex(faceColor);
+					if (sticker[1].children[0].materials[0] != greyMaterial) { // partial stickering: stays grey
+						sticker[1].children[0].materials[0].color.setHex(faceColor);
+					}
 				}
 			}
 		}
